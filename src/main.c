@@ -37,6 +37,10 @@ struct Point;
 struct PlayerState;
 struct Terrain;
 
+typedef struct Point Point;
+typedef struct PlayerState PlayerState;
+typedef struct Terrain Terrain;
+
 struct Terrain {
     Color color;
 };
@@ -44,9 +48,9 @@ struct Terrain {
 struct Point {
     int x;
     int y;
-    struct PlayerState* occupant;
+    PlayerState* occupant;
     bool selected;
-    struct Terrain terrain;
+    Terrain terrain;
 };
 
 
@@ -54,11 +58,6 @@ struct PlayerState {
     Color color;
     bool selected;
 };
-
-
-typedef struct Point Point;
-typedef struct PlayerState PlayerState;
-typedef struct Terrain Terrain;
 
 //------------------------------------------------------------------------------------
 // Module Functions Declaration
