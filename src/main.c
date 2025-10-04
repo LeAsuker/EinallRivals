@@ -35,13 +35,18 @@
 
 struct Point;
 struct PlayerState;
+struct Terrain;
+
+struct Terrain {
+    Color color;
+};
 
 struct Point {
     int x;
     int y;
     struct PlayerState* occupant;
     bool selected;
-    int terrain; // for now 0 is plains, 1 is forests
+    struct Terrain terrain;
 };
 
 
@@ -53,6 +58,7 @@ struct PlayerState {
 
 typedef struct Point Point;
 typedef struct PlayerState PlayerState;
+typedef struct Terrain Terrain;
 
 //------------------------------------------------------------------------------------
 // Module Functions Declaration
@@ -122,7 +128,7 @@ int main(void)
             mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].y = yCoor;
             mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].occupant = NULL;
             mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].selected = false;
-            mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].terrain = 0;
+            mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].terrain.color = GREEN;
 
         }
     }
@@ -203,7 +209,7 @@ int main(void)
 
                 // first we draw terrain, on it occupant, then grid, then selection
                 DrawRectangle(cell_x_pos, cell_y_pos,
-                    GRID_CELL_SIZE, GRID_CELL_SIZE, GREEN);
+                    GRID_CELL_SIZE, GRID_CELL_SIZE, curr_cell.terrain.color);
                 if (curr_cell.occupant != NULL) {
                     DrawRectangle(cell_x_pos, cell_y_pos,
                         GRID_CELL_SIZE, GRID_CELL_SIZE, curr_cell.occupant->color);
