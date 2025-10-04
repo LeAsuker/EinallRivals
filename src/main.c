@@ -41,10 +41,11 @@ struct Point {
     int y;
     struct PlayerState* occupant;
     bool selected;
+    int terrain; // for now 0 is plains, 1 is forests
 };
 
+
 struct PlayerState {
-    struct Point cell;
     Color color;
     bool selected;
 };
@@ -80,6 +81,23 @@ bool mouseInCell(Vector2 gridPosition, Point cell) {
     return false;
 }
 
+void actor_deselect(PlayerState * actor) {
+    actor->selected = false;
+    actor->color.r = 0;
+    actor->color.g = 0;
+    actor->color.b = 255;
+    return;
+}
+
+
+void actor_select(PlayerState * actor) {
+    actor->selected = true;
+    actor->color.r = 255;
+    actor->color.g = 255;
+    actor->color.b = 0;
+    return;
+}
+
 //------------------------------------------------------------------------------------
 // Program main entry point
 //------------------------------------------------------------------------------------
@@ -104,15 +122,17 @@ int main(void)
             mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].y = yCoor;
             mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].occupant = NULL;
             mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].selected = false;
+            mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].terrain = 0;
+
         }
     }
     // Init current player state
-    PlayerState player = { 0 };
-    player.cell = (Point){ 10, 10 };
+    PlayerState player;
     player.color = BLUE;
     player.selected = false;
 
     mapArr[100].occupant = &player;
+    Point * last_player_position = mapArr + 100;
 
     SetTargetFPS(60);
     //--------------------------------------------------------------------------------------
@@ -124,47 +144,40 @@ int main(void)
         //----------------------------------------------------------------------------------
 
         // Make sure player does not go out of bounds
-        if (player.cell.x < 0) player.cell.x = 0;
-        else if (player.cell.x >= MAX_GRID_CELLS_X) player.cell.x = MAX_GRID_CELLS_X - 1;
-        if (player.cell.y < 0) player.cell.y = 0;
-        else if (player.cell.y >= MAX_GRID_CELLS_Y) player.cell.y = MAX_GRID_CELLS_Y - 1;
+        // if (player.cell.x < 0) player.cell.x = 0;
+        // else if (player.cell.x >= MAX_GRID_CELLS_X) player.cell.x = MAX_GRID_CELLS_X - 1;
+        // if (player.cell.y < 0) player.cell.y = 0;
+        // else if (player.cell.y >= MAX_GRID_CELLS_Y) player.cell.y = MAX_GRID_CELLS_Y - 1;
 
         // The XY coords are in the top left corner of the square
         if (IsMouseButtonPressed(0)) {
-            Point * selectedCell = mouseToCell(gridPosition, mapArr);
-            printf("selectedCell %d %d", selectedCell->x, selectedCell->y);
+            Point * selected_cell = mouseToCell(gridPosition, mapArr);
+            printf("selected_cell %d %d", selected_cell->x, selected_cell->y);
             // tells us which cell we have selected in the mapArr
             // had to do pointer stuff to point to the permanent object
 
 
-            if (selectedCell->selected) {
-                selectedCell->selected = false;
+            if (selected_cell->selected) {
+                selected_cell->selected = false;
             }
             else {
-                selectedCell->selected = true;
+                selected_cell->selected = true;
             }
             
-            if (player.selected && !(mouseInCell(gridPosition, player.cell))){
+            if (player.selected && !(selected_cell->occupant == &player)){
                 printf("move \n");
-                player.cell.x = mouseToCell(gridPosition, mapArr)->x;
-                player.cell.y = mouseToCell(gridPosition, mapArr)->y;
-                player.selected = false;
-                player.color.r = 0;
-                player.color.g = 0;
-                player.color.b = 255;
+                selected_cell->occupant = &player;
+                last_player_position->occupant = NULL;
+                last_player_position = selected_cell;
+                
+                actor_deselect(&player);
             }
-            else if (mouseInCell(gridPosition, player.cell)){
+            else if (selected_cell->occupant == &player){
                 if (player.selected) {
-                    player.selected = false;
-                    player.color.r = 0;
-                    player.color.g = 0;
-                    player.color.b = 255;
+                    actor_deselect(&player);
                 }
                 else {
-                    player.selected = true;
-                    player.color.r = 255;
-                    player.color.g = 255;
-                    player.color.b = 0;
+                    actor_select(&player);
                 }
             }
             
@@ -178,35 +191,32 @@ int main(void)
             ClearBackground(RAYWHITE);
 
             // Draw debug info
-            DrawText(TextFormat("MOUSE: %d %d - MCELL: %d %d - PCELL: %d %d", GetMouseX(), GetMouseY(),
-            mouseToCell(gridPosition, mapArr)->x, mouseToCell(gridPosition, mapArr)->y, player.cell.x, player.cell.y), 40, 20, 20, DARKGRAY);
+            DrawText(TextFormat("MOUSE: %d %d - MCELL: %d %d", GetMouseX(), GetMouseY(),
+                mouseToCell(gridPosition, mapArr)->x, mouseToCell(gridPosition, mapArr)->y), 40, 20, 20, DARKGRAY);
             
             // draws game map through mapArr array
             for (int cellIdx = 0; cellIdx < MAX_GRID_CELLS_X*MAX_GRID_CELLS_Y; cellIdx++) {
-                if (mapArr[cellIdx].occupant != NULL){
-                    // draws occupant
-                    DrawRectangle(gridPosition.x + mapArr[cellIdx].x*GRID_CELL_SIZE, gridPosition.y + mapArr[cellIdx].y*GRID_CELL_SIZE,
-                        GRID_CELL_SIZE, GRID_CELL_SIZE, mapArr[cellIdx].occupant->color);
+
+                int cell_x_pos = gridPosition.x + mapArr[cellIdx].x*GRID_CELL_SIZE;
+                int cell_y_pos = gridPosition.y + mapArr[cellIdx].y*GRID_CELL_SIZE;
+                Point curr_cell = mapArr[cellIdx];
+
+                // first we draw terrain, on it occupant, then grid, then selection
+                DrawRectangle(cell_x_pos, cell_y_pos,
+                    GRID_CELL_SIZE, GRID_CELL_SIZE, GREEN);
+                if (curr_cell.occupant != NULL) {
+                    DrawRectangle(cell_x_pos, cell_y_pos,
+                        GRID_CELL_SIZE, GRID_CELL_SIZE, curr_cell.occupant->color);
                 }
-                else {
-                    // if no occupant then nature
-                    DrawRectangle(gridPosition.x + mapArr[cellIdx].x*GRID_CELL_SIZE, gridPosition.y + mapArr[cellIdx].y*GRID_CELL_SIZE,
-                        GRID_CELL_SIZE, GRID_CELL_SIZE, GREEN);
-                }
-                // finally render grid
-                DrawRectangleLines(gridPosition.x + mapArr[cellIdx].x*GRID_CELL_SIZE, gridPosition.y + mapArr[cellIdx].y*GRID_CELL_SIZE,
+
+                DrawRectangleLines(cell_x_pos, cell_y_pos,
                     GRID_CELL_SIZE, GRID_CELL_SIZE, GRAY);
+
                 if (mapArr[cellIdx].selected) {
-                    DrawRectangleLines(gridPosition.x + mapArr[cellIdx].x*GRID_CELL_SIZE, gridPosition.y + mapArr[cellIdx].y*GRID_CELL_SIZE,
+                    DrawRectangleLines(cell_x_pos, cell_y_pos,
                         GRID_CELL_SIZE, GRID_CELL_SIZE, RED);
                 }
             }
-
-            // Draw player
-            
-            DrawRectangle(gridPosition.x + player.cell.x*GRID_CELL_SIZE, gridPosition.y + player.cell.y*GRID_CELL_SIZE,
-                GRID_CELL_SIZE, GRID_CELL_SIZE, player.color);
-            
 
         EndDrawing();
         //----------------------------------------------------------------------------------
