@@ -1,20 +1,3 @@
-/*******************************************************************************************
-*
-*   raylib [core] example - undo redo
-*
-*   Example complexity rating: [★★★☆] 3/4
-*
-*   Example originally created with raylib 5.5, last time updated with raylib 5.6
-*
-*   Example contributed by Ramon Santamaria (@raysan5)
-*
-*   Example licensed under an unmodified zlib/libpng license, which is an OSI-certified,
-*   BSD-like license that allows static linking with closed source software
-*
-*   Copyright (c) 2025 Ramon Santamaria (@raysan5)
-*
-********************************************************************************************/
-
 #include "raylib.h"
 
 #include <stdlib.h>     // Required for: calloc(), free()
@@ -41,6 +24,8 @@ typedef struct Point Point;
 typedef struct PlayerState PlayerState;
 typedef struct Terrain Terrain;
 
+// make an arr of types of these
+// and make each cell point to its type
 struct Terrain {
     Color color;
 };
@@ -84,6 +69,11 @@ bool mouseInCell(Vector2 gridPosition, Point cell) {
         }
     }
     return false;
+}
+
+bool mouse_in_bounds(Vector2 gridPosition, Point * point_arr) {
+    Point * curr_cell = mouseToCell(gridPosition, point_arr);
+    return curr_cell->x >= 0 && curr_cell-> y >= 0;
 }
 
 void actor_deselect(PlayerState * actor) {
@@ -147,15 +137,8 @@ int main(void)
     {
         // Update
         //----------------------------------------------------------------------------------
-
-        // Make sure player does not go out of bounds
-        // if (player.cell.x < 0) player.cell.x = 0;
-        // else if (player.cell.x >= MAX_GRID_CELLS_X) player.cell.x = MAX_GRID_CELLS_X - 1;
-        // if (player.cell.y < 0) player.cell.y = 0;
-        // else if (player.cell.y >= MAX_GRID_CELLS_Y) player.cell.y = MAX_GRID_CELLS_Y - 1;
-
         // The XY coords are in the top left corner of the square
-        if (IsMouseButtonPressed(0)) {
+        if (IsMouseButtonPressed(0) && mouse_in_bounds(gridPosition, mapArr)) {
             Point * selected_cell = mouseToCell(gridPosition, mapArr);
             printf("selected_cell %d %d", selected_cell->x, selected_cell->y);
             // tells us which cell we have selected in the mapArr
@@ -195,7 +178,7 @@ int main(void)
         BeginDrawing();
             ClearBackground(RAYWHITE);
 
-            // Draw debug info
+            // Draw debug info, this is broken with undefined behavior
             DrawText(TextFormat("MOUSE: %d %d - MCELL: %d %d", GetMouseX(), GetMouseY(),
                 mouseToCell(gridPosition, mapArr)->x, mouseToCell(gridPosition, mapArr)->y), 40, 20, 20, DARKGRAY);
             
@@ -209,6 +192,7 @@ int main(void)
                 // first we draw terrain, on it occupant, then grid, then selection
                 DrawRectangle(cell_x_pos, cell_y_pos,
                     GRID_CELL_SIZE, GRID_CELL_SIZE, curr_cell.terrain.color);
+
                 if (curr_cell.occupant != NULL) {
                     DrawRectangle(cell_x_pos, cell_y_pos,
                         GRID_CELL_SIZE, GRID_CELL_SIZE, curr_cell.occupant->color);
