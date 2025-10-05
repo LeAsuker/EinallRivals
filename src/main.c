@@ -55,7 +55,7 @@ int safe_mouse_y(Vector2 gridPosition);
 Point * mouseToCell(Vector2 gridPosition, Point * point_arr);
 bool mouseInCell(Vector2 gridPosition, Point cell);
 void actor_selection(Point * cell_arr, Point * cell);
-void range_calc(Point * cell_arr, Point * start_cell, int range);
+void range_calc(Point * cell_arr, Point * start_cell, int range, bool selection);
 
 int safe_mouse_x(Vector2 gridPosition) {
     int mouse_pos = GetMouseX();
@@ -107,36 +107,37 @@ void actor_selection(Point * cell_arr, Point * cell) {
     if (cell->occupant->selected == true) {
         cell->occupant->selected = false;
         cell->occupant->color = BLUE;
+        range_calc(cell_arr, cell, 3, false);
     }
     
     else {
         cell->occupant->selected = true;
         cell->occupant->color = YELLOW;
-        range_calc(cell_arr, cell, 3);
+        range_calc(cell_arr, cell, 3, true);
     }
     return;
 }
 
-void range_calc(Point * cell_arr, Point * start_cell, int range) {
+// will have to make this safe, currently seg faults
+void range_calc(Point * cell_arr, Point * start_cell, int range, bool selection) {
     // base case
-    // this inverts
-    start_cell->in_range = true;
+    start_cell->in_range = selection;
     if (range == 0) {
         return;
     }
     int x = start_cell->x;
     int y = start_cell->y;
     Point * cell_up = cell_arr + x + MAX_GRID_CELLS_X*(y - 1);
-    range_calc(cell_arr, cell_up, range - 1);
+    range_calc(cell_arr, cell_up, range - 1, selection);
 
     Point * cell_down = cell_arr + x + MAX_GRID_CELLS_X*(y + 1);
-    range_calc(cell_arr, cell_down, range - 1);
+    range_calc(cell_arr, cell_down, range - 1, selection);
 
     Point * cell_left = cell_arr + x - 1 + MAX_GRID_CELLS_X*(y);
-    range_calc(cell_arr, cell_left, range - 1);
+    range_calc(cell_arr, cell_left, range - 1, selection);
 
     Point * cell_right = cell_arr + x + 1 + MAX_GRID_CELLS_X*(y);
-    range_calc(cell_arr, cell_right, range - 1);
+    range_calc(cell_arr, cell_right, range - 1, selection);
 
     return;
 }
@@ -195,8 +196,11 @@ int main(void)
             // had to do pointer stuff to point to the permanent object
 
 
-            if (player.selected && !(selected_cell->occupant == &player)){
+            if (player.selected && !(selected_cell->occupant == &player) && selected_cell->in_range){
                 printf("move \n");
+                // replace 3 with player movement
+                // this removes the in_range flag to the tiles around original position
+                range_calc(mapArr, last_player_position, 3, false);
                 selected_cell->occupant = &player;
                 last_player_position->occupant = NULL;
                 last_player_position = selected_cell;
@@ -242,7 +246,7 @@ int main(void)
                             
                 if (curr_cell.in_range == true) {
                     DrawRectangleLines(cell_x_pos, cell_y_pos,
-                        GRID_CELL_SIZE, GRID_CELL_SIZE, BLUE);
+                        GRID_CELL_SIZE, GRID_CELL_SIZE, RED);
                 }
             }
 
