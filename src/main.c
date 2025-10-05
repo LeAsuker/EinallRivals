@@ -48,6 +48,7 @@ struct PlayerState {
 // Module Functions Declaration
 //------------------------------------------------------------------------------------
 // prevents out of bounds and segfaults
+// maybe unify these two functions?
 int safe_mouse_x(Vector2 gridPosition) {
     int mouse_pos = GetMouseX();
     if ( mouse_pos >= gridPosition.x + MAX_GRID_CELLS_X*GRID_CELL_SIZE ) {
@@ -93,21 +94,17 @@ bool mouseInCell(Vector2 gridPosition, Point cell) {
     return false;
 }
 
+void actor_selection(PlayerState * actor) {
 
-void actor_deselect(PlayerState * actor) {
-    actor->selected = false;
-    actor->color.r = 0;
-    actor->color.g = 0;
-    actor->color.b = 255;
-    return;
-}
-
-
-void actor_select(PlayerState * actor) {
-    actor->selected = true;
-    actor->color.r = 255;
-    actor->color.g = 255;
-    actor->color.b = 0;
+    if (actor->selected == true) {
+        actor->selected = false;
+        actor->color = BLUE;
+    }
+    
+    else {
+        actor->selected = true;
+        actor->color = YELLOW;
+    }
     return;
 }
 
@@ -178,15 +175,10 @@ int main(void)
                 last_player_position->occupant = NULL;
                 last_player_position = selected_cell;
                 
-                actor_deselect(&player);
+                actor_selection(&player);
             }
             else if (selected_cell->occupant == &player){
-                if (player.selected) {
-                    actor_deselect(&player);
-                }
-                else {
-                    actor_select(&player);
-                }
+                actor_selection(&player);
             }
             
         }
