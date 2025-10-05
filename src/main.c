@@ -3,6 +3,7 @@
 #include <stdlib.h>     // Required for: calloc(), free()
 #include <string.h>     // Required for: memcpy(), strcmp()
 #include "stdio.h"
+#include "time.h"
 
 #define GRID_CELL_SIZE              30      
 #define MAX_GRID_CELLS_X            25
@@ -124,7 +125,7 @@ void actor_selection(Point * cell_arr, Point * cell) {
 
     if (cell->occupant->selected == true) {
         cell->occupant->selected = false;
-        cell->occupant->color = cell->occupant->og_color;
+        cell->occupant->color = cell->occupant->owner->sec_color;
         range_calc(cell_arr, cell, cell->occupant->movement, false);
     }
     
@@ -168,6 +169,37 @@ void range_calc(Point * cell_arr, Point * start_cell, int range, bool selection)
     return;
 }
 
+void biome_generator(Point* cell_arr, Point * start_cell, int range, Terrain terrain) {
+    start_cell->terrain = terrain;
+    if (range == 0) {
+        return;
+    }
+    int x = start_cell->x;
+    int y = start_cell->y;
+    int x_limit = MAX_GRID_CELLS_X - 1;
+    int y_limit = MAX_GRID_CELLS_Y - 1;
+    if (y != 0) {
+        Point * cell_up = cell_arr + x + MAX_GRID_CELLS_X*(y - 1);
+        biome_generator(cell_arr, cell_up, range - 1, terrain);
+
+    }
+    if (y < y_limit) {
+
+        Point * cell_down = cell_arr + x + MAX_GRID_CELLS_X*(y + 1);
+        biome_generator(cell_arr, cell_down, range - 1, terrain);
+    }
+    if (x != 0) {
+        Point * cell_left = cell_arr + x - 1 + MAX_GRID_CELLS_X*(y);
+        biome_generator(cell_arr, cell_left, range - 1, terrain);
+    }
+    if (x < x_limit) {
+        Point * cell_right = cell_arr + x + 1 + MAX_GRID_CELLS_X*(y);
+        biome_generator(cell_arr, cell_right, range - 1, terrain);
+    }
+
+    return;
+}
+
 //------------------------------------------------------------------------------------
 // Program main entry point
 //------------------------------------------------------------------------------------
@@ -177,6 +209,7 @@ int main(void)
     //--------------------------------------------------------------------------------------
     const int screenWidth = 1280;
     const int screenHeight = 720;
+    srand(time(NULL));
     
     InitWindow(screenWidth, screenHeight, "WaterEmblemProto");
     
@@ -193,7 +226,44 @@ int main(void)
             mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].occupant = NULL;
             mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].in_range = false;
             mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].terrain.color = GREEN;
+            
+        }
+    }
+    Terrain Plains;
+    Plains.color = GREEN;
 
+    Terrain Desert;
+    Desert.color = YELLOW;
+
+    Terrain Sea;
+    Sea.color = DARKBLUE;
+
+    Terrain Arctic;
+    Arctic.color = WHITE;    
+    // biome painting
+    for (int i = 0; i < 2; i++) {
+        int desert_num = rand() % 6;
+        for (int d = 0; d < desert_num; d++) {
+            int rand_x = rand() % MAX_GRID_CELLS_X;
+            int rand_y = rand() % MAX_GRID_CELLS_Y;
+            Point* desert_core =  mapArr + rand_x + rand_y*MAX_GRID_CELLS_X;
+            biome_generator(mapArr, desert_core, (rand() % 6) + 1, Desert); 
+        }
+
+        int sea_num = rand() % 7;
+        for (int s = 0; s < sea_num; s++) {
+            int rand_x = rand() % MAX_GRID_CELLS_X;
+            int rand_y = rand() % MAX_GRID_CELLS_Y;
+            Point* sea_core =  mapArr + rand_x + rand_y*MAX_GRID_CELLS_X;
+            biome_generator(mapArr, sea_core, (rand() % 7) + 1, Sea); 
+        }
+
+        int arctic_num = rand() % 6;
+        for (int a = 0; a < arctic_num; a++) {
+            int rand_x = rand() % MAX_GRID_CELLS_X;
+            int rand_y = rand() % MAX_GRID_CELLS_Y;
+            Point* arctic_core =  mapArr + rand_x + rand_y*MAX_GRID_CELLS_X;
+            biome_generator(mapArr, arctic_core, (rand() % 6) + 1, Arctic); 
         }
     }
     // init faction player
@@ -212,12 +282,12 @@ int main(void)
     Gaia.sec_color = BLACK;
     Gaia.has_turn = true;
 
+
     // Init current player state
     PlayerState player;
-    player.color = DARKGRAY;
-    player.og_color = DARKGRAY;
-    player.selected = false;
     player.owner = &Azai;
+    player.color = player.owner->sec_color;
+    player.selected = false;
     player.movement = 7;
     player.max_health = 20;
     player.curr_health = 20;
@@ -287,7 +357,7 @@ int main(void)
                     
                 if (curr_cell.occupant != NULL) {
                     DrawRectangle(cell_x_pos, cell_y_pos,
-                        GRID_CELL_SIZE, GRID_CELL_SIZE, curr_cell.occupant->owner->sec_color);
+                        GRID_CELL_SIZE, GRID_CELL_SIZE, curr_cell.occupant->color);
                     DrawRectangle(cell_x_pos, cell_y_pos,
                         GRID_CELL_SIZE - 10, GRID_CELL_SIZE - 10, curr_cell.occupant->owner->prim_color);
                 }
