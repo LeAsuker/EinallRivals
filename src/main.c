@@ -55,7 +55,8 @@ struct PlayerState {
 };
 
 struct Player {
-    Color color;
+    Color prim_color;
+    Color sec_color;
     bool has_turn;
 };
 
@@ -197,15 +198,18 @@ int main(void)
     }
     // init faction player
     Player Azai;
-    Azai.color = PURPLE;
+    Azai.prim_color = PURPLE;
+    Azai.sec_color = DARKGRAY;
     Azai.has_turn = true;
 
     Player Anegakoji;
-    Anegakoji.color = CYAN;
+    Anegakoji.prim_color = GREEN;
+    Anegakoji.sec_color = WHITE;
     Anegakoji.has_turn = true;
 
     Player Gaia;
-    Gaia.color = BROWN;
+    Gaia.prim_color = BROWN;
+    Gaia.sec_color = BLACK;
     Gaia.has_turn = true;
 
     // Init current player state
@@ -283,9 +287,9 @@ int main(void)
                     
                 if (curr_cell.occupant != NULL) {
                     DrawRectangle(cell_x_pos, cell_y_pos,
-                        GRID_CELL_SIZE, GRID_CELL_SIZE, curr_cell.occupant->color);
+                        GRID_CELL_SIZE, GRID_CELL_SIZE, curr_cell.occupant->owner->sec_color);
                     DrawRectangle(cell_x_pos, cell_y_pos,
-                        GRID_CELL_SIZE - 10, GRID_CELL_SIZE - 10, curr_cell.occupant->owner->color);
+                        GRID_CELL_SIZE - 10, GRID_CELL_SIZE - 10, curr_cell.occupant->owner->prim_color);
                 }
                     
                 DrawRectangleLines(cell_x_pos, cell_y_pos,
