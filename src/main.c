@@ -61,6 +61,14 @@ struct Player {
     bool has_turn;
 };
 
+// Biome generation configuration
+// terrains are one thing, but biomes another
+typedef struct {
+    Terrain terrain;
+    int max_cores;      // Maximum number of biome cores
+    int max_range;      // Maximum spread range
+} BiomeConfig;
+
 //------------------------------------------------------------------------------------
 // Module Functions Declaration
 //------------------------------------------------------------------------------------
@@ -169,35 +177,86 @@ void range_calc(Point * cell_arr, Point * start_cell, int range, bool selection)
     return;
 }
 
-void biome_generator(Point* cell_arr, Point * start_cell, int range, Terrain terrain) {
+void spread_terrain(Point* cell_arr, Point* start_cell, int range, Terrain terrain) {
+    // Set current cell's terrain
     start_cell->terrain = terrain;
+    
+    // Base case: stop spreading
     if (range == 0) {
         return;
     }
+    
     int x = start_cell->x;
     int y = start_cell->y;
     int x_limit = MAX_GRID_CELLS_X - 1;
     int y_limit = MAX_GRID_CELLS_Y - 1;
+    
+    // Spread to adjacent cells (up, down, left, right)
     if (y != 0) {
-        Point * cell_up = cell_arr + x + MAX_GRID_CELLS_X*(y - 1);
-        biome_generator(cell_arr, cell_up, range - 1, terrain);
-
+        Point* cell_up = cell_arr + x + MAX_GRID_CELLS_X * (y - 1);
+        spread_terrain(cell_arr, cell_up, range - 1, terrain);
     }
     if (y < y_limit) {
-
-        Point * cell_down = cell_arr + x + MAX_GRID_CELLS_X*(y + 1);
-        biome_generator(cell_arr, cell_down, range - 1, terrain);
+        Point* cell_down = cell_arr + x + MAX_GRID_CELLS_X * (y + 1);
+        spread_terrain(cell_arr, cell_down, range - 1, terrain);
     }
     if (x != 0) {
-        Point * cell_left = cell_arr + x - 1 + MAX_GRID_CELLS_X*(y);
-        biome_generator(cell_arr, cell_left, range - 1, terrain);
+        Point* cell_left = cell_arr + x - 1 + MAX_GRID_CELLS_X * y;
+        spread_terrain(cell_arr, cell_left, range - 1, terrain);
     }
     if (x < x_limit) {
-        Point * cell_right = cell_arr + x + 1 + MAX_GRID_CELLS_X*(y);
-        biome_generator(cell_arr, cell_right, range - 1, terrain);
+        Point* cell_right = cell_arr + x + 1 + MAX_GRID_CELLS_X * y;
+        spread_terrain(cell_arr, cell_right, range - 1, terrain);
     }
+}
 
-    return;
+Point* get_random_cell(Point* cell_arr) {
+    int rand_x = rand() % MAX_GRID_CELLS_X;
+    int rand_y = rand() % MAX_GRID_CELLS_Y;
+    return cell_arr + rand_x + rand_y * MAX_GRID_CELLS_X;
+}
+
+void generate_biome_cores(Point* cell_arr, BiomeConfig config) {
+    // since modulo is offset
+    int num_cores = rand() % (config.max_cores + 1);
+    
+    for (int i = 0; i < num_cores; i++) {
+        Point* core = get_random_cell(cell_arr);
+        int range = (rand() % config.max_range) + 1;
+        spread_terrain(cell_arr, core, range, config.terrain);
+    }
+}
+
+void generate_all_biomes(Point* cell_arr, BiomeConfig* biome_configs, int num_biomes, int layers) {
+    for (int layer = 0; layer < layers; layer++) {
+        for (int i = 0; i < num_biomes; i++) {
+            generate_biome_cores(cell_arr, biome_configs[i]);
+        }
+    }
+}
+
+// Main initialization function to replace the original biome generation code
+void initialize_biomes(Point* mapArr) {
+    // Define terrain types
+    Terrain Plains = { .color = GREEN };
+    Terrain Mountains = { .color = LIGHTGRAY };
+    Terrain Sea = { .color = DARKBLUE };
+    Terrain Arctic = { .color = WHITE };
+    Terrain Forest = { .color = DARKGREEN };
+    
+    // Configure each biome type
+    BiomeConfig biome_configs[] = {
+        { .terrain = Mountains, .max_cores = 3, .max_range = 3 },
+        { .terrain = Arctic, .max_cores = 3, .max_range = 3 },
+        { .terrain = Forest, .max_cores = 3, .max_range = 3 },
+        { .terrain = Sea,    .max_cores = 4, .max_range = 4 }
+    };
+    
+    int num_biomes = sizeof(biome_configs) / sizeof(BiomeConfig);
+    int layers = 7; // how many times to loop
+    
+    // Generate all biomes
+    generate_all_biomes(mapArr, biome_configs, num_biomes, layers);
 }
 
 //------------------------------------------------------------------------------------
@@ -229,55 +288,8 @@ int main(void)
             
         }
     }
-    Terrain Plains;
-    Plains.color = GREEN;
 
-    Terrain Desert;
-    Desert.color = YELLOW;
-
-    Terrain Sea;
-    Sea.color = DARKBLUE;
-
-    Terrain Arctic;
-    Arctic.color = WHITE;
-    
-    Terrain Forest;
-    Forest.color = DARKGREEN;
-
-    // biome painting
-    for (int i = 0; i < 2; i++) {
-        int desert_num = rand() % 5;
-        for (int d = 0; d < desert_num; d++) {
-            int rand_x = rand() % MAX_GRID_CELLS_X;
-            int rand_y = rand() % MAX_GRID_CELLS_Y;
-            Point* desert_core =  mapArr + rand_x + rand_y*MAX_GRID_CELLS_X;
-            biome_generator(mapArr, desert_core, (rand() % 5) + 1, Desert); 
-        }
-
-        
-        int arctic_num = rand() % 6;
-        for (int a = 0; a < arctic_num; a++) {
-            int rand_x = rand() % MAX_GRID_CELLS_X;
-            int rand_y = rand() % MAX_GRID_CELLS_Y;
-            Point* arctic_core =  mapArr + rand_x + rand_y*MAX_GRID_CELLS_X;
-            biome_generator(mapArr, arctic_core, (rand() % 6) + 1, Arctic); 
-        }
-        
-        int forest_num = rand() % 3;
-        for (int f = 0; f < forest_num; f++) {
-            int rand_x = rand() % MAX_GRID_CELLS_X;
-            int rand_y = rand() % MAX_GRID_CELLS_Y;
-            Point* forest_core =  mapArr + rand_x + rand_y*MAX_GRID_CELLS_X;
-            biome_generator(mapArr, forest_core, (rand() % 3) + 1, Forest); 
-        }
-        int sea_num = rand() % 7;
-        for (int s = 0; s < sea_num; s++) {
-            int rand_x = rand() % MAX_GRID_CELLS_X;
-            int rand_y = rand() % MAX_GRID_CELLS_Y;
-            Point* sea_core =  mapArr + rand_x + rand_y*MAX_GRID_CELLS_X;
-            biome_generator(mapArr, sea_core, (rand() % 7) + 1, Sea); 
-        }
-    }
+    initialize_biomes(mapArr);
     // init faction player
     Player Azai;
     Azai.prim_color = PURPLE;
