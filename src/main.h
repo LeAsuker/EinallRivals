@@ -2,6 +2,7 @@
 #define MAIN_H_
 typedef struct Terrain {
     Color color;
+    Texture2D sprite;
 } Terrain;
 
 typedef struct Player {

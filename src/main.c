@@ -13,12 +13,33 @@
 
 int main(void)
 {
+    Image sea_sprite = LoadImage("resources/sea_ter.png");
+    Image mountains_sprite = LoadImage("resources/mountain_ter.png");
+    Image plains_sprite = LoadImage("resources/plains_ter.png");
+    Image arctic_sprite = LoadImage("resources/arctic_ter.png");
+    Image forest_sprite = LoadImage("resources/forest_ter.png");
+
+    ImageResize(&sea_sprite, GRID_CELL_SIZE, GRID_CELL_SIZE);
+    ImageResize(&mountains_sprite, GRID_CELL_SIZE, GRID_CELL_SIZE);
+    ImageResize(&plains_sprite, GRID_CELL_SIZE, GRID_CELL_SIZE);
+    ImageResize(&arctic_sprite, GRID_CELL_SIZE, GRID_CELL_SIZE);
+    ImageResize(&forest_sprite, GRID_CELL_SIZE, GRID_CELL_SIZE);
+
     // Define terrain types
-    Terrain Plains = { .color = GREEN };
-    Terrain Mountains = { .color = LIGHTGRAY };
-    Terrain Sea = { .color = DARKBLUE };
-    Terrain Arctic = { .color = WHITE };
-    Terrain Forest = { .color = DARKGREEN };
+    // Initialization
+    //--------------------------------------------------------------------------------------
+    const int screenWidth = 1280;
+    const int screenHeight = 720;
+    srand(time(NULL));
+    
+    // initwindow creates opengl context, texture stuff needs to happen after it
+    InitWindow(screenWidth, screenHeight, "WaterEmblemProto");
+    Texture2D sea_text = LoadTextureFromImage(sea_sprite);
+    Terrain Plains = { .color = GREEN, .sprite = LoadTextureFromImage(plains_sprite)};
+    Terrain Mountains = { .color = LIGHTGRAY, .sprite = LoadTextureFromImage(mountains_sprite) };
+    Terrain Sea = { .color = DARKBLUE, .sprite = LoadTextureFromImage(sea_sprite) };
+    Terrain Arctic = { .color = WHITE, .sprite = LoadTextureFromImage(arctic_sprite) };
+    Terrain Forest = { .color = DARKGREEN, .sprite = LoadTextureFromImage(forest_sprite) };
     
     // Configure each biome type
     BiomeConfig biome_configs[] = {
@@ -27,13 +48,6 @@ int main(void)
         { .terrain = Forest, .max_cores = 3, .max_range = 3 },
         { .terrain = Sea,    .max_cores = 2, .max_range = 5 }
     };
-    // Initialization
-    //--------------------------------------------------------------------------------------
-    const int screenWidth = 1280;
-    const int screenHeight = 720;
-    srand(time(NULL));
-    
-    InitWindow(screenWidth, screenHeight, "WaterEmblemProto");
     
     
     // Grid variables
@@ -131,9 +145,11 @@ int main(void)
             int cell_y_pos = gridPosition.y + mapArr[cellIdx].y*GRID_CELL_SIZE;
             Point curr_cell = mapArr[cellIdx];
             
-            // first we draw terrain, on it occupant, then grid, then selection
+            // first we draw terrain color for failsafe, then texture
             DrawRectangle(cell_x_pos, cell_y_pos,
                 GRID_CELL_SIZE, GRID_CELL_SIZE, curr_cell.terrain.color);
+            
+            DrawTexture(curr_cell.terrain.sprite, cell_x_pos, cell_y_pos, WHITE);
                 
                 
             if (curr_cell.occupant != NULL) {
