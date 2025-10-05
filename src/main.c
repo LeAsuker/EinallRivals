@@ -93,10 +93,6 @@ bool mouseInCell(Vector2 gridPosition, Point cell) {
     return false;
 }
 
-bool mouse_in_bounds(Vector2 gridPosition, Point * point_arr) {
-    Point * curr_cell = mouseToCell(gridPosition, point_arr);
-    return curr_cell->x >= 0 && curr_cell-> y >= 0;
-}
 
 void actor_deselect(PlayerState * actor) {
     actor->selected = false;
