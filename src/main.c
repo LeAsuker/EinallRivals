@@ -19,10 +19,12 @@
 struct Point;
 struct PlayerState;
 struct Terrain;
+struct Player;
 
 typedef struct Point Point;
 typedef struct PlayerState PlayerState;
 typedef struct Terrain Terrain;
+typedef struct Player Player;
 
 // make an arr of types of these
 // and make each cell point to its type
@@ -41,7 +43,19 @@ struct Point {
 
 struct PlayerState {
     Color color;
+    Player * owner;
     bool selected;
+
+    int max_health;
+    int curr_health;
+    int movement;
+    int attack;
+    int armor;
+};
+
+struct Player {
+    Color color;
+    bool has_turn;
 };
 
 //------------------------------------------------------------------------------------
@@ -101,24 +115,23 @@ bool mouseInCell(Vector2 gridPosition, Point cell) {
     }
     return false;
 }
-
+// could be issues here with occupant NULL checks...
 void actor_selection(Point * cell_arr, Point * cell) {
 
     if (cell->occupant->selected == true) {
         cell->occupant->selected = false;
         cell->occupant->color = BLUE;
-        range_calc(cell_arr, cell, 3, false);
+        range_calc(cell_arr, cell, cell->occupant->movement, false);
     }
     
     else {
         cell->occupant->selected = true;
         cell->occupant->color = YELLOW;
-        range_calc(cell_arr, cell, 3, true);
+        range_calc(cell_arr, cell, cell->occupant->movement, true);
     }
     return;
 }
 
-// will have to make this safe, currently seg faults
 void range_calc(Point * cell_arr, Point * start_cell, int range, bool selection) {
     // base case
     start_cell->in_range = selection;
@@ -179,10 +192,21 @@ int main(void)
 
         }
     }
+    // init faction player
+    Player Azai;
+    Azai.color = PURPLE;
+    Azai.has_turn = true;
+
     // Init current player state
     PlayerState player;
     player.color = BLUE;
     player.selected = false;
+    player.owner = &Azai;
+    player.movement = 7;
+    player.max_health = 20;
+    player.curr_health = 20;
+    player.attack = 8;
+    player.armor = 3;
 
     mapArr[100].occupant = &player;
     Point * last_player_position = mapArr + 100;
@@ -209,7 +233,7 @@ int main(void)
                 printf("move \n");
                 // replace 3 with player movement
                 // this removes the in_range flag to the tiles around original position
-                range_calc(mapArr, last_player_position, 3, false);
+                range_calc(mapArr, last_player_position, player.movement, false);
                 selected_cell->occupant = &player;
                 last_player_position->occupant = NULL;
                 last_player_position = selected_cell;
