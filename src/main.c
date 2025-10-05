@@ -69,6 +69,8 @@ typedef struct {
     int max_range;      // Maximum spread range
 } BiomeConfig;
 
+Terrain Sea;
+
 //------------------------------------------------------------------------------------
 // Module Functions Declaration
 //------------------------------------------------------------------------------------
@@ -146,6 +148,11 @@ void actor_selection(Point * cell_arr, Point * cell) {
 }
 
 void range_calc(Point * cell_arr, Point * start_cell, int range, bool selection) {
+    // quick fix, also removes targeting and affects flyers
+    // comparison problem, will have to refactor this
+    if (start_cell->terrain.color.b == DARKBLUE.b) {
+        return;
+    }
     // base case
     start_cell->in_range = selection;
     if (range == 0) {
@@ -234,36 +241,27 @@ void generate_all_biomes(Point* cell_arr, BiomeConfig* biome_configs, int num_bi
         }
     }
 }
-
-// Main initialization function to replace the original biome generation code
-void initialize_biomes(Point* mapArr) {
-    // Define terrain types
-    Terrain Plains = { .color = GREEN };
-    Terrain Mountains = { .color = LIGHTGRAY };
-    Terrain Sea = { .color = DARKBLUE };
-    Terrain Arctic = { .color = WHITE };
-    Terrain Forest = { .color = DARKGREEN };
-    
-    // Configure each biome type
-    BiomeConfig biome_configs[] = {
-        { .terrain = Mountains, .max_cores = 3, .max_range = 3 },
-        { .terrain = Arctic, .max_cores = 3, .max_range = 3 },
-        { .terrain = Forest, .max_cores = 3, .max_range = 3 },
-        { .terrain = Sea,    .max_cores = 4, .max_range = 4 }
-    };
-    
-    int num_biomes = sizeof(biome_configs) / sizeof(BiomeConfig);
-    int layers = 7; // how many times to loop
-    
-    // Generate all biomes
-    generate_all_biomes(mapArr, biome_configs, num_biomes, layers);
-}
-
 //------------------------------------------------------------------------------------
 // Program main entry point
 //------------------------------------------------------------------------------------
 int main(void)
 {
+    // ws originally in init biomes func, removed it so it can be accessed
+    // by other checks
+    // Define terrain types
+    Terrain Plains = { .color = GREEN };
+    Terrain Mountains = { .color = LIGHTGRAY };
+    Sea.color = DARKBLUE;
+    Terrain Arctic = { .color = WHITE };
+    Terrain Forest = { .color = DARKGREEN };
+
+    // Configure each biome type
+    BiomeConfig biome_configs[] = {
+        { .terrain = Mountains, .max_cores = 3, .max_range = 3 },
+        { .terrain = Arctic, .max_cores = 3, .max_range = 3 },
+        { .terrain = Forest, .max_cores = 3, .max_range = 3 },
+        { .terrain = Sea,    .max_cores = 2, .max_range = 5 }
+    };
     // Initialization
     //--------------------------------------------------------------------------------------
     const int screenWidth = 1280;
@@ -288,8 +286,10 @@ int main(void)
             
         }
     }
+    int num_biomes = sizeof(biome_configs) / sizeof(BiomeConfig);
+    int layers = 7;
+    generate_all_biomes(mapArr, biome_configs, num_biomes, layers);
 
-    initialize_biomes(mapArr);
     // init faction player
     Player Azai;
     Azai.prim_color = PURPLE;
