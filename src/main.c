@@ -43,6 +43,7 @@ struct Point {
 
 struct PlayerState {
     Color color;
+    Color og_color;
     Player * owner;
     bool selected;
 
@@ -116,11 +117,13 @@ bool mouseInCell(Vector2 gridPosition, Point cell) {
     return false;
 }
 // could be issues here with occupant NULL checks...
+// currently depends on in_range prev position flag
+// removal
 void actor_selection(Point * cell_arr, Point * cell) {
 
     if (cell->occupant->selected == true) {
         cell->occupant->selected = false;
-        cell->occupant->color = BLUE;
+        cell->occupant->color = cell->occupant->og_color;
         range_calc(cell_arr, cell, cell->occupant->movement, false);
     }
     
@@ -197,9 +200,18 @@ int main(void)
     Azai.color = PURPLE;
     Azai.has_turn = true;
 
+    Player Anegakoji;
+    Anegakoji.color = CYAN;
+    Anegakoji.has_turn = true;
+
+    Player Gaia;
+    Gaia.color = BROWN;
+    Gaia.has_turn = true;
+
     // Init current player state
     PlayerState player;
-    player.color = BLUE;
+    player.color = DARKGRAY;
+    player.og_color = DARKGRAY;
     player.selected = false;
     player.owner = &Azai;
     player.movement = 7;
@@ -272,10 +284,12 @@ int main(void)
                 if (curr_cell.occupant != NULL) {
                     DrawRectangle(cell_x_pos, cell_y_pos,
                         GRID_CELL_SIZE, GRID_CELL_SIZE, curr_cell.occupant->color);
-                    }
+                    DrawRectangle(cell_x_pos, cell_y_pos,
+                        GRID_CELL_SIZE - 10, GRID_CELL_SIZE - 10, curr_cell.occupant->owner->color);
+                }
                     
-                    DrawRectangleLines(cell_x_pos, cell_y_pos,
-                        GRID_CELL_SIZE, GRID_CELL_SIZE, GRAY);
+                DrawRectangleLines(cell_x_pos, cell_y_pos,
+                    GRID_CELL_SIZE, GRID_CELL_SIZE, GRAY);
                             
                 if (curr_cell.in_range == true) {
                     DrawRectangleLines(cell_x_pos, cell_y_pos,
