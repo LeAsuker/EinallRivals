@@ -11,20 +11,6 @@
 #define MAX_GRID_CELLS_X            30
 #define MAX_GRID_CELLS_Y            21
 
-//----------------------------------------------------------------------------------
-// Types and Structures Definition
-//----------------------------------------------------------------------------------
-// Point struct, like Vector2 but using int
-
-//------------------------------------------------------------------------------------
-// Module Functions Declaration
-//------------------------------------------------------------------------------------
-// prevents out of bounds and segfaults
-// maybe unify these two functions?
-
-//------------------------------------------------------------------------------------
-// Program main entry point
-//------------------------------------------------------------------------------------
 int main(void)
 {
     // Define terrain types
@@ -103,8 +89,6 @@ int main(void)
         // Update
         //----------------------------------------------------------------------------------
         // The XY coords are in the top left corner of the square
-        // mouse in bounds does not work due to undefined behavior,
-        // am accessing elements outside of the cell array
         if (IsMouseButtonPressed(0)) {
             Point * selected_cell = mouseToCell(gridPosition, mapArr);
             printf("selected_cell %d %d", selected_cell->x, selected_cell->y);
@@ -114,7 +98,6 @@ int main(void)
             
             if (player.selected && !(selected_cell->occupant == &player) && selected_cell->in_range){
                 printf("move \n");
-                // replace 3 with player movement
                 // this removes the in_range flag to the tiles around original position
                 range_calc(mapArr, last_player_position, player.movement, false);
                 selected_cell->occupant = &player;
@@ -136,12 +119,12 @@ int main(void)
         BeginDrawing();
         ClearBackground(RAYWHITE);
         
-        // Draw debug info, this is broken with undefined behavior
+        // Draw debug info
         DrawText(TextFormat("MOUSE: %d %d - MCELL: %d %d", safe_mouse_x(gridPosition), safe_mouse_y(gridPosition),
                 mouseToCell(gridPosition, mapArr)->x, mouseToCell(gridPosition, mapArr)->y), 40, 20, 20, DARKGRAY);
 
                 
-                // draws game map through mapArr array
+        // draws game map through mapArr array
         for (int cellIdx = 0; cellIdx < MAX_GRID_CELLS_X*MAX_GRID_CELLS_Y; cellIdx++) {
                 
             int cell_x_pos = gridPosition.x + mapArr[cellIdx].x*GRID_CELL_SIZE;
@@ -178,7 +161,6 @@ int main(void)
         }
 
         EndDrawing();
-        //----------------------------------------------------------------------------------
     }
 
     // De-Initialization
