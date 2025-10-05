@@ -254,14 +254,7 @@ int main(void)
             biome_generator(mapArr, desert_core, (rand() % 5) + 1, Desert); 
         }
 
-        int sea_num = rand() % 7;
-        for (int s = 0; s < sea_num; s++) {
-            int rand_x = rand() % MAX_GRID_CELLS_X;
-            int rand_y = rand() % MAX_GRID_CELLS_Y;
-            Point* sea_core =  mapArr + rand_x + rand_y*MAX_GRID_CELLS_X;
-            biome_generator(mapArr, sea_core, (rand() % 7) + 1, Sea); 
-        }
-
+        
         int arctic_num = rand() % 6;
         for (int a = 0; a < arctic_num; a++) {
             int rand_x = rand() % MAX_GRID_CELLS_X;
@@ -269,13 +262,20 @@ int main(void)
             Point* arctic_core =  mapArr + rand_x + rand_y*MAX_GRID_CELLS_X;
             biome_generator(mapArr, arctic_core, (rand() % 6) + 1, Arctic); 
         }
-
+        
         int forest_num = rand() % 3;
         for (int f = 0; f < forest_num; f++) {
             int rand_x = rand() % MAX_GRID_CELLS_X;
             int rand_y = rand() % MAX_GRID_CELLS_Y;
             Point* forest_core =  mapArr + rand_x + rand_y*MAX_GRID_CELLS_X;
             biome_generator(mapArr, forest_core, (rand() % 3) + 1, Forest); 
+        }
+        int sea_num = rand() % 7;
+        for (int s = 0; s < sea_num; s++) {
+            int rand_x = rand() % MAX_GRID_CELLS_X;
+            int rand_y = rand() % MAX_GRID_CELLS_Y;
+            Point* sea_core =  mapArr + rand_x + rand_y*MAX_GRID_CELLS_X;
+            biome_generator(mapArr, sea_core, (rand() % 7) + 1, Sea); 
         }
     }
     // init faction player
