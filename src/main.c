@@ -112,21 +112,33 @@ void actor_selection(Point * cell_arr, Point * cell) {
     else {
         cell->occupant->selected = true;
         cell->occupant->color = YELLOW;
+        range_calc(cell_arr, cell, 3);
     }
-    range_calc(cell_arr, cell, 3);
     return;
 }
 
 void range_calc(Point * cell_arr, Point * start_cell, int range) {
     // base case
     // this inverts
-    start_cell->in_range = !(start_cell->in_range);
+    start_cell->in_range = true;
     if (range == 0) {
         return;
     }
-    Point * cell_up = cell_arr + start_cell->x + MAX_GRID_CELLS_X*(start_cell->y - 1);
+    int x = start_cell->x;
+    int y = start_cell->y;
+    Point * cell_up = cell_arr + x + MAX_GRID_CELLS_X*(y - 1);
     range_calc(cell_arr, cell_up, range - 1);
 
+    Point * cell_down = cell_arr + x + MAX_GRID_CELLS_X*(y + 1);
+    range_calc(cell_arr, cell_down, range - 1);
+
+    Point * cell_left = cell_arr + x - 1 + MAX_GRID_CELLS_X*(y);
+    range_calc(cell_arr, cell_left, range - 1);
+
+    Point * cell_right = cell_arr + x + 1 + MAX_GRID_CELLS_X*(y);
+    range_calc(cell_arr, cell_right, range - 1);
+
+    return;
 }
 
 //------------------------------------------------------------------------------------
