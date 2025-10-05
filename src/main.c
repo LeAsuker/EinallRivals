@@ -6,8 +6,8 @@
 #include "time.h"
 
 #define GRID_CELL_SIZE              30      
-#define MAX_GRID_CELLS_X            25
-#define MAX_GRID_CELLS_Y            18
+#define MAX_GRID_CELLS_X            30
+#define MAX_GRID_CELLS_Y            21
 
 //----------------------------------------------------------------------------------
 // Types and Structures Definition
@@ -215,7 +215,7 @@ int main(void)
     
     
     // Grid variables
-    Vector2 gridPosition = { 60, 90 };
+    Vector2 gridPosition = { 40, 60 };
     
     // map init
     Point* mapArr = malloc(sizeof(Point)*MAX_GRID_CELLS_X*MAX_GRID_CELLS_Y);
