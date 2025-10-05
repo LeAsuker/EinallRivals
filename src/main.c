@@ -2,8 +2,8 @@
 
 #include <stdlib.h>     // Required for: calloc(), free()
 #include <string.h>     // Required for: memcpy(), strcmp()
-#include "stdio.h"
-#include "time.h"
+#include <stdio.h>
+#include <time.h>
 
 #define GRID_CELL_SIZE              30      
 #define MAX_GRID_CELLS_X            30
