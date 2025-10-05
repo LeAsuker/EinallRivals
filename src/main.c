@@ -47,22 +47,44 @@ struct PlayerState {
 //------------------------------------------------------------------------------------
 // Module Functions Declaration
 //------------------------------------------------------------------------------------
+// prevents out of bounds and segfaults
+int safe_mouse_x(Vector2 gridPosition) {
+    int mouse_pos = GetMouseX();
+    if ( mouse_pos >= gridPosition.x + MAX_GRID_CELLS_X*GRID_CELL_SIZE ) {
+        return gridPosition.x + MAX_GRID_CELLS_X*GRID_CELL_SIZE - 1;
+    } 
+    else if (mouse_pos <= gridPosition.x) {
+        return gridPosition.x + 1;
+    }
+    return mouse_pos;
+}
 
-// is offset
+int safe_mouse_y(Vector2 gridPosition) {
+    int mouse_pos = GetMouseY();
+    if ( mouse_pos >= gridPosition.y + MAX_GRID_CELLS_Y*GRID_CELL_SIZE ) {
+        return gridPosition.y + MAX_GRID_CELLS_Y*GRID_CELL_SIZE - 1;
+    } 
+    else if (mouse_pos <= gridPosition.y) {
+        return gridPosition.y + 1;
+    }
+    return mouse_pos;
+}
+
 Point * mouseToCell(Vector2 gridPosition, Point * point_arr) {
-    Point cell;
-    cell.x = (GetMouseX() - gridPosition.x) / GRID_CELL_SIZE;
-    cell.y = (GetMouseY() - gridPosition.y) / GRID_CELL_SIZE;
-    Point* cell_in_map = point_arr + MAX_GRID_CELLS_X*cell.y + cell.x;
+    // will need to sanitize it so it cant ever go out of bounds, else undefined
+    int x = (safe_mouse_x(gridPosition) - gridPosition.x) / GRID_CELL_SIZE;
+    int y = (safe_mouse_y(gridPosition) - gridPosition.y) / GRID_CELL_SIZE;
+
+    Point* cell_in_map = point_arr + MAX_GRID_CELLS_X*y + x;
     return cell_in_map;
 }
 
 // if mouse in given cell
 bool mouseInCell(Vector2 gridPosition, Point cell) {
-    if (GetMouseX() <= gridPosition.x + cell.x*GRID_CELL_SIZE + GRID_CELL_SIZE){
-        if (GetMouseY() <= gridPosition.y + cell.y*GRID_CELL_SIZE + GRID_CELL_SIZE) {
-            if (GetMouseX() >= gridPosition.x + cell.x*GRID_CELL_SIZE){
-                if (GetMouseY() >= gridPosition.y + cell.y*GRID_CELL_SIZE) {
+    if (safe_mouse_x(gridPosition) <= gridPosition.x + cell.x*GRID_CELL_SIZE + GRID_CELL_SIZE){
+        if (safe_mouse_y(gridPosition) <= gridPosition.y + cell.y*GRID_CELL_SIZE + GRID_CELL_SIZE) {
+            if (safe_mouse_x(gridPosition) >= gridPosition.x + cell.x*GRID_CELL_SIZE){
+                if (safe_mouse_y(gridPosition) >= gridPosition.y + cell.y*GRID_CELL_SIZE) {
                     return true;
                 }
             }
@@ -138,7 +160,9 @@ int main(void)
         // Update
         //----------------------------------------------------------------------------------
         // The XY coords are in the top left corner of the square
-        if (IsMouseButtonPressed(0) && mouse_in_bounds(gridPosition, mapArr)) {
+        // mouse in bounds does not work due to undefined behavior,
+        // am accessing elements outside of the cell array
+        if (IsMouseButtonPressed(0)) {
             Point * selected_cell = mouseToCell(gridPosition, mapArr);
             printf("selected_cell %d %d", selected_cell->x, selected_cell->y);
             // tells us which cell we have selected in the mapArr
@@ -179,7 +203,7 @@ int main(void)
             ClearBackground(RAYWHITE);
 
             // Draw debug info, this is broken with undefined behavior
-            DrawText(TextFormat("MOUSE: %d %d - MCELL: %d %d", GetMouseX(), GetMouseY(),
+            DrawText(TextFormat("MOUSE: %d %d - MCELL: %d %d", safe_mouse_x(gridPosition), safe_mouse_y(gridPosition),
                 mouseToCell(gridPosition, mapArr)->x, mouseToCell(gridPosition, mapArr)->y), 40, 20, 20, DARKGRAY);
             
             // draws game map through mapArr array
