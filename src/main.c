@@ -127,17 +127,26 @@ void range_calc(Point * cell_arr, Point * start_cell, int range, bool selection)
     }
     int x = start_cell->x;
     int y = start_cell->y;
-    Point * cell_up = cell_arr + x + MAX_GRID_CELLS_X*(y - 1);
-    range_calc(cell_arr, cell_up, range - 1, selection);
+    int x_limit = MAX_GRID_CELLS_X - 1;
+    int y_limit = MAX_GRID_CELLS_Y - 1;
+    if (y != 0) {
+        Point * cell_up = cell_arr + x + MAX_GRID_CELLS_X*(y - 1);
+        range_calc(cell_arr, cell_up, range - 1, selection);
 
-    Point * cell_down = cell_arr + x + MAX_GRID_CELLS_X*(y + 1);
-    range_calc(cell_arr, cell_down, range - 1, selection);
+    }
+    if (y < y_limit) {
 
-    Point * cell_left = cell_arr + x - 1 + MAX_GRID_CELLS_X*(y);
-    range_calc(cell_arr, cell_left, range - 1, selection);
-
-    Point * cell_right = cell_arr + x + 1 + MAX_GRID_CELLS_X*(y);
-    range_calc(cell_arr, cell_right, range - 1, selection);
+        Point * cell_down = cell_arr + x + MAX_GRID_CELLS_X*(y + 1);
+        range_calc(cell_arr, cell_down, range - 1, selection);
+    }
+    if (x != 0) {
+        Point * cell_left = cell_arr + x - 1 + MAX_GRID_CELLS_X*(y);
+        range_calc(cell_arr, cell_left, range - 1, selection);
+    }
+    if (x < x_limit) {
+        Point * cell_right = cell_arr + x + 1 + MAX_GRID_CELLS_X*(y);
+        range_calc(cell_arr, cell_right, range - 1, selection);
+    }
 
     return;
 }
