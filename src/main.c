@@ -34,7 +34,7 @@ struct Point {
     int x;
     int y;
     PlayerState* occupant;
-    bool selected;
+    bool in_range;
     Terrain terrain;
 };
 
@@ -49,6 +49,14 @@ struct PlayerState {
 //------------------------------------------------------------------------------------
 // prevents out of bounds and segfaults
 // maybe unify these two functions?
+
+int safe_mouse_x(Vector2 gridPosition);
+int safe_mouse_y(Vector2 gridPosition);
+Point * mouseToCell(Vector2 gridPosition, Point * point_arr);
+bool mouseInCell(Vector2 gridPosition, Point cell);
+void actor_selection(Point * cell_arr, Point * cell);
+void range_calc(Point * cell_arr, Point * start_cell, int range);
+
 int safe_mouse_x(Vector2 gridPosition) {
     int mouse_pos = GetMouseX();
     if ( mouse_pos >= gridPosition.x + MAX_GRID_CELLS_X*GRID_CELL_SIZE ) {
@@ -94,18 +102,31 @@ bool mouseInCell(Vector2 gridPosition, Point cell) {
     return false;
 }
 
-void actor_selection(PlayerState * actor) {
+void actor_selection(Point * cell_arr, Point * cell) {
 
-    if (actor->selected == true) {
-        actor->selected = false;
-        actor->color = BLUE;
+    if (cell->occupant->selected == true) {
+        cell->occupant->selected = false;
+        cell->occupant->color = BLUE;
     }
     
     else {
-        actor->selected = true;
-        actor->color = YELLOW;
+        cell->occupant->selected = true;
+        cell->occupant->color = YELLOW;
     }
+    range_calc(cell_arr, cell, 3);
     return;
+}
+
+void range_calc(Point * cell_arr, Point * start_cell, int range) {
+    // base case
+    // this inverts
+    start_cell->in_range = !(start_cell->in_range);
+    if (range == 0) {
+        return;
+    }
+    Point * cell_up = cell_arr + start_cell->x + MAX_GRID_CELLS_X*(start_cell->y - 1);
+    range_calc(cell_arr, cell_up, range - 1);
+
 }
 
 //------------------------------------------------------------------------------------
@@ -131,7 +152,7 @@ int main(void)
             mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].x = xCoor;
             mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].y = yCoor;
             mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].occupant = NULL;
-            mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].selected = false;
+            mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].in_range = false;
             mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].terrain.color = GREEN;
 
         }
@@ -162,23 +183,16 @@ int main(void)
             // had to do pointer stuff to point to the permanent object
 
 
-            if (selected_cell->selected) {
-                selected_cell->selected = false;
-            }
-            else {
-                selected_cell->selected = true;
-            }
-            
             if (player.selected && !(selected_cell->occupant == &player)){
                 printf("move \n");
                 selected_cell->occupant = &player;
                 last_player_position->occupant = NULL;
                 last_player_position = selected_cell;
                 
-                actor_selection(&player);
+                actor_selection(mapArr, selected_cell);
             }
             else if (selected_cell->occupant == &player){
-                actor_selection(&player);
+                actor_selection(mapArr, selected_cell);
             }
             
         }
@@ -204,18 +218,19 @@ int main(void)
                 // first we draw terrain, on it occupant, then grid, then selection
                 DrawRectangle(cell_x_pos, cell_y_pos,
                     GRID_CELL_SIZE, GRID_CELL_SIZE, curr_cell.terrain.color);
-
+                
+                    
                 if (curr_cell.occupant != NULL) {
                     DrawRectangle(cell_x_pos, cell_y_pos,
                         GRID_CELL_SIZE, GRID_CELL_SIZE, curr_cell.occupant->color);
-                }
-
-                DrawRectangleLines(cell_x_pos, cell_y_pos,
-                    GRID_CELL_SIZE, GRID_CELL_SIZE, GRAY);
-
-                if (mapArr[cellIdx].selected) {
+                    }
+                    
                     DrawRectangleLines(cell_x_pos, cell_y_pos,
-                        GRID_CELL_SIZE, GRID_CELL_SIZE, RED);
+                        GRID_CELL_SIZE, GRID_CELL_SIZE, GRAY);
+                            
+                if (curr_cell.in_range == true) {
+                    DrawRectangleLines(cell_x_pos, cell_y_pos,
+                        GRID_CELL_SIZE, GRID_CELL_SIZE, BLUE);
                 }
             }
 
