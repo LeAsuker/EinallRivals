@@ -6,7 +6,7 @@
 
 #define GRID_CELL_SIZE              24      
 #define MAX_GRID_CELLS_X            30
-#define MAX_GRID_CELLS_Y            13
+#define MAX_GRID_CELLS_Y            23
 
 //----------------------------------------------------------------------------------
 // Types and Structures Definition
@@ -115,14 +115,14 @@ int main(void)
 {
     // Initialization
     //--------------------------------------------------------------------------------------
-    const int screenWidth = 800;
-    const int screenHeight = 450;
+    const int screenWidth = 1280;
+    const int screenHeight = 720;
     
     InitWindow(screenWidth, screenHeight, "WaterEmblemProto");
     
     
     // Grid variables
-    Vector2 gridPosition = { 40, 60 };
+    Vector2 gridPosition = { 60, 90 };
     
     // map init
     Point* mapArr = malloc(sizeof(Point)*MAX_GRID_CELLS_X*MAX_GRID_CELLS_Y);
