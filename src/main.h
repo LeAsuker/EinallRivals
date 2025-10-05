@@ -10,23 +10,33 @@ typedef struct Player {
     bool has_turn;
 } Player;
 
-typedef struct PlayerState {
+typedef struct Actor {
     Color color;
     Color og_color;
     Player * owner;
     bool selected;
 
+    int level;
+    int next_level_xp;
+
     int max_health;
     int curr_health;
+
     int movement;
+
     int attack;
-    int armor;
-} PlayerState;
+    int defense;
+
+    int magic_defense;
+    int magic_attack;
+
+    int range;
+} Actor;
 
 typedef struct Point {
     int x;
     int y;
-    PlayerState* occupant;
+    Actor * occupant;
     bool in_range;
     Terrain terrain;
 } Point;
@@ -47,4 +57,5 @@ void spread_terrain(Point* cell_arr, Point* start_cell, int range, Terrain terra
 Point* get_random_cell(Point* cell_arr);
 void generate_biome_cores(Point* cell_arr, BiomeConfig config);
 void generate_all_biomes(Point* cell_arr, BiomeConfig* biome_configs, int num_biomes, int layers);
+void actor_init( Actor * actor, Player * owner);
 #endif

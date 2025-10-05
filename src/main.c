@@ -27,8 +27,6 @@
 //------------------------------------------------------------------------------------
 int main(void)
 {
-    // ws originally in init biomes func, removed it so it can be accessed
-    // by other checks
     // Define terrain types
     Terrain Plains = { .color = GREEN };
     Terrain Mountains = { .color = LIGHTGRAY };
@@ -63,7 +61,7 @@ int main(void)
             mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].y = yCoor;
             mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].occupant = NULL;
             mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].in_range = false;
-            mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].terrain.color = GREEN;
+            mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].terrain = Plains;
             
         }
     }
@@ -89,15 +87,8 @@ int main(void)
     
     
     // Init current player state
-    PlayerState player;
-    player.owner = &Azai;
-    player.color = player.owner->sec_color;
-    player.selected = false;
-    player.movement = 7;
-    player.max_health = 20;
-    player.curr_health = 20;
-    player.attack = 8;
-    player.armor = 3;
+    Actor player;
+    actor_init(&player, &Azai);
     
     Point * spawn = get_random_cell(mapArr);
     spawn->occupant = &player;
@@ -148,34 +139,43 @@ int main(void)
         // Draw debug info, this is broken with undefined behavior
         DrawText(TextFormat("MOUSE: %d %d - MCELL: %d %d", safe_mouse_x(gridPosition), safe_mouse_y(gridPosition),
                 mouseToCell(gridPosition, mapArr)->x, mouseToCell(gridPosition, mapArr)->y), 40, 20, 20, DARKGRAY);
-            
-                // draws game map through mapArr array
-            for (int cellIdx = 0; cellIdx < MAX_GRID_CELLS_X*MAX_GRID_CELLS_Y; cellIdx++) {
 
-                int cell_x_pos = gridPosition.x + mapArr[cellIdx].x*GRID_CELL_SIZE;
-                int cell_y_pos = gridPosition.y + mapArr[cellIdx].y*GRID_CELL_SIZE;
-                Point curr_cell = mapArr[cellIdx];
                 
-                // first we draw terrain, on it occupant, then grid, then selection
+                // draws game map through mapArr array
+        for (int cellIdx = 0; cellIdx < MAX_GRID_CELLS_X*MAX_GRID_CELLS_Y; cellIdx++) {
+                
+            int cell_x_pos = gridPosition.x + mapArr[cellIdx].x*GRID_CELL_SIZE;
+            int cell_y_pos = gridPosition.y + mapArr[cellIdx].y*GRID_CELL_SIZE;
+            Point curr_cell = mapArr[cellIdx];
+            
+            // first we draw terrain, on it occupant, then grid, then selection
+            DrawRectangle(cell_x_pos, cell_y_pos,
+                GRID_CELL_SIZE, GRID_CELL_SIZE, curr_cell.terrain.color);
+                
+                
+            if (curr_cell.occupant != NULL) {
+                Actor* occupant = curr_cell.occupant;
                 DrawRectangle(cell_x_pos, cell_y_pos,
-                    GRID_CELL_SIZE, GRID_CELL_SIZE, curr_cell.terrain.color);
+                    GRID_CELL_SIZE, GRID_CELL_SIZE, occupant->color);
+                DrawRectangle(cell_x_pos, cell_y_pos,
+                    GRID_CELL_SIZE - 10, GRID_CELL_SIZE - 10, occupant->owner->prim_color);
                 
-                    
-                    if (curr_cell.occupant != NULL) {
-                    DrawRectangle(cell_x_pos, cell_y_pos,
-                        GRID_CELL_SIZE, GRID_CELL_SIZE, curr_cell.occupant->color);
-                    DrawRectangle(cell_x_pos, cell_y_pos,
-                        GRID_CELL_SIZE - 10, GRID_CELL_SIZE - 10, curr_cell.occupant->owner->prim_color);
-                }
-                    
-                DrawRectangleLines(cell_x_pos, cell_y_pos,
-                    GRID_CELL_SIZE, GRID_CELL_SIZE, GRAY);
-                            
-                    if (curr_cell.in_range == true) {
-                    DrawRectangleLines(cell_x_pos, cell_y_pos,
-                        GRID_CELL_SIZE, GRID_CELL_SIZE, RED);
-                }
+                if (occupant->selected){
+                    DrawText(TextFormat("LVL: %d\nEXP NEEDED: %d\nHP: %d/%d\nMOV: %d\nATK: %d\nDEF: %d\n",
+                        occupant->level, occupant->next_level_xp, occupant->curr_health, occupant->max_health,
+                        occupant->movement, occupant->attack, occupant->defense),
+                        MAX_GRID_CELLS_X*GRID_CELL_SIZE + gridPosition.x + 20, gridPosition.y, 20, BLACK);
+                    }
             }
+                
+            DrawRectangleLines(cell_x_pos, cell_y_pos,
+                GRID_CELL_SIZE, GRID_CELL_SIZE, GRAY);
+                        
+            if (curr_cell.in_range == true) {
+                DrawRectangleLines(cell_x_pos, cell_y_pos,
+                    GRID_CELL_SIZE, GRID_CELL_SIZE, RED);
+            }
+        }
 
         EndDrawing();
         //----------------------------------------------------------------------------------
@@ -348,4 +348,27 @@ void generate_all_biomes(Point* cell_arr, BiomeConfig* biome_configs, int num_bi
             generate_biome_cores(cell_arr, biome_configs[i]);
         }
     }
+}
+
+void actor_init( Actor * actor, Player * owner) {
+    actor->color = owner->sec_color;
+    actor->og_color = owner->sec_color;
+    actor->owner = owner;
+    actor->selected = false;
+
+    actor->level = 1;
+    actor->next_level_xp = 100;
+
+    actor->max_health = 20;
+    actor->curr_health = 20;
+
+    actor->movement = 4;
+
+    actor->attack = 8;
+    actor->defense = 3;
+
+    actor->magic_defense = 3;
+    actor->magic_attack = 2;
+
+    actor->range = 1;
 }
