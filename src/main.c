@@ -239,15 +239,19 @@ int main(void)
     Sea.color = DARKBLUE;
 
     Terrain Arctic;
-    Arctic.color = WHITE;    
+    Arctic.color = WHITE;
+    
+    Terrain Forest;
+    Forest.color = DARKGREEN;
+
     // biome painting
     for (int i = 0; i < 2; i++) {
-        int desert_num = rand() % 6;
+        int desert_num = rand() % 5;
         for (int d = 0; d < desert_num; d++) {
             int rand_x = rand() % MAX_GRID_CELLS_X;
             int rand_y = rand() % MAX_GRID_CELLS_Y;
             Point* desert_core =  mapArr + rand_x + rand_y*MAX_GRID_CELLS_X;
-            biome_generator(mapArr, desert_core, (rand() % 6) + 1, Desert); 
+            biome_generator(mapArr, desert_core, (rand() % 5) + 1, Desert); 
         }
 
         int sea_num = rand() % 7;
@@ -264,6 +268,14 @@ int main(void)
             int rand_y = rand() % MAX_GRID_CELLS_Y;
             Point* arctic_core =  mapArr + rand_x + rand_y*MAX_GRID_CELLS_X;
             biome_generator(mapArr, arctic_core, (rand() % 6) + 1, Arctic); 
+        }
+
+        int forest_num = rand() % 3;
+        for (int f = 0; f < forest_num; f++) {
+            int rand_x = rand() % MAX_GRID_CELLS_X;
+            int rand_y = rand() % MAX_GRID_CELLS_Y;
+            Point* forest_core =  mapArr + rand_x + rand_y*MAX_GRID_CELLS_X;
+            biome_generator(mapArr, forest_core, (rand() % 3) + 1, Forest); 
         }
     }
     // init faction player
