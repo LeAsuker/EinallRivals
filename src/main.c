@@ -4,9 +4,9 @@
 #include <string.h>     // Required for: memcpy(), strcmp()
 #include "stdio.h"
 
-#define GRID_CELL_SIZE              24      
-#define MAX_GRID_CELLS_X            30
-#define MAX_GRID_CELLS_Y            23
+#define GRID_CELL_SIZE              30      
+#define MAX_GRID_CELLS_X            25
+#define MAX_GRID_CELLS_Y            18
 
 //----------------------------------------------------------------------------------
 // Types and Structures Definition
