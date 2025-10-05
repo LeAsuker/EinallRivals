@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <time.h>
 
+#include "main.h"
+
 #define GRID_CELL_SIZE              30      
 #define MAX_GRID_CELLS_X            30
 #define MAX_GRID_CELLS_Y            21
@@ -14,75 +16,181 @@
 //----------------------------------------------------------------------------------
 // Point struct, like Vector2 but using int
 
-// Player state struct
-// NOTE: Contains all player data that needs to be affected by undo/redo
-
-struct Point;
-struct PlayerState;
-struct Terrain;
-struct Player;
-
-typedef struct Point Point;
-typedef struct PlayerState PlayerState;
-typedef struct Terrain Terrain;
-typedef struct Player Player;
-
-// make an arr of types of these
-// and make each cell point to its type
-struct Terrain {
-    Color color;
-};
-
-struct Point {
-    int x;
-    int y;
-    PlayerState* occupant;
-    bool in_range;
-    Terrain terrain;
-};
-
-
-struct PlayerState {
-    Color color;
-    Color og_color;
-    Player * owner;
-    bool selected;
-
-    int max_health;
-    int curr_health;
-    int movement;
-    int attack;
-    int armor;
-};
-
-struct Player {
-    Color prim_color;
-    Color sec_color;
-    bool has_turn;
-};
-
-// Biome generation configuration
-// terrains are one thing, but biomes another
-typedef struct {
-    Terrain terrain;
-    int max_cores;      // Maximum number of biome cores
-    int max_range;      // Maximum spread range
-} BiomeConfig;
-
-Terrain Sea;
-
 //------------------------------------------------------------------------------------
 // Module Functions Declaration
 //------------------------------------------------------------------------------------
 // prevents out of bounds and segfaults
 // maybe unify these two functions?
 
-int safe_mouse_x(Vector2 gridPosition);
-int safe_mouse_y(Vector2 gridPosition);
-Point * mouseToCell(Vector2 gridPosition, Point * point_arr);
-bool mouseInCell(Vector2 gridPosition, Point cell);
-void actor_selection(Point * cell_arr, Point * cell);
-void range_calc(Point * cell_arr, Point * start_cell, int range, bool selection);
+//------------------------------------------------------------------------------------
+// Program main entry point
+//------------------------------------------------------------------------------------
+int main(void)
+{
+    // ws originally in init biomes func, removed it so it can be accessed
+    // by other checks
+    // Define terrain types
+    Terrain Plains = { .color = GREEN };
+    Terrain Mountains = { .color = LIGHTGRAY };
+    Terrain Sea = { .color = DARKBLUE };
+    Terrain Arctic = { .color = WHITE };
+    Terrain Forest = { .color = DARKGREEN };
+    
+    // Configure each biome type
+    BiomeConfig biome_configs[] = {
+        { .terrain = Mountains, .max_cores = 3, .max_range = 3 },
+        { .terrain = Arctic, .max_cores = 3, .max_range = 3 },
+        { .terrain = Forest, .max_cores = 3, .max_range = 3 },
+        { .terrain = Sea,    .max_cores = 2, .max_range = 5 }
+    };
+    // Initialization
+    //--------------------------------------------------------------------------------------
+    const int screenWidth = 1280;
+    const int screenHeight = 720;
+    srand(time(NULL));
+    
+    InitWindow(screenWidth, screenHeight, "WaterEmblemProto");
+    
+    
+    // Grid variables
+    Vector2 gridPosition = { 40, 60 };
+    
+    // map init
+    Point* mapArr = malloc(sizeof(Point)*MAX_GRID_CELLS_X*MAX_GRID_CELLS_Y);
+    for (int yCoor = 0; yCoor < MAX_GRID_CELLS_Y; yCoor++) {
+        for (int xCoor = 0; xCoor < MAX_GRID_CELLS_X; xCoor++) {
+            mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].x = xCoor;
+            mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].y = yCoor;
+            mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].occupant = NULL;
+            mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].in_range = false;
+            mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].terrain.color = GREEN;
+            
+        }
+    }
+    int num_biomes = sizeof(biome_configs) / sizeof(BiomeConfig);
+    int layers = 7;
+    generate_all_biomes(mapArr, biome_configs, num_biomes, layers);
+
+    // init faction player
+    Player Azai;
+    Azai.prim_color = PURPLE;
+    Azai.sec_color = DARKGRAY;
+    Azai.has_turn = true;
+    
+    Player Anegakoji;
+    Anegakoji.prim_color = GREEN;
+    Anegakoji.sec_color = WHITE;
+    Anegakoji.has_turn = true;
+
+    Player Gaia;
+    Gaia.prim_color = BROWN;
+    Gaia.sec_color = BLACK;
+    Gaia.has_turn = true;
+    
+    
+    // Init current player state
+    PlayerState player;
+    player.owner = &Azai;
+    player.color = player.owner->sec_color;
+    player.selected = false;
+    player.movement = 7;
+    player.max_health = 20;
+    player.curr_health = 20;
+    player.attack = 8;
+    player.armor = 3;
+    
+    Point * spawn = get_random_cell(mapArr);
+    spawn->occupant = &player;
+    Point * last_player_position = spawn;
+    
+    SetTargetFPS(60);
+    //--------------------------------------------------------------------------------------
+    
+    // Main game loop
+    while (!WindowShouldClose())    // Detect window close button or ESC key
+    {
+        // Update
+        //----------------------------------------------------------------------------------
+        // The XY coords are in the top left corner of the square
+        // mouse in bounds does not work due to undefined behavior,
+        // am accessing elements outside of the cell array
+        if (IsMouseButtonPressed(0)) {
+            Point * selected_cell = mouseToCell(gridPosition, mapArr);
+            printf("selected_cell %d %d", selected_cell->x, selected_cell->y);
+            // tells us which cell we have selected in the mapArr
+            // had to do pointer stuff to point to the permanent object
+            
+            
+            if (player.selected && !(selected_cell->occupant == &player) && selected_cell->in_range){
+                printf("move \n");
+                // replace 3 with player movement
+                // this removes the in_range flag to the tiles around original position
+                range_calc(mapArr, last_player_position, player.movement, false);
+                selected_cell->occupant = &player;
+                last_player_position->occupant = NULL;
+                last_player_position = selected_cell;
+                
+                actor_selection(mapArr, selected_cell);
+            }
+            else if (selected_cell->occupant == &player){
+                actor_selection(mapArr, selected_cell);
+            }
+            
+        }
+
+        //----------------------------------------------------------------------------------
+        
+        // Draw
+        //----------------------------------------------------------------------------------
+        BeginDrawing();
+        ClearBackground(RAYWHITE);
+        
+        // Draw debug info, this is broken with undefined behavior
+        DrawText(TextFormat("MOUSE: %d %d - MCELL: %d %d", safe_mouse_x(gridPosition), safe_mouse_y(gridPosition),
+                mouseToCell(gridPosition, mapArr)->x, mouseToCell(gridPosition, mapArr)->y), 40, 20, 20, DARKGRAY);
+            
+                // draws game map through mapArr array
+            for (int cellIdx = 0; cellIdx < MAX_GRID_CELLS_X*MAX_GRID_CELLS_Y; cellIdx++) {
+
+                int cell_x_pos = gridPosition.x + mapArr[cellIdx].x*GRID_CELL_SIZE;
+                int cell_y_pos = gridPosition.y + mapArr[cellIdx].y*GRID_CELL_SIZE;
+                Point curr_cell = mapArr[cellIdx];
+                
+                // first we draw terrain, on it occupant, then grid, then selection
+                DrawRectangle(cell_x_pos, cell_y_pos,
+                    GRID_CELL_SIZE, GRID_CELL_SIZE, curr_cell.terrain.color);
+                
+                    
+                    if (curr_cell.occupant != NULL) {
+                    DrawRectangle(cell_x_pos, cell_y_pos,
+                        GRID_CELL_SIZE, GRID_CELL_SIZE, curr_cell.occupant->color);
+                    DrawRectangle(cell_x_pos, cell_y_pos,
+                        GRID_CELL_SIZE - 10, GRID_CELL_SIZE - 10, curr_cell.occupant->owner->prim_color);
+                }
+                    
+                DrawRectangleLines(cell_x_pos, cell_y_pos,
+                    GRID_CELL_SIZE, GRID_CELL_SIZE, GRAY);
+                            
+                    if (curr_cell.in_range == true) {
+                    DrawRectangleLines(cell_x_pos, cell_y_pos,
+                        GRID_CELL_SIZE, GRID_CELL_SIZE, RED);
+                }
+            }
+
+        EndDrawing();
+        //----------------------------------------------------------------------------------
+    }
+
+    // De-Initialization
+    //--------------------------------------------------------------------------------------
+    free(mapArr);
+    
+    CloseWindow();          // Close window and OpenGL context
+    //--------------------------------------------------------------------------------------
+    
+    return 0;
+}
+
 
 int safe_mouse_x(Vector2 gridPosition) {
     int mouse_pos = GetMouseX();
@@ -240,171 +348,4 @@ void generate_all_biomes(Point* cell_arr, BiomeConfig* biome_configs, int num_bi
             generate_biome_cores(cell_arr, biome_configs[i]);
         }
     }
-}
-//------------------------------------------------------------------------------------
-// Program main entry point
-//------------------------------------------------------------------------------------
-int main(void)
-{
-    // ws originally in init biomes func, removed it so it can be accessed
-    // by other checks
-    // Define terrain types
-    Terrain Plains = { .color = GREEN };
-    Terrain Mountains = { .color = LIGHTGRAY };
-    Sea.color = DARKBLUE;
-    Terrain Arctic = { .color = WHITE };
-    Terrain Forest = { .color = DARKGREEN };
-
-    // Configure each biome type
-    BiomeConfig biome_configs[] = {
-        { .terrain = Mountains, .max_cores = 3, .max_range = 3 },
-        { .terrain = Arctic, .max_cores = 3, .max_range = 3 },
-        { .terrain = Forest, .max_cores = 3, .max_range = 3 },
-        { .terrain = Sea,    .max_cores = 2, .max_range = 5 }
-    };
-    // Initialization
-    //--------------------------------------------------------------------------------------
-    const int screenWidth = 1280;
-    const int screenHeight = 720;
-    srand(time(NULL));
-    
-    InitWindow(screenWidth, screenHeight, "WaterEmblemProto");
-    
-    
-    // Grid variables
-    Vector2 gridPosition = { 40, 60 };
-    
-    // map init
-    Point* mapArr = malloc(sizeof(Point)*MAX_GRID_CELLS_X*MAX_GRID_CELLS_Y);
-    for (int yCoor = 0; yCoor < MAX_GRID_CELLS_Y; yCoor++) {
-        for (int xCoor = 0; xCoor < MAX_GRID_CELLS_X; xCoor++) {
-            mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].x = xCoor;
-            mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].y = yCoor;
-            mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].occupant = NULL;
-            mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].in_range = false;
-            mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].terrain.color = GREEN;
-            
-        }
-    }
-    int num_biomes = sizeof(biome_configs) / sizeof(BiomeConfig);
-    int layers = 7;
-    generate_all_biomes(mapArr, biome_configs, num_biomes, layers);
-
-    // init faction player
-    Player Azai;
-    Azai.prim_color = PURPLE;
-    Azai.sec_color = DARKGRAY;
-    Azai.has_turn = true;
-
-    Player Anegakoji;
-    Anegakoji.prim_color = GREEN;
-    Anegakoji.sec_color = WHITE;
-    Anegakoji.has_turn = true;
-
-    Player Gaia;
-    Gaia.prim_color = BROWN;
-    Gaia.sec_color = BLACK;
-    Gaia.has_turn = true;
-
-
-    // Init current player state
-    PlayerState player;
-    player.owner = &Azai;
-    player.color = player.owner->sec_color;
-    player.selected = false;
-    player.movement = 7;
-    player.max_health = 20;
-    player.curr_health = 20;
-    player.attack = 8;
-    player.armor = 3;
-
-    mapArr[100].occupant = &player;
-    Point * last_player_position = mapArr + 100;
-
-    SetTargetFPS(60);
-    //--------------------------------------------------------------------------------------
-
-    // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
-    {
-        // Update
-        //----------------------------------------------------------------------------------
-        // The XY coords are in the top left corner of the square
-        // mouse in bounds does not work due to undefined behavior,
-        // am accessing elements outside of the cell array
-        if (IsMouseButtonPressed(0)) {
-            Point * selected_cell = mouseToCell(gridPosition, mapArr);
-            printf("selected_cell %d %d", selected_cell->x, selected_cell->y);
-            // tells us which cell we have selected in the mapArr
-            // had to do pointer stuff to point to the permanent object
-
-
-            if (player.selected && !(selected_cell->occupant == &player) && selected_cell->in_range){
-                printf("move \n");
-                // replace 3 with player movement
-                // this removes the in_range flag to the tiles around original position
-                range_calc(mapArr, last_player_position, player.movement, false);
-                selected_cell->occupant = &player;
-                last_player_position->occupant = NULL;
-                last_player_position = selected_cell;
-                
-                actor_selection(mapArr, selected_cell);
-            }
-            else if (selected_cell->occupant == &player){
-                actor_selection(mapArr, selected_cell);
-            }
-            
-        }
-
-        //----------------------------------------------------------------------------------
-
-        // Draw
-        //----------------------------------------------------------------------------------
-        BeginDrawing();
-            ClearBackground(RAYWHITE);
-
-            // Draw debug info, this is broken with undefined behavior
-            DrawText(TextFormat("MOUSE: %d %d - MCELL: %d %d", safe_mouse_x(gridPosition), safe_mouse_y(gridPosition),
-                mouseToCell(gridPosition, mapArr)->x, mouseToCell(gridPosition, mapArr)->y), 40, 20, 20, DARKGRAY);
-            
-            // draws game map through mapArr array
-            for (int cellIdx = 0; cellIdx < MAX_GRID_CELLS_X*MAX_GRID_CELLS_Y; cellIdx++) {
-
-                int cell_x_pos = gridPosition.x + mapArr[cellIdx].x*GRID_CELL_SIZE;
-                int cell_y_pos = gridPosition.y + mapArr[cellIdx].y*GRID_CELL_SIZE;
-                Point curr_cell = mapArr[cellIdx];
-
-                // first we draw terrain, on it occupant, then grid, then selection
-                DrawRectangle(cell_x_pos, cell_y_pos,
-                    GRID_CELL_SIZE, GRID_CELL_SIZE, curr_cell.terrain.color);
-                
-                    
-                if (curr_cell.occupant != NULL) {
-                    DrawRectangle(cell_x_pos, cell_y_pos,
-                        GRID_CELL_SIZE, GRID_CELL_SIZE, curr_cell.occupant->color);
-                    DrawRectangle(cell_x_pos, cell_y_pos,
-                        GRID_CELL_SIZE - 10, GRID_CELL_SIZE - 10, curr_cell.occupant->owner->prim_color);
-                }
-                    
-                DrawRectangleLines(cell_x_pos, cell_y_pos,
-                    GRID_CELL_SIZE, GRID_CELL_SIZE, GRAY);
-                            
-                if (curr_cell.in_range == true) {
-                    DrawRectangleLines(cell_x_pos, cell_y_pos,
-                        GRID_CELL_SIZE, GRID_CELL_SIZE, RED);
-                }
-            }
-
-        EndDrawing();
-        //----------------------------------------------------------------------------------
-    }
-
-    // De-Initialization
-    //--------------------------------------------------------------------------------------
-    free(mapArr);
-
-    CloseWindow();          // Close window and OpenGL context
-    //--------------------------------------------------------------------------------------
-
-    return 0;
 }
