@@ -19,11 +19,17 @@ int main(void)
     Image arctic_sprite = LoadImage("resources/arctic_ter.png");
     Image forest_sprite = LoadImage("resources/forest_ter.png");
 
+    Image v_militia_sprite = LoadImage("resources/ventus_militia.png");
+    Image d_militia_sprite = LoadImage("resources/darkus_militia.png");
+
     ImageResize(&sea_sprite, GRID_CELL_SIZE, GRID_CELL_SIZE);
     ImageResize(&mountains_sprite, GRID_CELL_SIZE, GRID_CELL_SIZE);
     ImageResize(&plains_sprite, GRID_CELL_SIZE, GRID_CELL_SIZE);
     ImageResize(&arctic_sprite, GRID_CELL_SIZE, GRID_CELL_SIZE);
     ImageResize(&forest_sprite, GRID_CELL_SIZE, GRID_CELL_SIZE);
+
+    ImageResize(&d_militia_sprite, GRID_CELL_SIZE, GRID_CELL_SIZE);
+    ImageResize(&v_militia_sprite, GRID_CELL_SIZE, GRID_CELL_SIZE);
 
     // Define terrain types
     // Initialization
@@ -34,7 +40,6 @@ int main(void)
     
     // initwindow creates opengl context, texture stuff needs to happen after it
     InitWindow(screenWidth, screenHeight, "WaterEmblemProto");
-    Texture2D sea_text = LoadTextureFromImage(sea_sprite);
     Terrain Plains = { .color = GREEN, .sprite = LoadTextureFromImage(plains_sprite)};
     Terrain Mountains = { .color = LIGHTGRAY, .sprite = LoadTextureFromImage(mountains_sprite) };
     Terrain Sea = { .color = DARKBLUE, .sprite = LoadTextureFromImage(sea_sprite) };
@@ -68,7 +73,7 @@ int main(void)
     int num_biomes = sizeof(biome_configs) / sizeof(BiomeConfig);
     int layers = 7;
     generate_all_biomes(mapArr, biome_configs, num_biomes, layers);
-
+    
     // init faction player
     Player Azai;
     Azai.prim_color = PURPLE;
@@ -79,7 +84,7 @@ int main(void)
     Anegakoji.prim_color = GREEN;
     Anegakoji.sec_color = WHITE;
     Anegakoji.has_turn = true;
-
+    
     Player Gaia;
     Gaia.prim_color = BROWN;
     Gaia.sec_color = BLACK;
@@ -87,8 +92,9 @@ int main(void)
     
     
     // Init current player state
+    Texture2D d_militia_text = LoadTextureFromImage(d_militia_sprite);
     Actor player;
-    actor_init(&player, &Azai);
+    actor_init(&player, &Azai, d_militia_text);
     
     Point * spawn = get_random_cell(mapArr);
     spawn->occupant = &player;
@@ -154,10 +160,8 @@ int main(void)
                 
             if (curr_cell.occupant != NULL) {
                 Actor* occupant = curr_cell.occupant;
-                DrawRectangle(cell_x_pos, cell_y_pos,
-                    GRID_CELL_SIZE, GRID_CELL_SIZE, occupant->color);
-                DrawRectangle(cell_x_pos, cell_y_pos,
-                    GRID_CELL_SIZE - 10, GRID_CELL_SIZE - 10, occupant->owner->prim_color);
+                DrawTexture(occupant->sprite, cell_x_pos, cell_y_pos, WHITE);
+
                 
                 if (occupant->selected){
                     DrawText(TextFormat("LVL: %d\nEXP NEEDED: %d\nHP: %d/%d\nMOV: %d\nATK: %d\nDEF: %d\n",
@@ -169,7 +173,11 @@ int main(void)
                 
             DrawRectangleLines(cell_x_pos, cell_y_pos,
                 GRID_CELL_SIZE, GRID_CELL_SIZE, GRAY);
-                        
+            
+            if (curr_cell.occupant != NULL) {
+                DrawRectangleLines(cell_x_pos, cell_y_pos,
+                GRID_CELL_SIZE, GRID_CELL_SIZE, curr_cell.occupant->owner->prim_color);
+            }
             if (curr_cell.in_range == true) {
                 DrawRectangleLines(cell_x_pos, cell_y_pos,
                     GRID_CELL_SIZE, GRID_CELL_SIZE, RED);
@@ -241,13 +249,11 @@ void actor_selection(Point * cell_arr, Point * cell) {
 
     if (cell->occupant->selected == true) {
         cell->occupant->selected = false;
-        cell->occupant->color = cell->occupant->owner->sec_color;
         range_calc(cell_arr, cell, cell->occupant->movement, false);
     }
     
     else {
         cell->occupant->selected = true;
-        cell->occupant->color = YELLOW;
         range_calc(cell_arr, cell, cell->occupant->movement, true);
     }
     return;
@@ -348,9 +354,8 @@ void generate_all_biomes(Point* cell_arr, BiomeConfig* biome_configs, int num_bi
     }
 }
 
-void actor_init( Actor * actor, Player * owner) {
-    actor->color = owner->sec_color;
-    actor->og_color = owner->sec_color;
+void actor_init( Actor * actor, Player * owner, Texture2D sprite) {
+    actor->sprite = sprite;
     actor->owner = owner;
     actor->selected = false;
 

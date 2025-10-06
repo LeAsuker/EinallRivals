@@ -12,8 +12,7 @@ typedef struct Player {
 } Player;
 
 typedef struct Actor {
-    Color color;
-    Color og_color;
+    Texture2D sprite;
     Player * owner;
     bool selected;
 
@@ -58,5 +57,5 @@ void spread_terrain(Point* cell_arr, Point* start_cell, int range, Terrain terra
 Point* get_random_cell(Point* cell_arr);
 void generate_biome_cores(Point* cell_arr, BiomeConfig config);
 void generate_all_biomes(Point* cell_arr, BiomeConfig* biome_configs, int num_biomes, int layers);
-void actor_init( Actor * actor, Player * owner);
+void actor_init( Actor * actor, Player * owner, Texture2D sprite);
 #endif
