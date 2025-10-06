@@ -93,6 +93,7 @@ int main(void)
     Point * last_player_position = spawn;
 
     Player * curr_player = factions + 0;
+    Point * focused_cell = NULL;
     
     SetTargetFPS(60);
     //--------------------------------------------------------------------------------------
@@ -108,11 +109,10 @@ int main(void)
         if (IsMouseButtonPressed(0)) {
             // tells us which cell we have selected in the mapArr
             // had to do pointer stuff to point to the permanent object
-            
-            
             if (selected_cell->occupant == &player){
                 actor_selection(mapArr, selected_cell);
             }
+            focused_cell = selected_cell;
         }
         // RMB
         else if (IsMouseButtonPressed(1)) {
@@ -157,15 +157,9 @@ int main(void)
             if (curr_cell.occupant != NULL) {
                 Actor* occupant = curr_cell.occupant;
                 DrawTexture(occupant->sprite, cell_x_pos, cell_y_pos, WHITE);
-
-                
-                if (occupant->selected){
-                    DrawText(TextFormat("LVL: %d\nEXP NEEDED: %d\nHP: %d/%d\nMOV: %d\nATK: %d\nDEF: %d\n",
-                        occupant->level, occupant->next_level_xp, occupant->curr_health, occupant->max_health,
-                        occupant->movement, occupant->attack, occupant->defense),
-                        MAX_GRID_CELLS_X*GRID_CELL_SIZE + gridPosition.x + 20, gridPosition.y, 20, BLACK);
-                    }
             }
+
+            focused_cell_info(focused_cell, gridPosition);
                 
             DrawRectangleLines(cell_x_pos, cell_y_pos,
                 GRID_CELL_SIZE, GRID_CELL_SIZE, GRAY);
@@ -352,6 +346,7 @@ void generate_all_biomes(Point* cell_arr, BiomeConfig* biome_configs, int num_bi
 
 void actor_init( Actor * actor, Player * owner, Texture2D sprite) {
     actor->sprite = sprite;
+    strcpy(actor->name, "Azao");
     actor->owner = owner;
     actor->can_move = true;
     actor->can_act = true;
@@ -372,4 +367,24 @@ void actor_init( Actor * actor, Player * owner, Texture2D sprite) {
     actor->magic_attack = 2;
 
     actor->range = 1;
+}
+
+void focused_cell_info(Point * selected_cell, Vector2 gridPosition) {
+    if (selected_cell == NULL) { return; }
+    if (selected_cell->occupant != NULL) {
+        Actor * occupant = selected_cell->occupant;
+        DrawText(TextFormat(
+            "NAME: %s\nFAC: %s\nLVL: %d\nEXP NEEDED: %d\nHP: %d/%d\nMOV: %d\nATK: %d\nDEF: %d\n",
+            occupant->name, occupant->owner, occupant->level, occupant->next_level_xp,
+            occupant->curr_health, occupant->max_health,
+            occupant->movement, occupant->attack, occupant->defense),
+            MAX_GRID_CELLS_X*GRID_CELL_SIZE + gridPosition.x + 20, gridPosition.y, 20, BLACK);
+    }
+    else {
+        DrawText(TextFormat(
+            "TRN: %d\n",
+            selected_cell->terrain.name),
+            MAX_GRID_CELLS_X*GRID_CELL_SIZE + gridPosition.x + 20, gridPosition.y, 20, BLACK);
+    }
+    return;
 }

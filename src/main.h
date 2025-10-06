@@ -36,6 +36,7 @@ typedef struct Actor {
     int magic_attack;
 
     int range;
+    char name[10];
 } Actor;
 
 typedef struct Point {
@@ -63,4 +64,5 @@ Point* get_random_cell(Point* cell_arr);
 void generate_biome_cores(Point* cell_arr, BiomeConfig config);
 void generate_all_biomes(Point* cell_arr, BiomeConfig* biome_configs, int num_biomes, int layers);
 void actor_init( Actor * actor, Player * owner, Texture2D sprite);
+void focused_cell_info(Point * selected_cell, Vector2 gridPosition);
 #endif
