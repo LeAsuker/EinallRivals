@@ -40,11 +40,11 @@ int main(void)
     
     // initwindow creates opengl context, texture stuff needs to happen after it
     InitWindow(screenWidth, screenHeight, "WaterEmblemProto");
-    Terrain Plains = { .color = GREEN, .sprite = LoadTextureFromImage(plains_sprite)};
-    Terrain Mountains = { .color = LIGHTGRAY, .sprite = LoadTextureFromImage(mountains_sprite) };
-    Terrain Sea = { .color = DARKBLUE, .sprite = LoadTextureFromImage(sea_sprite) };
-    Terrain Arctic = { .color = WHITE, .sprite = LoadTextureFromImage(arctic_sprite) };
-    Terrain Forest = { .color = DARKGREEN, .sprite = LoadTextureFromImage(forest_sprite) };
+    Terrain Plains = { .id = 0, .color = GREEN, .sprite = LoadTextureFromImage(plains_sprite), .name = "Plains"};
+    Terrain Mountains = { .id = 1, .color = LIGHTGRAY, .sprite = LoadTextureFromImage(mountains_sprite), .name = "Mountains" };
+    Terrain Sea = { .id = 2, .color = DARKBLUE, .sprite = LoadTextureFromImage(sea_sprite), .name = "Sea" };
+    Terrain Arctic = { .id = 3, .color = WHITE, .sprite = LoadTextureFromImage(arctic_sprite), .name = "Arctic" };
+    Terrain Forest = { .id = 4, .color = DARKGREEN, .sprite = LoadTextureFromImage(forest_sprite), .name = "Forest" };
     
     // Configure each biome type
     BiomeConfig biome_configs[] = {
@@ -70,35 +70,29 @@ int main(void)
             
         }
     }
+
     int num_biomes = sizeof(biome_configs) / sizeof(BiomeConfig);
     int layers = 7;
     generate_all_biomes(mapArr, biome_configs, num_biomes, layers);
     
     // init faction player
-    Player Azai;
-    Azai.prim_color = PURPLE;
-    Azai.sec_color = DARKGRAY;
-    Azai.has_turn = true;
-    
-    Player Anegakoji;
-    Anegakoji.prim_color = GREEN;
-    Anegakoji.sec_color = WHITE;
-    Anegakoji.has_turn = true;
-    
-    Player Gaia;
-    Gaia.prim_color = BROWN;
-    Gaia.sec_color = BLACK;
-    Gaia.has_turn = true;
+    Player factions[] = {
+        { .has_turn = true, .prim_color = PURPLE, .sec_color = DARKGRAY, .name = "Darkus" },
+        { .has_turn = false, .prim_color = GREEN, .sec_color = WHITE, .name = "Ventus" },
+        { .has_turn = false, .prim_color = BROWN, .sec_color = BLACK, .name = "Gaia" }
+    };
     
     
     // Init current player state
     Texture2D d_militia_text = LoadTextureFromImage(d_militia_sprite);
     Actor player;
-    actor_init(&player, &Azai, d_militia_text);
+    actor_init(&player, factions + 0, d_militia_text);
     
     Point * spawn = get_random_cell(mapArr);
     spawn->occupant = &player;
     Point * last_player_position = spawn;
+
+    Player * curr_player = factions + 0;
     
     SetTargetFPS(60);
     //--------------------------------------------------------------------------------------
@@ -357,6 +351,8 @@ void generate_all_biomes(Point* cell_arr, BiomeConfig* biome_configs, int num_bi
 void actor_init( Actor * actor, Player * owner, Texture2D sprite) {
     actor->sprite = sprite;
     actor->owner = owner;
+    actor->can_move = true;
+    actor->can_act = true;
     actor->selected = false;
 
     actor->level = 1;

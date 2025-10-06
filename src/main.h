@@ -1,20 +1,25 @@
 #ifndef MAIN_H_
 #define MAIN_H_
 typedef struct Terrain {
+    int id;
     Color color;
     Texture2D sprite;
+    char name[10];
 } Terrain;
 
 typedef struct Player {
     Color prim_color;
     Color sec_color;
     bool has_turn;
+    char name[10];
 } Player;
 
 typedef struct Actor {
     Texture2D sprite;
     Player * owner;
     bool selected;
+    bool can_move;
+    bool can_act;
 
     int level;
     int next_level_xp;
