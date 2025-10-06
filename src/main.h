@@ -43,7 +43,7 @@ typedef struct Point {
     int y;
     Actor * occupant;
     bool in_range;
-    bool selected;
+    bool in_attack_range;
     Terrain terrain;
 } Point;
 
@@ -65,4 +65,6 @@ void generate_biome_cores(Point* cell_arr, BiomeConfig config);
 void generate_all_biomes(Point* cell_arr, BiomeConfig* biome_configs, int num_biomes, int layers);
 void actor_init( Actor * actor, Player * owner, Texture2D sprite);
 void focused_cell_info(Point * selected_cell, Vector2 gridPosition);
+void attack_range_calc(Point * cell_arr, Point * start_cell, int range, bool selection);
+void cell_flag_flush(Point * cell_arr);
 #endif

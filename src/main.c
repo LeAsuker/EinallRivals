@@ -67,8 +67,6 @@ int main(void)
             mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].occupant = NULL;
             mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].in_range = false;
             mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].terrain = Plains;
-            mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].selected = false;
-            
         }
     }
 
@@ -123,6 +121,7 @@ int main(void)
                 
                 focused_cell = NULL;
             }
+            cell_flag_flush(mapArr); // has to be after so player can move
         }
 
         //----------------------------------------------------------------------------------
@@ -156,21 +155,26 @@ int main(void)
                 DrawTexture(occupant->sprite, cell_x_pos, cell_y_pos, WHITE);
             }
 
-            focused_cell_info(focused_cell, gridPosition);
-                
+            
             DrawRectangleLines(cell_x_pos, cell_y_pos,
                 GRID_CELL_SIZE, GRID_CELL_SIZE, GRAY);
-            
+                
             if (curr_cell.occupant != NULL) {
                 DrawRectangleLines(cell_x_pos, cell_y_pos,
-                GRID_CELL_SIZE, GRID_CELL_SIZE, curr_cell.occupant->owner->prim_color);
-            }
+                    GRID_CELL_SIZE, GRID_CELL_SIZE, curr_cell.occupant->owner->prim_color);
+                }
             if (curr_cell.in_range == true) {
+                DrawRectangleLines(cell_x_pos, cell_y_pos,
+                    GRID_CELL_SIZE, GRID_CELL_SIZE, BLUE);
+            }
+
+            if (curr_cell.in_attack_range == true) {
                 DrawRectangleLines(cell_x_pos, cell_y_pos,
                     GRID_CELL_SIZE, GRID_CELL_SIZE, RED);
             }
-        }
-
+            }
+        focused_cell_info(focused_cell, gridPosition);
+                    
         EndDrawing();
     }
 
@@ -234,15 +238,11 @@ bool mouseInCell(Vector2 gridPosition, Point cell) {
 // removal
 void cell_selection(Point * cell_arr, Point * cell, Point ** focused_cell) {
     // flushes the map of range indicator
-    for (int yCoor = 0; yCoor < MAX_GRID_CELLS_Y; yCoor++) {
-        for (int xCoor = 0; xCoor < MAX_GRID_CELLS_X; xCoor++) {
-            cell_arr[xCoor + yCoor*MAX_GRID_CELLS_X].in_range = false;
-            
-        }
-    }
+    cell_flag_flush(cell_arr);
     *focused_cell = cell;
     if (cell->occupant != NULL) {
         range_calc(cell_arr, cell, cell->occupant->movement, true);
+        attack_range_calc(cell_arr, cell, cell->occupant->range, true);
     }
     return;
 }
@@ -250,7 +250,7 @@ void cell_selection(Point * cell_arr, Point * cell, Point ** focused_cell) {
 void range_calc(Point * cell_arr, Point * start_cell, int range, bool selection) {
     // quick fix, also removes targeting and affects flyers
     // comparison problem, will have to refactor this
-    if (start_cell->terrain.color.b == DARKBLUE.b) {
+    if (start_cell->terrain.id == 2) {
         return;
     }
     // base case
@@ -279,6 +279,38 @@ void range_calc(Point * cell_arr, Point * start_cell, int range, bool selection)
     if (x < x_limit) {
         Point * cell_right = cell_arr + x + 1 + MAX_GRID_CELLS_X*(y);
         range_calc(cell_arr, cell_right, range - 1, selection);
+    }
+
+    return;
+}
+
+// calcs attack range
+void attack_range_calc(Point * cell_arr, Point * start_cell, int range, bool selection) {
+    start_cell->in_attack_range = selection;
+    if (range == 0) {
+        return;
+    }
+    int x = start_cell->x;
+    int y = start_cell->y;
+    int x_limit = MAX_GRID_CELLS_X - 1;
+    int y_limit = MAX_GRID_CELLS_Y - 1;
+    if (y != 0) {
+        Point * cell_up = cell_arr + x + MAX_GRID_CELLS_X*(y - 1);
+        attack_range_calc(cell_arr, cell_up, range - 1, selection);
+
+    }
+    if (y < y_limit) {
+
+        Point * cell_down = cell_arr + x + MAX_GRID_CELLS_X*(y + 1);
+        attack_range_calc(cell_arr, cell_down, range - 1, selection);
+    }
+    if (x != 0) {
+        Point * cell_left = cell_arr + x - 1 + MAX_GRID_CELLS_X*(y);
+        attack_range_calc(cell_arr, cell_left, range - 1, selection);
+    }
+    if (x < x_limit) {
+        Point * cell_right = cell_arr + x + 1 + MAX_GRID_CELLS_X*(y);
+        attack_range_calc(cell_arr, cell_right, range - 1, selection);
     }
 
     return;
@@ -383,5 +415,19 @@ void focused_cell_info(Point * selected_cell, Vector2 gridPosition) {
             selected_cell->terrain.name),
             MAX_GRID_CELLS_X*GRID_CELL_SIZE + gridPosition.x + 20, gridPosition.y, 20, BLACK);
     }
+
+    // so we know which selected
+    DrawRectangleLines(selected_cell->x*GRID_CELL_SIZE + gridPosition.x,
+        selected_cell->y*GRID_CELL_SIZE + gridPosition.y,
+        GRID_CELL_SIZE, GRID_CELL_SIZE, YELLOW);
     return;
+}
+
+void cell_flag_flush(Point * cell_arr) {
+    for (int yCoor = 0; yCoor < MAX_GRID_CELLS_Y; yCoor++) {
+        for (int xCoor = 0; xCoor < MAX_GRID_CELLS_X; xCoor++) {
+            cell_arr[xCoor + yCoor*MAX_GRID_CELLS_X].in_range = false;
+            cell_arr[xCoor + yCoor*MAX_GRID_CELLS_X].in_attack_range = false;
+        }
+    }
 }
