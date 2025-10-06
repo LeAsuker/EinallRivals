@@ -42,11 +42,17 @@ int main(void)
     
     // initwindow creates opengl context, texture stuff needs to happen after it
     InitWindow(screenWidth, screenHeight, "WaterEmblemProto");
-    Terrain Plains = { .id = 0, .color = GREEN, .sprite = LoadTextureFromImage(plains_sprite), .name = "Plains"};
-    Terrain Mountains = { .id = 1, .color = LIGHTGRAY, .sprite = LoadTextureFromImage(mountains_sprite), .name = "Mountains" };
-    Terrain Sea = { .id = 2, .color = DARKBLUE, .sprite = LoadTextureFromImage(sea_sprite), .name = "Sea" };
-    Terrain Arctic = { .id = 3, .color = WHITE, .sprite = LoadTextureFromImage(arctic_sprite), .name = "Arctic" };
-    Terrain Forest = { .id = 4, .color = DARKGREEN, .sprite = LoadTextureFromImage(forest_sprite), .name = "Forest" };
+    Terrain Plains = { .id = 0, .color = GREEN, .sprite = LoadTextureFromImage(plains_sprite)};
+    Terrain Mountains = { .id = 1, .color = LIGHTGRAY, .sprite = LoadTextureFromImage(mountains_sprite)};
+    Terrain Sea = { .id = 2, .color = DARKBLUE, .sprite = LoadTextureFromImage(sea_sprite)};
+    Terrain Arctic = { .id = 3, .color = WHITE, .sprite = LoadTextureFromImage(arctic_sprite)};
+    Terrain Forest = { .id = 4, .color = DARKGREEN, .sprite = LoadTextureFromImage(forest_sprite)};
+
+    strcpy(Plains.name, "Plains");
+    strcpy(Mountains.name, "Mountains");
+    strcpy(Sea.name, "Sea");
+    strcpy(Arctic.name, "Arctic");
+    strcpy(Forest.name, "Forest");
     
     // Configure each biome type
     BiomeConfig biome_configs[] = {
@@ -78,10 +84,13 @@ int main(void)
     
     // init faction player
     Player factions[] = {
-        { .has_turn = true, .prim_color = PURPLE, .sec_color = DARKGRAY, .name = "Darkus" },
-        { .has_turn = false, .prim_color = GREEN, .sec_color = WHITE, .name = "Ventus" },
-        { .has_turn = false, .prim_color = BROWN, .sec_color = BLACK, .name = "Gaia" }
+        { .has_turn = true, .prim_color = PURPLE, .sec_color = DARKGRAY},
+        { .has_turn = false, .prim_color = GREEN, .sec_color = WHITE},
+        { .has_turn = false, .prim_color = BROWN, .sec_color = BLACK}
     };
+    strcpy(factions[0].name, "Darkus");
+    strcpy(factions[1].name, "Ventus");
+    strcpy(factions[2].name, "Gaia");
     
     Actor * dark_troops = malloc(sizeof(Actor)*DARK_TROOP_NUM);
     Actor * vent_troops = malloc(sizeof(Actor)*VENT_TROOP_NUM);
@@ -96,7 +105,7 @@ int main(void)
     }
 
     for (int i = 0; i < VENT_TROOP_NUM; i++) {
-        actor_init(vent_troops + i, factions + 0, v_militia_text);
+        actor_init(vent_troops + i, factions + 1, v_militia_text);
         Point * spawn = get_random_spawn_cell(mapArr);
         spawn->occupant = vent_troops + i;
     }
@@ -414,14 +423,15 @@ void focused_cell_info(Point * selected_cell, Vector2 gridPosition) {
         Actor * occupant = selected_cell->occupant;
         DrawText(TextFormat(
             "NAME: %s\nFAC: %s\nLVL: %d\nEXP NEEDED: %d\nHP: %d/%d\nMOV: %d\nATK: %d\nDEF: %d\n",
-            occupant->name, occupant->owner, occupant->level, occupant->next_level_xp,
+            occupant->name, occupant->owner->name, occupant->level, occupant->next_level_xp,
             occupant->curr_health, occupant->max_health,
             occupant->movement, occupant->attack, occupant->defense),
             MAX_GRID_CELLS_X*GRID_CELL_SIZE + gridPosition.x + 20, gridPosition.y, 20, BLACK);
     }
     else {
+        // I had a %d in terrain, im an idiot
         DrawText(TextFormat(
-            "TRN: %d\n",
+            "TRN: %s\n",
             selected_cell->terrain.name),
             MAX_GRID_CELLS_X*GRID_CELL_SIZE + gridPosition.x + 20, gridPosition.y, 20, BLACK);
     }
@@ -442,10 +452,12 @@ void cell_flag_flush(Point * cell_arr) {
     }
 }
 
+// redefining cell point caused the game not to start sometimes
 Point * get_random_spawn_cell(Point * cell_arr) {
     Point * cell = get_random_cell(cell_arr);
     while (cell->terrain.id == 2 || cell->occupant != NULL) {
         cell = get_random_cell(cell_arr);
+        // above Point * cell caused game to not start sometimes
     }
     return cell;
 }
