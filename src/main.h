@@ -17,7 +17,6 @@ typedef struct Player {
 typedef struct Actor {
     Texture2D sprite;
     Player * owner;
-    bool selected;
     bool can_move;
     bool can_act;
 
@@ -44,6 +43,7 @@ typedef struct Point {
     int y;
     Actor * occupant;
     bool in_range;
+    bool selected;
     Terrain terrain;
 } Point;
 
@@ -57,7 +57,7 @@ int safe_mouse_x(Vector2 gridPosition);
 int safe_mouse_y(Vector2 gridPosition);
 Point * mouseToCell(Vector2 gridPosition, Point * point_arr);
 bool mouseInCell(Vector2 gridPosition, Point cell);
-void actor_selection(Point * cell_arr, Point * cell);
+void cell_selection(Point * cell_arr, Point * cell, Point ** focused_cell);
 void range_calc(Point * cell_arr, Point * start_cell, int range, bool selection);
 void spread_terrain(Point* cell_arr, Point* start_cell, int range, Terrain terrain);
 Point* get_random_cell(Point* cell_arr);

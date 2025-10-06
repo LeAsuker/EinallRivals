@@ -67,6 +67,7 @@ int main(void)
             mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].occupant = NULL;
             mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].in_range = false;
             mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].terrain = Plains;
+            mapArr[xCoor + yCoor*MAX_GRID_CELLS_X].selected = false;
             
         }
     }
@@ -109,22 +110,18 @@ int main(void)
         if (IsMouseButtonPressed(0)) {
             // tells us which cell we have selected in the mapArr
             // had to do pointer stuff to point to the permanent object
-            if (selected_cell->occupant == &player){
-                actor_selection(mapArr, selected_cell);
-            }
-            focused_cell = selected_cell;
+            cell_selection(mapArr, selected_cell, &focused_cell);
         }
         // RMB
         else if (IsMouseButtonPressed(1)) {
-            if (player.selected && !(selected_cell->occupant == &player) && selected_cell->in_range){
-                printf("move \n");
+            if ((focused_cell->occupant != NULL) && selected_cell->in_range){
                 // this removes the in_range flag to the tiles around original position
                 range_calc(mapArr, last_player_position, player.movement, false);
                 selected_cell->occupant = &player;
                 last_player_position->occupant = NULL;
                 last_player_position = selected_cell;
                 
-                actor_selection(mapArr, selected_cell);
+                focused_cell = NULL;
             }
         }
 
@@ -235,15 +232,16 @@ bool mouseInCell(Vector2 gridPosition, Point cell) {
 // could be issues here with occupant NULL checks...
 // currently depends on in_range prev position flag
 // removal
-void actor_selection(Point * cell_arr, Point * cell) {
-
-    if (cell->occupant->selected == true) {
-        cell->occupant->selected = false;
-        range_calc(cell_arr, cell, cell->occupant->movement, false);
+void cell_selection(Point * cell_arr, Point * cell, Point ** focused_cell) {
+    // flushes the map of range indicator
+    for (int yCoor = 0; yCoor < MAX_GRID_CELLS_Y; yCoor++) {
+        for (int xCoor = 0; xCoor < MAX_GRID_CELLS_X; xCoor++) {
+            cell_arr[xCoor + yCoor*MAX_GRID_CELLS_X].in_range = false;
+            
+        }
     }
-    
-    else {
-        cell->occupant->selected = true;
+    *focused_cell = cell;
+    if (cell->occupant != NULL) {
         range_calc(cell_arr, cell, cell->occupant->movement, true);
     }
     return;
@@ -350,7 +348,6 @@ void actor_init( Actor * actor, Player * owner, Texture2D sprite) {
     actor->owner = owner;
     actor->can_move = true;
     actor->can_act = true;
-    actor->selected = false;
 
     actor->level = 1;
     actor->next_level_xp = 100;
