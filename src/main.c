@@ -10,6 +10,8 @@
 #define GRID_CELL_SIZE              30      
 #define MAX_GRID_CELLS_X            30
 #define MAX_GRID_CELLS_Y            21
+#define DARK_TROOP_NUM               6
+#define VENT_TROOP_NUM               6
 
 int main(void)
 {
@@ -81,15 +83,24 @@ int main(void)
         { .has_turn = false, .prim_color = BROWN, .sec_color = BLACK, .name = "Gaia" }
     };
     
-    
-    // Init current player state
+    Actor * dark_troops = malloc(sizeof(Actor)*DARK_TROOP_NUM);
+    Actor * vent_troops = malloc(sizeof(Actor)*VENT_TROOP_NUM);
+
     Texture2D d_militia_text = LoadTextureFromImage(d_militia_sprite);
-    Actor player;
-    actor_init(&player, factions + 0, d_militia_text);
-    
-    Point * spawn = get_random_cell(mapArr);
-    spawn->occupant = &player;
-    Point * last_player_position = spawn;
+    Texture2D v_militia_text = LoadTextureFromImage(v_militia_sprite);
+
+    for (int i = 0; i < DARK_TROOP_NUM; i++) {
+        actor_init(dark_troops + i, factions + 0, d_militia_text);
+        Point * spawn = get_random_spawn_cell(mapArr);
+        spawn->occupant = dark_troops + i;
+    }
+
+    for (int i = 0; i < VENT_TROOP_NUM; i++) {
+        actor_init(vent_troops + i, factions + 0, v_militia_text);
+        Point * spawn = get_random_spawn_cell(mapArr);
+        spawn->occupant = vent_troops + i;
+    }
+    // Init current player state
 
     Player * curr_player = factions + 0;
     Point * focused_cell = NULL;
@@ -113,11 +124,10 @@ int main(void)
         // RMB
         else if (IsMouseButtonPressed(1)) {
             if ((focused_cell->occupant != NULL) && selected_cell->in_range){
-                // this removes the in_range flag to the tiles around original position
-                range_calc(mapArr, last_player_position, player.movement, false);
-                selected_cell->occupant = &player;
-                last_player_position->occupant = NULL;
-                last_player_position = selected_cell;
+                // removed due to flushing function
+                // range_calc(mapArr, last_player_position, player.movement, false);
+                selected_cell->occupant = focused_cell->occupant;
+                focused_cell->occupant = NULL;
                 
                 focused_cell = NULL;
             }
@@ -430,4 +440,12 @@ void cell_flag_flush(Point * cell_arr) {
             cell_arr[xCoor + yCoor*MAX_GRID_CELLS_X].in_attack_range = false;
         }
     }
+}
+
+Point * get_random_spawn_cell(Point * cell_arr) {
+    Point * cell = get_random_cell(cell_arr);
+    while (cell->terrain.id == 2 || cell->occupant != NULL) {
+        cell = get_random_cell(cell_arr);
+    }
+    return cell;
 }

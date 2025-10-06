@@ -67,4 +67,5 @@ void actor_init( Actor * actor, Player * owner, Texture2D sprite);
 void focused_cell_info(Point * selected_cell, Vector2 gridPosition);
 void attack_range_calc(Point * cell_arr, Point * start_cell, int range, bool selection);
 void cell_flag_flush(Point * cell_arr);
+Point * get_random_spawn_cell(Point * cell_arr);
 #endif
