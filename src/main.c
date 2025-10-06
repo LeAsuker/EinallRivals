@@ -103,13 +103,19 @@ int main(void)
         // Update
         //----------------------------------------------------------------------------------
         // The XY coords are in the top left corner of the square
+        // LMB
+        Point * selected_cell = mouseToCell(gridPosition, mapArr);
         if (IsMouseButtonPressed(0)) {
-            Point * selected_cell = mouseToCell(gridPosition, mapArr);
-            printf("selected_cell %d %d", selected_cell->x, selected_cell->y);
             // tells us which cell we have selected in the mapArr
             // had to do pointer stuff to point to the permanent object
             
             
+            if (selected_cell->occupant == &player){
+                actor_selection(mapArr, selected_cell);
+            }
+        }
+        // RMB
+        else if (IsMouseButtonPressed(1)) {
             if (player.selected && !(selected_cell->occupant == &player) && selected_cell->in_range){
                 printf("move \n");
                 // this removes the in_range flag to the tiles around original position
@@ -120,10 +126,6 @@ int main(void)
                 
                 actor_selection(mapArr, selected_cell);
             }
-            else if (selected_cell->occupant == &player){
-                actor_selection(mapArr, selected_cell);
-            }
-            
         }
 
         //----------------------------------------------------------------------------------
