@@ -200,6 +200,8 @@ int main(void)
     // De-Initialization
     //--------------------------------------------------------------------------------------
     free(mapArr);
+    free(dark_troops);
+    free(vent_troops);
     
     CloseWindow();          // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
