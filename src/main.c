@@ -132,7 +132,7 @@ int main(void)
         }
         // RMB
         else if (IsMouseButtonPressed(1)) {
-            if ((focused_cell->occupant != NULL) && selected_cell->in_range){
+            if ((focused_cell->occupant != NULL) && selected_cell->in_range && selected_cell->occupant == NULL){
                 // removed due to flushing function
                 // range_calc(mapArr, last_player_position, player.movement, false);
                 selected_cell->occupant = focused_cell->occupant;
