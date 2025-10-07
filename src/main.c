@@ -9,6 +9,7 @@
 #include "types.h"
 #include "rendering.h"
 #include "utils.h"
+#include "input.h"
 
 int main(void) {
   Image sea_sprite = LoadImage("resources/sea_ter.png");
@@ -117,6 +118,9 @@ int main(void) {
   Faction *curr_faction = factions + 0;
   Point *focused_cell = NULL;
 
+  InputState input_state;
+  input_init(&input_state);
+
   SetTargetFPS(60);
   //--------------------------------------------------------------------------------------
 
@@ -127,35 +131,26 @@ int main(void) {
     //----------------------------------------------------------------------------------
     // The XY coords are in the top left corner of the square
     // LMB
-    Point *selected_cell = mouseToCell(grid_config, mapArr);
-    if (IsMouseButtonPressed(0)) {
-      // tells us which cell we have selected in the mapArr
-      // had to do pointer stuff to point to the permanent object
-      cell_selection(grid_config, mapArr, selected_cell, &focused_cell);
+    input_update(&input_state, grid_config, mapArr);
+    if (input_state.left_click) {
+      input_handle_selection(&input_state, grid_config, mapArr);
     }
-    // RMB
-    else if (IsMouseButtonPressed(1)) {
-      // movement logic... supposedly segfault here
-      if (focused_cell != NULL && selected_cell != NULL) {
-        if ((focused_cell->occupant != NULL) && selected_cell->in_range &&
-        selected_cell->occupant == NULL && focused_cell->occupant->can_move &&
-        focused_cell->occupant->owner->has_turn) {
-          // removed due to flushing function
-          // range_calc(mapArr, last_player_position, player.movement, false);
-          selected_cell->occupant = focused_cell->occupant;
-          focused_cell->occupant = NULL;
-          selected_cell->occupant->can_move = false;
-          focused_cell = NULL;
-        }
-      }
-      cell_flag_flush(mapArr, grid_config); // has to be after so player can move
+
+    if (input_state.right_click) {
+      input_handle_movement(&input_state, grid_config, mapArr);
+    }
+
+    if (input_state.end_turn_requested) {
+      // TODO: Implement turn system here
+      // For now, just a placeholder
+      printf("End turn requested!\n");
     }
 
     //----------------------------------------------------------------------------------
 
     // Draw
     //----------------------------------------------------------------------------------
-    render_game(&render_ctx, mapArr, focused_cell, curr_faction->name);
+    render_game(&render_ctx, mapArr, input_state.focused_cell, curr_faction->name);
   }
 
   // De-Initialization
