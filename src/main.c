@@ -391,34 +391,6 @@ void actor_init(Actor *actor, Faction *owner, Texture2D sprite) {
   actor->range = 1;
 }
 
-void focused_cell_info(Point *selected_cell, GridConfig * grid) {
-  if (selected_cell == NULL) {
-    return;
-  }
-  if (selected_cell->occupant != NULL) {
-    Actor *occupant = selected_cell->occupant;
-    DrawText(TextFormat("NAME: %s\nFAC: %s\nLVL: %d\nEXP NEEDED: %d\nHP: "
-                        "%d/%d\nMOV: %d\nATK: %d\nDEF: %d\n",
-                        occupant->name, occupant->owner->name, occupant->level,
-                        occupant->next_level_xp, occupant->curr_health,
-                        occupant->max_health, occupant->movement,
-                        occupant->attack, occupant->defense),
-             grid->max_grid_cells_x * grid->grid_cell_size + grid->grid_offset_x + 20,
-             grid->grid_offset_y, 20, BLACK);
-  } else {
-    // I had a %d in terrain, im an idiot
-    DrawText(TextFormat("TRN: %s\n", selected_cell->terrain.name),
-             grid->max_grid_cells_x * grid->grid_cell_size + grid->grid_offset_x + 20,
-             grid->grid_offset_y, 20, BLACK);
-  }
-
-  // so we know which selected
-  DrawRectangleLines(selected_cell->x * grid->grid_cell_size + grid->grid_offset_x,
-                     selected_cell->y * grid->grid_cell_size + grid->grid_offset_y,
-                     grid->grid_cell_size, grid->grid_cell_size, YELLOW);
-  return;
-}
-
 void cell_flag_flush(Point *cell_arr, GridConfig * grid) {
   for (int yCoor = 0; yCoor < grid->max_grid_cells_y; yCoor++) {
     for (int xCoor = 0; xCoor < grid->max_grid_cells_x; xCoor++) {
