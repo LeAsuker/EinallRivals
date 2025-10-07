@@ -2,6 +2,7 @@
 #include "raylib.h"
 #include "utils.h"
 #include "main.h"
+#include "map.h"
 #include <stdlib.h>
 
 // Forward declarations for internal helper functions
@@ -121,14 +122,14 @@ static void handle_cell_selection(GridConfig *grid_config, Point *map,
         if (occupant->owner->has_turn) {
             // Show movement range if unit can still move
             if (occupant->can_move) {
-                range_calc(grid_config, map, selected_cell, 
-                          occupant->movement, true);
+                map_calculate_movement_range(grid_config, map,
+                                   selected_cell, occupant->movement, true);
             }
             
             // Show attack range if unit can still act
             if (occupant->can_act) {
-                attack_range_calc(grid_config, map, selected_cell, 
-                                 occupant->range, true);
+                map_calculate_attack_range(grid_config, map,
+                                selected_cell, occupant->range, true);
             }
         }
     }

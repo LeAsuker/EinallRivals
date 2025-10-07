@@ -75,7 +75,7 @@ int main(void) {
 
   int num_biomes = sizeof(biome_configs) / sizeof(BiomeConfig);
   int layers = 7;
-  generate_all_biomes(grid_config, mapArr, biome_configs, num_biomes, layers);
+  map_generate_all_biomes(grid_config, mapArr, biome_configs, num_biomes, layers);
 
   RenderContext render_ctx;
   render_init(&render_ctx, grid_config);
@@ -159,7 +159,7 @@ int main(void) {
 
   return 0;
 }
-
+/*
 void range_calc(GridConfig * grid, Point *cell_arr, Point *start_cell, int range, bool selection) {
   // quick fix, also removes targeting and affects flyers
   // comparison problem, will have to refactor this
@@ -287,7 +287,7 @@ void generate_all_biomes(GridConfig * grid, Point *cell_arr, BiomeConfig *biome_
     }
   }
 }
-
+*/
 void actor_init(Actor *actor, Faction *owner, Texture2D sprite) {
   actor->sprite = sprite;
   strcpy(actor->name, "Azao");
@@ -320,7 +320,7 @@ void cell_flag_flush(Point *cell_arr, GridConfig * grid) {
     }
   }
 }
-
+/*
 // redefining cell point caused the game not to start sometimes
 Point *get_random_spawn_cell(GridConfig * grid, Point *cell_arr) {
   Point *cell = get_random_cell(grid, cell_arr);
@@ -330,7 +330,7 @@ Point *get_random_spawn_cell(GridConfig * grid, Point *cell_arr) {
   }
   return cell;
 }
-
+*/
 GridConfig * grid_init( int g_off_x, int g_off_y, int g_cell_size,
                   int max_cell_x, int max_cell_y) {
 

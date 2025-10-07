@@ -210,6 +210,13 @@ bool map_can_unit_enter_cell(Point *cell, Actor *unit) {
 static void calculate_range_recursive(GridConfig *grid_config, Point *map,
                                       Point *current_cell, int remaining_range,
                                       bool enable, bool is_attack_range) {
+
+    // cant go through sea, later integrate traversability
+    // can still go into sea hmmm
+    if (!(is_attack_range) && current_cell->terrain.id == 2) {
+        return;
+    }
+
     // Set the appropriate flag for this cell
     if (is_attack_range) {
         current_cell->in_attack_range = enable;
