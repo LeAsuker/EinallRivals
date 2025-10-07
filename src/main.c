@@ -83,7 +83,7 @@ int main(void)
     generate_all_biomes(mapArr, biome_configs, num_biomes, layers);
     
     // init faction player
-    Player factions[] = {
+    Faction factions[] = {
         { .has_turn = true, .prim_color = PURPLE, .sec_color = DARKGRAY},
         { .has_turn = false, .prim_color = GREEN, .sec_color = WHITE},
         { .has_turn = false, .prim_color = BROWN, .sec_color = BLACK}
@@ -112,7 +112,7 @@ int main(void)
     }
     // Init current player state
 
-    Player * curr_player = factions + 0;
+    Faction * curr_faction = factions + 0;
     Point * focused_cell = NULL;
     
     SetTargetFPS(60);
@@ -202,7 +202,7 @@ int main(void)
 
         // end turn button
         DrawText(TextFormat(
-            "End Turn: %s", curr_player->name),
+            "End Turn: %s", curr_faction->name),
             MAX_GRID_CELLS_X*GRID_CELL_SIZE + gridPosition.x + 20,
             gridPosition.y + (MAX_GRID_CELLS_Y - 3)*GRID_CELL_SIZE, 20, BLACK);
 
@@ -414,7 +414,7 @@ void generate_all_biomes(Point* cell_arr, BiomeConfig* biome_configs, int num_bi
     }
 }
 
-void actor_init( Actor * actor, Player * owner, Texture2D sprite) {
+void actor_init( Actor * actor, Faction * owner, Texture2D sprite) {
     actor->sprite = sprite;
     strcpy(actor->name, "Azao");
     actor->owner = owner;

@@ -7,16 +7,16 @@ typedef struct Terrain {
     char name[10];
 } Terrain;
 
-typedef struct Player {
+typedef struct Faction {
     Color prim_color;
     Color sec_color;
     bool has_turn;
     char name[10];
-} Player;
+} Faction;
 
 typedef struct Actor {
     Texture2D sprite;
-    Player * owner;
+    Faction * owner;
     bool can_move;
     bool can_act;
 
@@ -63,7 +63,7 @@ void spread_terrain(Point* cell_arr, Point* start_cell, int range, Terrain terra
 Point* get_random_cell(Point* cell_arr);
 void generate_biome_cores(Point* cell_arr, BiomeConfig config);
 void generate_all_biomes(Point* cell_arr, BiomeConfig* biome_configs, int num_biomes, int layers);
-void actor_init( Actor * actor, Player * owner, Texture2D sprite);
+void actor_init( Actor * actor, Faction * owner, Texture2D sprite);
 void focused_cell_info(Point * selected_cell, Vector2 gridPosition);
 void attack_range_calc(Point * cell_arr, Point * start_cell, int range, bool selection);
 void cell_flag_flush(Point * cell_arr);
