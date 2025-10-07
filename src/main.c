@@ -165,56 +165,6 @@ int main(void) {
   return 0;
 }
 
-Point *mouseToCell(GridConfig * grid_config, Point *point_arr) {
-  // will need to sanitize it so it cant ever go out of bounds, else undefined
-  int x = (safe_mouse_x(grid_config) - grid_config->grid_offset_x) / grid_config->grid_cell_size;
-  int y = (safe_mouse_y(grid_config) - grid_config->grid_offset_y) / grid_config->grid_cell_size;
-
-  Point *cell_in_map = point_arr + grid_config->max_grid_cells_x * y + x;
-  return cell_in_map;
-}
-
-// if mouse in given cell
-bool mouseInCell(GridConfig * grid_config, Point cell) {
-  int x_offset = grid_config->grid_offset_x;
-  int y_offset = grid_config->grid_offset_y;
-  int cell_size =  grid_config->grid_cell_size;
-
-  if (safe_mouse_x(grid_config) <=
-      x_offset + cell.x * cell_size + cell_size) {
-    if (safe_mouse_y(grid_config) <=
-        y_offset + cell.y * cell_size + cell_size) {
-      if (safe_mouse_x(grid_config) >=
-          x_offset + cell.x * cell_size) {
-        if (safe_mouse_y(grid_config) >=
-            y_offset + cell.y * cell_size) {
-          return true;
-        }
-      }
-    }
-  }
-  return false;
-}
-// could be issues here with occupant NULL checks...
-// currently depends on in_range prev position flag
-// removal
-void cell_selection(GridConfig* grid, Point *cell_arr, Point *cell, Point **focused_cell) {
-  // flushes the map of range indicator
-  cell_flag_flush(cell_arr, grid );
-  *focused_cell = cell;
-  if (cell->occupant != NULL) {
-    if (cell->occupant->owner->has_turn) {
-      if (cell->occupant->can_move) {
-        range_calc(grid, cell_arr, cell, cell->occupant->movement, true);
-      }
-      if (cell->occupant->can_act) {
-        attack_range_calc(grid, cell_arr, cell, cell->occupant->range, true);
-      }
-    }
-  }
-  return;
-}
-
 void range_calc(GridConfig * grid, Point *cell_arr, Point *start_cell, int range, bool selection) {
   // quick fix, also removes targeting and affects flyers
   // comparison problem, will have to refactor this
