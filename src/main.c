@@ -7,12 +7,6 @@
 
 #include "main.h"
 
-#define GRID_CELL_SIZE 30
-#define MAX_GRID_CELLS_X 30
-#define MAX_GRID_CELLS_Y 21
-#define DARK_TROOP_NUM 6
-#define VENT_TROOP_NUM 6
-
 int main(void) {
   Image sea_sprite = LoadImage("resources/sea_ter.png");
   Image mountains_sprite = LoadImage("resources/mountain_ter.png");
@@ -168,15 +162,15 @@ int main(void) {
              40, 20, 20, DARKGRAY);
 
     // draws game map through mapArr array
-    for (int cellIdx = 0; cellIdx < MAX_GRID_CELLS_X * MAX_GRID_CELLS_Y;
+    for (int cellIdx = 0; cellIdx < grid_config->max_grid_cells_x * grid_config->max_grid_cells_y;
          cellIdx++) {
 
-      int cell_x_pos = gridPosition.x + mapArr[cellIdx].x * GRID_CELL_SIZE;
-      int cell_y_pos = gridPosition.y + mapArr[cellIdx].y * GRID_CELL_SIZE;
+      int cell_x_pos = grid_config->grid_offset_x + mapArr[cellIdx].x * GRID_CELL_SIZE;
+      int cell_y_pos = grid_config->grid_offset_y + mapArr[cellIdx].y * GRID_CELL_SIZE;
       Point curr_cell = mapArr[cellIdx];
 
       // first we draw terrain color for failsafe, then texture
-      DrawRectangle(cell_x_pos, cell_y_pos, GRID_CELL_SIZE, GRID_CELL_SIZE,
+      DrawRectangle(cell_x_pos, cell_y_pos, grid_config->grid_cell_size, grid_config->grid_cell_size,
                     curr_cell.terrain.color);
 
       DrawTexture(curr_cell.terrain.sprite, cell_x_pos, cell_y_pos, WHITE);
@@ -186,30 +180,30 @@ int main(void) {
         DrawTexture(occupant->sprite, cell_x_pos, cell_y_pos, WHITE);
       }
 
-      DrawRectangleLines(cell_x_pos, cell_y_pos, GRID_CELL_SIZE, GRID_CELL_SIZE,
+      DrawRectangleLines(cell_x_pos, cell_y_pos, grid_config->grid_cell_size, grid_config->grid_cell_size,
                          GRAY);
 
       if (curr_cell.occupant != NULL) {
-        DrawRectangleLines(cell_x_pos, cell_y_pos, GRID_CELL_SIZE,
-                           GRID_CELL_SIZE,
+        DrawRectangleLines(cell_x_pos, cell_y_pos, grid_config->grid_cell_size,
+                           grid_config->grid_cell_size,
                            curr_cell.occupant->owner->prim_color);
       }
       if (curr_cell.in_range == true) {
-        DrawRectangleLines(cell_x_pos, cell_y_pos, GRID_CELL_SIZE,
-                           GRID_CELL_SIZE, BLUE);
+        DrawRectangleLines(cell_x_pos, cell_y_pos, grid_config->grid_cell_size,
+                           grid_config->grid_cell_size, BLUE);
       }
 
       if (curr_cell.in_attack_range == true) {
-        DrawRectangleLines(cell_x_pos, cell_y_pos, GRID_CELL_SIZE,
-                           GRID_CELL_SIZE, RED);
+        DrawRectangleLines(cell_x_pos, cell_y_pos, grid_config->grid_cell_size,
+                           grid_config->grid_cell_size, RED);
       }
     }
     focused_cell_info(focused_cell, gridPosition);
 
     // end turn button
     DrawText(TextFormat("End Turn: %s", curr_faction->name),
-             MAX_GRID_CELLS_X * GRID_CELL_SIZE + gridPosition.x + 20,
-             gridPosition.y + (MAX_GRID_CELLS_Y - 3) * GRID_CELL_SIZE, 20,
+             MAX_GRID_CELLS_X * grid_config->grid_cell_size + gridPosition.x + 20,
+             gridPosition.y + (grid_config->max_grid_cells_y - 3) * grid_config->grid_cell_size, 20,
              BLACK);
 
     EndDrawing();
