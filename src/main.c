@@ -10,6 +10,7 @@
 #include "rendering.h"
 #include "utils.h"
 #include "input.h"
+#include "map.h"
 
 int main(void) {
   Image sea_sprite = LoadImage("resources/sea_ter.png");
@@ -69,16 +70,8 @@ int main(void) {
       {.terrain = Sea, .max_cores = 2, .max_range = 5}};
 
   // map init
-  Point *mapArr = malloc(sizeof(Point) * grid_config->max_grid_cells_x * grid_config->max_grid_cells_y);
-  for (int yCoor = 0; yCoor < grid_config->max_grid_cells_y; yCoor++) {
-    for (int xCoor = 0; xCoor < grid_config->max_grid_cells_x; xCoor++) {
-      mapArr[xCoor + yCoor * grid_config->max_grid_cells_x].x = xCoor;
-      mapArr[xCoor + yCoor * grid_config->max_grid_cells_x].y = yCoor;
-      mapArr[xCoor + yCoor * grid_config->max_grid_cells_x].occupant = NULL;
-      mapArr[xCoor + yCoor * grid_config->max_grid_cells_x].in_range = false;
-      mapArr[xCoor + yCoor * grid_config->max_grid_cells_x].terrain = Plains;
-    }
-  }
+
+  Point *mapArr = map_create(grid_config, Plains);
 
   int num_biomes = sizeof(biome_configs) / sizeof(BiomeConfig);
   int layers = 7;
@@ -86,6 +79,7 @@ int main(void) {
 
   RenderContext render_ctx;
   render_init(&render_ctx, grid_config);
+
   // init faction player
   Faction factions[] = {
       {.has_turn = true, .prim_color = PURPLE, .sec_color = DARKGRAY},
@@ -104,13 +98,13 @@ int main(void) {
 
   for (int i = 0; i < DARK_TROOP_NUM; i++) {
     actor_init(dark_troops + i, factions + 0, d_militia_text);
-    Point *spawn = get_random_spawn_cell(grid_config, mapArr);
+    Point *spawn = map_get_random_spawn_cell(mapArr, grid_config);
     spawn->occupant = dark_troops + i;
   }
-
+  
   for (int i = 0; i < VENT_TROOP_NUM; i++) {
     actor_init(vent_troops + i, factions + 1, v_militia_text);
-    Point *spawn = get_random_spawn_cell(grid_config, mapArr);
+    Point *spawn = map_get_random_spawn_cell(mapArr, grid_config);
     spawn->occupant = vent_troops + i;
   }
   // Init current player state
@@ -155,9 +149,10 @@ int main(void) {
 
   // De-Initialization
   //--------------------------------------------------------------------------------------
-  free(mapArr);
+  map_free(mapArr);
   free(dark_troops);
   free(vent_troops);
+  free(grid_config);
 
   CloseWindow(); // Close window and OpenGL context
   //--------------------------------------------------------------------------------------
