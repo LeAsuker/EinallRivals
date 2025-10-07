@@ -33,6 +33,9 @@ int main(void) {
   const int screenHeight = 720;
   srand(time(NULL));
 
+  GridConfig * grid_config = grid_init( GRID_OFFSET_X, GRID_OFFSET_Y, GRID_CELL_SIZE,
+                                      MAX_GRID_CELLS_X, MAX_GRID_CELLS_Y);
+
   // initwindow creates opengl context, texture stuff needs to happen after it
   InitWindow(screenWidth, screenHeight, "WaterEmblemProto");
   Terrain Plains = {
@@ -61,24 +64,21 @@ int main(void) {
       {.terrain = Forest, .max_cores = 3, .max_range = 3},
       {.terrain = Sea, .max_cores = 2, .max_range = 5}};
 
-  // Grid variables
-  Vector2 gridPosition = {40, 60};
-
   // map init
-  Point *mapArr = malloc(sizeof(Point) * MAX_GRID_CELLS_X * MAX_GRID_CELLS_Y);
-  for (int yCoor = 0; yCoor < MAX_GRID_CELLS_Y; yCoor++) {
-    for (int xCoor = 0; xCoor < MAX_GRID_CELLS_X; xCoor++) {
-      mapArr[xCoor + yCoor * MAX_GRID_CELLS_X].x = xCoor;
-      mapArr[xCoor + yCoor * MAX_GRID_CELLS_X].y = yCoor;
-      mapArr[xCoor + yCoor * MAX_GRID_CELLS_X].occupant = NULL;
-      mapArr[xCoor + yCoor * MAX_GRID_CELLS_X].in_range = false;
-      mapArr[xCoor + yCoor * MAX_GRID_CELLS_X].terrain = Plains;
+  Point *mapArr = malloc(sizeof(Point) * grid_config->max_grid_cells_x * grid_config->max_grid_cells_y);
+  for (int yCoor = 0; yCoor < grid_config->max_grid_cells_y; yCoor++) {
+    for (int xCoor = 0; xCoor < grid_config->max_grid_cells_x; xCoor++) {
+      mapArr[xCoor + yCoor * grid_config->max_grid_cells_x].x = xCoor;
+      mapArr[xCoor + yCoor * grid_config->max_grid_cells_x].y = yCoor;
+      mapArr[xCoor + yCoor * grid_config->max_grid_cells_x].occupant = NULL;
+      mapArr[xCoor + yCoor * grid_config->max_grid_cells_x].in_range = false;
+      mapArr[xCoor + yCoor * grid_config->max_grid_cells_x].terrain = Plains;
     }
   }
 
   int num_biomes = sizeof(biome_configs) / sizeof(BiomeConfig);
   int layers = 7;
-  generate_all_biomes(mapArr, biome_configs, num_biomes, layers);
+  generate_all_biomes(grid_config, mapArr, biome_configs, num_biomes, layers);
 
   // init faction player
   Faction factions[] = {
@@ -98,22 +98,19 @@ int main(void) {
 
   for (int i = 0; i < DARK_TROOP_NUM; i++) {
     actor_init(dark_troops + i, factions + 0, d_militia_text);
-    Point *spawn = get_random_spawn_cell(mapArr);
+    Point *spawn = get_random_spawn_cell(grid_config, mapArr);
     spawn->occupant = dark_troops + i;
   }
 
   for (int i = 0; i < VENT_TROOP_NUM; i++) {
     actor_init(vent_troops + i, factions + 1, v_militia_text);
-    Point *spawn = get_random_spawn_cell(mapArr);
+    Point *spawn = get_random_spawn_cell(grid_config, mapArr);
     spawn->occupant = vent_troops + i;
   }
   // Init current player state
 
   Faction *curr_faction = factions + 0;
   Point *focused_cell = NULL;
-
-  GridConfig * grid_config = grid_init( GRID_OFFSET_X, GRID_OFFSET_Y, GRID_CELL_SIZE,
-                                        MAX_GRID_CELLS_X, MAX_GRID_CELLS_Y);
 
   SetTargetFPS(60);
   //--------------------------------------------------------------------------------------
@@ -125,11 +122,11 @@ int main(void) {
     //----------------------------------------------------------------------------------
     // The XY coords are in the top left corner of the square
     // LMB
-    Point *selected_cell = mouseToCell(gridPosition, mapArr);
+    Point *selected_cell = mouseToCell(grid_config, mapArr);
     if (IsMouseButtonPressed(0)) {
       // tells us which cell we have selected in the mapArr
       // had to do pointer stuff to point to the permanent object
-      cell_selection(mapArr, selected_cell, &focused_cell);
+      cell_selection(grid_config, mapArr, selected_cell, &focused_cell);
     }
     // RMB
     else if (IsMouseButtonPressed(1)) {
@@ -144,7 +141,7 @@ int main(void) {
         selected_cell->occupant->can_move = false;
         focused_cell = NULL;
       }
-      cell_flag_flush(mapArr); // has to be after so player can move
+      cell_flag_flush(mapArr, grid_config); // has to be after so player can move
     }
 
     //----------------------------------------------------------------------------------
@@ -156,9 +153,9 @@ int main(void) {
 
     // Draw debug info
     DrawText(TextFormat("MOUSE: %d %d - MCELL: %d %d",
-                        safe_mouse_x(gridPosition), safe_mouse_y(gridPosition),
-                        mouseToCell(gridPosition, mapArr)->x,
-                        mouseToCell(gridPosition, mapArr)->y),
+                        safe_mouse_x(grid_config), safe_mouse_y(grid_config),
+                        mouseToCell(grid_config, mapArr)->x,
+                        mouseToCell(grid_config, mapArr)->y),
              40, 20, 20, DARKGRAY);
 
     // draws game map through mapArr array
@@ -198,12 +195,12 @@ int main(void) {
                            grid_config->grid_cell_size, RED);
       }
     }
-    focused_cell_info(focused_cell, gridPosition);
+    focused_cell_info(focused_cell, grid_config);
 
     // end turn button
     DrawText(TextFormat("End Turn: %s", curr_faction->name),
-             MAX_GRID_CELLS_X * grid_config->grid_cell_size + gridPosition.x + 20,
-             gridPosition.y + (grid_config->max_grid_cells_y - 3) * grid_config->grid_cell_size, 20,
+             grid_config->max_grid_cells_x * grid_config->grid_cell_size + grid_config->grid_offset_x + 20,
+             grid_config->grid_offset_y + (grid_config->max_grid_cells_y - 3) * grid_config->grid_cell_size, 20,
              BLACK);
 
     EndDrawing();
@@ -221,45 +218,49 @@ int main(void) {
   return 0;
 }
 
-int safe_mouse_x(Vector2 gridPosition) {
+int safe_mouse_x(GridConfig * grid_config) {
   int mouse_pos = GetMouseX();
-  if (mouse_pos >= gridPosition.x + MAX_GRID_CELLS_X * GRID_CELL_SIZE) {
-    return gridPosition.x + MAX_GRID_CELLS_X * GRID_CELL_SIZE - 1;
-  } else if (mouse_pos <= gridPosition.x) {
-    return gridPosition.x + 1;
+  if (mouse_pos >= grid_config->grid_offset_x + grid_config->max_grid_cells_x* grid_config->grid_cell_size) {
+    return grid_config->grid_offset_x + grid_config->max_grid_cells_x * grid_config->grid_cell_size - 1;
+  } else if (mouse_pos <= grid_config->grid_offset_x) {
+    return grid_config->grid_offset_x + 1;
   }
   return mouse_pos;
 }
 
-int safe_mouse_y(Vector2 gridPosition) {
+int safe_mouse_y(GridConfig * grid_config) {
   int mouse_pos = GetMouseY();
-  if (mouse_pos >= gridPosition.y + MAX_GRID_CELLS_Y * GRID_CELL_SIZE) {
-    return gridPosition.y + MAX_GRID_CELLS_Y * GRID_CELL_SIZE - 1;
-  } else if (mouse_pos <= gridPosition.y) {
-    return gridPosition.y + 1;
+  if (mouse_pos >= grid_config->grid_offset_y + grid_config->max_grid_cells_y * grid_config->grid_cell_size) {
+    return grid_config->grid_offset_y + grid_config->max_grid_cells_y * grid_config->grid_cell_size - 1;
+  } else if (mouse_pos <= grid_config->grid_offset_y) {
+    return grid_config->grid_offset_y + 1;
   }
   return mouse_pos;
 }
 
-Point *mouseToCell(Vector2 gridPosition, Point *point_arr) {
+Point *mouseToCell(GridConfig * grid_config, Point *point_arr) {
   // will need to sanitize it so it cant ever go out of bounds, else undefined
-  int x = (safe_mouse_x(gridPosition) - gridPosition.x) / GRID_CELL_SIZE;
-  int y = (safe_mouse_y(gridPosition) - gridPosition.y) / GRID_CELL_SIZE;
+  int x = (safe_mouse_x(grid_config) - grid_config->grid_offset_x) / grid_config->grid_cell_size;
+  int y = (safe_mouse_y(grid_config) - grid_config->grid_offset_y) / grid_config->grid_cell_size;
 
-  Point *cell_in_map = point_arr + MAX_GRID_CELLS_X * y + x;
+  Point *cell_in_map = point_arr + grid_config->max_grid_cells_x * y + x;
   return cell_in_map;
 }
 
 // if mouse in given cell
-bool mouseInCell(Vector2 gridPosition, Point cell) {
-  if (safe_mouse_x(gridPosition) <=
-      gridPosition.x + cell.x * GRID_CELL_SIZE + GRID_CELL_SIZE) {
-    if (safe_mouse_y(gridPosition) <=
-        gridPosition.y + cell.y * GRID_CELL_SIZE + GRID_CELL_SIZE) {
-      if (safe_mouse_x(gridPosition) >=
-          gridPosition.x + cell.x * GRID_CELL_SIZE) {
-        if (safe_mouse_y(gridPosition) >=
-            gridPosition.y + cell.y * GRID_CELL_SIZE) {
+bool mouseInCell(GridConfig * grid_config, Point cell) {
+  int x_offset = grid_config->grid_offset_x;
+  int y_offset = grid_config->grid_offset_y;
+  int cell_size =  grid_config->grid_cell_size;
+
+  if (safe_mouse_x(grid_config) <=
+      x_offset + cell.x * cell_size + cell_size) {
+    if (safe_mouse_y(grid_config) <=
+        y_offset + cell.y * cell_size + cell_size) {
+      if (safe_mouse_x(grid_config) >=
+          x_offset + cell.x * cell_size) {
+        if (safe_mouse_y(grid_config) >=
+            y_offset + cell.y * cell_size) {
           return true;
         }
       }
@@ -270,24 +271,24 @@ bool mouseInCell(Vector2 gridPosition, Point cell) {
 // could be issues here with occupant NULL checks...
 // currently depends on in_range prev position flag
 // removal
-void cell_selection(Point *cell_arr, Point *cell, Point **focused_cell) {
+void cell_selection(GridConfig* grid, Point *cell_arr, Point *cell, Point **focused_cell) {
   // flushes the map of range indicator
-  cell_flag_flush(cell_arr);
+  cell_flag_flush(cell_arr, grid );
   *focused_cell = cell;
   if (cell->occupant != NULL) {
     if (cell->occupant->owner->has_turn) {
       if (cell->occupant->can_move) {
-        range_calc(cell_arr, cell, cell->occupant->movement, true);
+        range_calc(grid, cell_arr, cell, cell->occupant->movement, true);
       }
       if (cell->occupant->can_act) {
-        attack_range_calc(cell_arr, cell, cell->occupant->range, true);
+        attack_range_calc(grid, cell_arr, cell, cell->occupant->range, true);
       }
     }
   }
   return;
 }
 
-void range_calc(Point *cell_arr, Point *start_cell, int range, bool selection) {
+void range_calc(GridConfig * grid, Point *cell_arr, Point *start_cell, int range, bool selection) {
   // quick fix, also removes targeting and affects flyers
   // comparison problem, will have to refactor this
   if (start_cell->terrain.id == 2) {
@@ -300,31 +301,31 @@ void range_calc(Point *cell_arr, Point *start_cell, int range, bool selection) {
   }
   int x = start_cell->x;
   int y = start_cell->y;
-  int x_limit = MAX_GRID_CELLS_X - 1;
-  int y_limit = MAX_GRID_CELLS_Y - 1;
+  int x_limit = grid->max_grid_cells_x - 1;
+  int y_limit = grid->max_grid_cells_y - 1;
   if (y != 0) {
-    Point *cell_up = cell_arr + x + MAX_GRID_CELLS_X * (y - 1);
-    range_calc(cell_arr, cell_up, range - 1, selection);
+    Point *cell_up = cell_arr + x + grid->max_grid_cells_x * (y - 1);
+    range_calc(grid, cell_arr, cell_up, range - 1, selection);
   }
   if (y < y_limit) {
 
-    Point *cell_down = cell_arr + x + MAX_GRID_CELLS_X * (y + 1);
-    range_calc(cell_arr, cell_down, range - 1, selection);
+    Point *cell_down = cell_arr + x + grid->max_grid_cells_x * (y + 1);
+    range_calc(grid, cell_arr, cell_down, range - 1, selection);
   }
   if (x != 0) {
-    Point *cell_left = cell_arr + x - 1 + MAX_GRID_CELLS_X * (y);
-    range_calc(cell_arr, cell_left, range - 1, selection);
+    Point *cell_left = cell_arr + x - 1 + grid->max_grid_cells_x * (y);
+    range_calc(grid, cell_arr, cell_left, range - 1, selection);
   }
   if (x < x_limit) {
-    Point *cell_right = cell_arr + x + 1 + MAX_GRID_CELLS_X * (y);
-    range_calc(cell_arr, cell_right, range - 1, selection);
+    Point *cell_right = cell_arr + x + 1 + grid->max_grid_cells_x * (y);
+    range_calc(grid, cell_arr, cell_right, range - 1, selection);
   }
 
   return;
 }
 
 // calcs attack range
-void attack_range_calc(Point *cell_arr, Point *start_cell, int range,
+void attack_range_calc(GridConfig * grid, Point *cell_arr, Point *start_cell, int range,
                        bool selection) {
   start_cell->in_attack_range = selection;
   if (range == 0) {
@@ -332,30 +333,30 @@ void attack_range_calc(Point *cell_arr, Point *start_cell, int range,
   }
   int x = start_cell->x;
   int y = start_cell->y;
-  int x_limit = MAX_GRID_CELLS_X - 1;
-  int y_limit = MAX_GRID_CELLS_Y - 1;
+  int x_limit = grid->max_grid_cells_x - 1;
+  int y_limit = grid->max_grid_cells_y - 1;
   if (y != 0) {
-    Point *cell_up = cell_arr + x + MAX_GRID_CELLS_X * (y - 1);
-    attack_range_calc(cell_arr, cell_up, range - 1, selection);
+    Point *cell_up = cell_arr + x + grid->max_grid_cells_x * (y - 1);
+    attack_range_calc(grid, cell_arr, cell_up, range - 1, selection);
   }
   if (y < y_limit) {
 
-    Point *cell_down = cell_arr + x + MAX_GRID_CELLS_X * (y + 1);
-    attack_range_calc(cell_arr, cell_down, range - 1, selection);
+    Point *cell_down = cell_arr + x + grid->max_grid_cells_x * (y + 1);
+    attack_range_calc(grid, cell_arr, cell_down, range - 1, selection);
   }
   if (x != 0) {
-    Point *cell_left = cell_arr + x - 1 + MAX_GRID_CELLS_X * (y);
-    attack_range_calc(cell_arr, cell_left, range - 1, selection);
+    Point *cell_left = cell_arr + x - 1 + grid->max_grid_cells_x * (y);
+    attack_range_calc(grid, cell_arr, cell_left, range - 1, selection);
   }
   if (x < x_limit) {
-    Point *cell_right = cell_arr + x + 1 + MAX_GRID_CELLS_X * (y);
-    attack_range_calc(cell_arr, cell_right, range - 1, selection);
+    Point *cell_right = cell_arr + x + 1 + grid->max_grid_cells_x * (y);
+    attack_range_calc(grid, cell_arr, cell_right, range - 1, selection);
   }
 
   return;
 }
 
-void spread_terrain(Point *cell_arr, Point *start_cell, int range,
+void spread_terrain(GridConfig * grid, Point *cell_arr, Point *start_cell, int range,
                     Terrain terrain) {
   // Set current cell's terrain
   start_cell->terrain = terrain;
@@ -367,50 +368,50 @@ void spread_terrain(Point *cell_arr, Point *start_cell, int range,
 
   int x = start_cell->x;
   int y = start_cell->y;
-  int x_limit = MAX_GRID_CELLS_X - 1;
-  int y_limit = MAX_GRID_CELLS_Y - 1;
+  int x_limit = grid->max_grid_cells_x - 1;
+  int y_limit = grid->max_grid_cells_y - 1;
 
   // Spread to adjacent cells (up, down, left, right)
   if (y != 0) {
-    Point *cell_up = cell_arr + x + MAX_GRID_CELLS_X * (y - 1);
-    spread_terrain(cell_arr, cell_up, range - 1, terrain);
+    Point *cell_up = cell_arr + x + grid->max_grid_cells_x * (y - 1);
+    spread_terrain(grid, cell_arr, cell_up, range - 1, terrain);
   }
   if (y < y_limit) {
-    Point *cell_down = cell_arr + x + MAX_GRID_CELLS_X * (y + 1);
-    spread_terrain(cell_arr, cell_down, range - 1, terrain);
+    Point *cell_down = cell_arr + x + grid->max_grid_cells_x * (y + 1);
+    spread_terrain(grid, cell_arr, cell_down, range - 1, terrain);
   }
   if (x != 0) {
-    Point *cell_left = cell_arr + x - 1 + MAX_GRID_CELLS_X * y;
-    spread_terrain(cell_arr, cell_left, range - 1, terrain);
+    Point *cell_left = cell_arr + x - 1 + grid->max_grid_cells_x * y;
+    spread_terrain(grid, cell_arr, cell_left, range - 1, terrain);
   }
   if (x < x_limit) {
-    Point *cell_right = cell_arr + x + 1 + MAX_GRID_CELLS_X * y;
-    spread_terrain(cell_arr, cell_right, range - 1, terrain);
+    Point *cell_right = cell_arr + x + 1 + grid->max_grid_cells_x * y;
+    spread_terrain(grid, cell_arr, cell_right, range - 1, terrain);
   }
 }
 
-Point *get_random_cell(Point *cell_arr) {
-  int rand_x = rand() % MAX_GRID_CELLS_X;
-  int rand_y = rand() % MAX_GRID_CELLS_Y;
-  return cell_arr + rand_x + rand_y * MAX_GRID_CELLS_X;
+Point *get_random_cell(GridConfig * grid, Point *cell_arr) {
+  int rand_x = rand() % grid->max_grid_cells_x;
+  int rand_y = rand() % grid->max_grid_cells_y;
+  return cell_arr + rand_x + rand_y * grid->max_grid_cells_x;
 }
 
-void generate_biome_cores(Point *cell_arr, BiomeConfig config) {
+void generate_biome_cores(GridConfig * grid, Point *cell_arr, BiomeConfig config) {
   // since modulo is offset
   int num_cores = rand() % (config.max_cores + 1);
 
   for (int i = 0; i < num_cores; i++) {
-    Point *core = get_random_cell(cell_arr);
+    Point *core = get_random_cell(grid, cell_arr);
     int range = (rand() % config.max_range) + 1;
-    spread_terrain(cell_arr, core, range, config.terrain);
+    spread_terrain(grid, cell_arr, core, range, config.terrain);
   }
 }
 
-void generate_all_biomes(Point *cell_arr, BiomeConfig *biome_configs,
+void generate_all_biomes(GridConfig * grid, Point *cell_arr, BiomeConfig *biome_configs,
                          int num_biomes, int layers) {
   for (int layer = 0; layer < layers; layer++) {
     for (int i = 0; i < num_biomes; i++) {
-      generate_biome_cores(cell_arr, biome_configs[i]);
+      generate_biome_cores(grid, cell_arr, biome_configs[i]);
     }
   }
 }
@@ -439,7 +440,7 @@ void actor_init(Actor *actor, Faction *owner, Texture2D sprite) {
   actor->range = 1;
 }
 
-void focused_cell_info(Point *selected_cell, Vector2 gridPosition) {
+void focused_cell_info(Point *selected_cell, GridConfig * grid) {
   if (selected_cell == NULL) {
     return;
   }
@@ -451,36 +452,36 @@ void focused_cell_info(Point *selected_cell, Vector2 gridPosition) {
                         occupant->next_level_xp, occupant->curr_health,
                         occupant->max_health, occupant->movement,
                         occupant->attack, occupant->defense),
-             MAX_GRID_CELLS_X * GRID_CELL_SIZE + gridPosition.x + 20,
-             gridPosition.y, 20, BLACK);
+             grid->max_grid_cells_x * grid->grid_cell_size + grid->grid_offset_x + 20,
+             grid->grid_offset_y, 20, BLACK);
   } else {
     // I had a %d in terrain, im an idiot
     DrawText(TextFormat("TRN: %s\n", selected_cell->terrain.name),
-             MAX_GRID_CELLS_X * GRID_CELL_SIZE + gridPosition.x + 20,
-             gridPosition.y, 20, BLACK);
+             grid->max_grid_cells_x * grid->grid_cell_size + grid->grid_offset_x + 20,
+             grid->grid_offset_y, 20, BLACK);
   }
 
   // so we know which selected
-  DrawRectangleLines(selected_cell->x * GRID_CELL_SIZE + gridPosition.x,
-                     selected_cell->y * GRID_CELL_SIZE + gridPosition.y,
-                     GRID_CELL_SIZE, GRID_CELL_SIZE, YELLOW);
+  DrawRectangleLines(selected_cell->x * grid->grid_cell_size + grid->grid_offset_x,
+                     selected_cell->y * grid->grid_cell_size + grid->grid_offset_y,
+                     grid->grid_cell_size, grid->grid_cell_size, YELLOW);
   return;
 }
 
-void cell_flag_flush(Point *cell_arr) {
-  for (int yCoor = 0; yCoor < MAX_GRID_CELLS_Y; yCoor++) {
-    for (int xCoor = 0; xCoor < MAX_GRID_CELLS_X; xCoor++) {
-      cell_arr[xCoor + yCoor * MAX_GRID_CELLS_X].in_range = false;
-      cell_arr[xCoor + yCoor * MAX_GRID_CELLS_X].in_attack_range = false;
+void cell_flag_flush(Point *cell_arr, GridConfig * grid) {
+  for (int yCoor = 0; yCoor < grid->max_grid_cells_y; yCoor++) {
+    for (int xCoor = 0; xCoor < grid->max_grid_cells_x; xCoor++) {
+      cell_arr[xCoor + yCoor * grid->max_grid_cells_x].in_range = false;
+      cell_arr[xCoor + yCoor * grid->max_grid_cells_x].in_attack_range = false;
     }
   }
 }
 
 // redefining cell point caused the game not to start sometimes
-Point *get_random_spawn_cell(Point *cell_arr) {
-  Point *cell = get_random_cell(cell_arr);
+Point *get_random_spawn_cell(GridConfig * grid, Point *cell_arr) {
+  Point *cell = get_random_cell(grid, cell_arr);
   while (cell->terrain.id == 2 || cell->occupant != NULL) {
-    cell = get_random_cell(cell_arr);
+    cell = get_random_cell(grid, cell_arr);
     // above Point * cell caused game to not start sometimes
   }
   return cell;
