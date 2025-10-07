@@ -7,5 +7,8 @@
 		"**/.DS_Store": true,
 		"**/*.o": true,
 		"**/*.exe": true,
-	}
+	},
+	"clangd.arguments": [
+		"-I/home/hatsunemiku/tmp/playground/build/external/raylib-master/src"
+	]
 }
