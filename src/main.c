@@ -134,16 +134,18 @@ int main(void) {
     }
     // RMB
     else if (IsMouseButtonPressed(1)) {
-      // movement logic
-      if ((focused_cell->occupant != NULL) && selected_cell->in_range &&
-          selected_cell->occupant == NULL && focused_cell->occupant->can_move &&
-          focused_cell->occupant->owner->has_turn) {
-        // removed due to flushing function
-        // range_calc(mapArr, last_player_position, player.movement, false);
-        selected_cell->occupant = focused_cell->occupant;
-        focused_cell->occupant = NULL;
-        selected_cell->occupant->can_move = false;
-        focused_cell = NULL;
+      // movement logic... supposedly segfault here
+      if (focused_cell != NULL && selected_cell != NULL) {
+        if ((focused_cell->occupant != NULL) && selected_cell->in_range &&
+        selected_cell->occupant == NULL && focused_cell->occupant->can_move &&
+        focused_cell->occupant->owner->has_turn) {
+          // removed due to flushing function
+          // range_calc(mapArr, last_player_position, player.movement, false);
+          selected_cell->occupant = focused_cell->occupant;
+          focused_cell->occupant = NULL;
+          selected_cell->occupant->can_move = false;
+          focused_cell = NULL;
+        }
       }
       cell_flag_flush(mapArr, grid_config); // has to be after so player can move
     }
@@ -152,62 +154,7 @@ int main(void) {
 
     // Draw
     //----------------------------------------------------------------------------------
-    BeginDrawing();
-    ClearBackground(RAYWHITE);
-
-    // Draw debug info
-    DrawText(TextFormat("MOUSE: %d %d - MCELL: %d %d",
-                        safe_mouse_x(grid_config), safe_mouse_y(grid_config),
-                        mouseToCell(grid_config, mapArr)->x,
-                        mouseToCell(grid_config, mapArr)->y),
-             40, 20, 20, DARKGRAY);
-
-    // draws game map through mapArr array
-    for (int cellIdx = 0; cellIdx < grid_config->max_grid_cells_x * grid_config->max_grid_cells_y;
-         cellIdx++) {
-
-      int cell_x_pos = grid_config->grid_offset_x + mapArr[cellIdx].x * GRID_CELL_SIZE;
-      int cell_y_pos = grid_config->grid_offset_y + mapArr[cellIdx].y * GRID_CELL_SIZE;
-      Point curr_cell = mapArr[cellIdx];
-
-      // first we draw terrain color for failsafe, then texture
-      DrawRectangle(cell_x_pos, cell_y_pos, grid_config->grid_cell_size, grid_config->grid_cell_size,
-                    curr_cell.terrain.color);
-
-      DrawTexture(curr_cell.terrain.sprite, cell_x_pos, cell_y_pos, WHITE);
-
-      if (curr_cell.occupant != NULL) {
-        Actor *occupant = curr_cell.occupant;
-        DrawTexture(occupant->sprite, cell_x_pos, cell_y_pos, WHITE);
-      }
-
-      DrawRectangleLines(cell_x_pos, cell_y_pos, grid_config->grid_cell_size, grid_config->grid_cell_size,
-                         GRAY);
-
-      if (curr_cell.occupant != NULL) {
-        DrawRectangleLines(cell_x_pos, cell_y_pos, grid_config->grid_cell_size,
-                           grid_config->grid_cell_size,
-                           curr_cell.occupant->owner->prim_color);
-      }
-      if (curr_cell.in_range == true) {
-        DrawRectangleLines(cell_x_pos, cell_y_pos, grid_config->grid_cell_size,
-                           grid_config->grid_cell_size, BLUE);
-      }
-
-      if (curr_cell.in_attack_range == true) {
-        DrawRectangleLines(cell_x_pos, cell_y_pos, grid_config->grid_cell_size,
-                           grid_config->grid_cell_size, RED);
-      }
-    }
-    focused_cell_info(focused_cell, grid_config);
-
-    // end turn button
-    DrawText(TextFormat("End Turn: %s", curr_faction->name),
-             grid_config->max_grid_cells_x * grid_config->grid_cell_size + grid_config->grid_offset_x + 20,
-             grid_config->grid_offset_y + (grid_config->max_grid_cells_y - 3) * grid_config->grid_cell_size, 20,
-             BLACK);
-
-    EndDrawing();
+    render_game(&render_ctx, mapArr, focused_cell, curr_faction->name);
   }
 
   // De-Initialization
