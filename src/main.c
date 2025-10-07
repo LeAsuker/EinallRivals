@@ -8,6 +8,7 @@
 #include "main.h"
 #include "types.h"
 #include "rendering.h"
+#include "utils.h"
 
 int main(void) {
   Image sea_sprite = LoadImage("resources/sea_ter.png");
