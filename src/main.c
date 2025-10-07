@@ -118,6 +118,9 @@ int main(void) {
   Faction *curr_faction = factions + 0;
   Point *focused_cell = NULL;
 
+  GridConfig * grid_config = grid_init( GRID_OFFSET_X, GRID_OFFSET_Y, GRID_CELL_SIZE,
+                                        MAX_GRID_CELLS_X, MAX_GRID_CELLS_Y);
+
   SetTargetFPS(60);
   //--------------------------------------------------------------------------------------
 
@@ -487,4 +490,18 @@ Point *get_random_spawn_cell(Point *cell_arr) {
     // above Point * cell caused game to not start sometimes
   }
   return cell;
+}
+
+GridConfig * grid_init( int g_off_x, int g_off_y, int g_cell_size,
+                  int max_cell_x, int max_cell_y) {
+
+    GridConfig * grid = malloc(sizeof(GridConfig));
+    grid->grid_offset_x = g_off_x;
+    grid->grid_offset_y = g_off_y;
+
+    grid->grid_cell_size = g_cell_size;
+
+    grid->max_grid_cells_x = max_cell_x;
+    grid->max_grid_cells_y = max_cell_y;
+    return grid;
 }

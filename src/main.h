@@ -1,5 +1,14 @@
 #ifndef MAIN_H_
 #define MAIN_H_
+
+#define GRID_CELL_SIZE 30
+#define MAX_GRID_CELLS_X 30
+#define MAX_GRID_CELLS_Y 21
+#define DARK_TROOP_NUM 6
+#define VENT_TROOP_NUM 6
+#define GRID_OFFSET_X 40
+#define GRID_OFFSET_Y 60
+
 typedef struct Terrain {
   int id;
   Color color;
@@ -53,6 +62,14 @@ typedef struct {
   int max_range; // Maximum spread range
 } BiomeConfig;
 
+typedef struct {
+  int grid_offset_x;
+  int grid_offset_y;
+  int grid_cell_size;
+  int max_grid_cells_x;
+  int max_grid_cells_y;
+} GridConfig;
+
 int safe_mouse_x(Vector2 gridPosition);
 int safe_mouse_y(Vector2 gridPosition);
 Point *mouseToCell(Vector2 gridPosition, Point *point_arr);
@@ -71,4 +88,6 @@ void attack_range_calc(Point *cell_arr, Point *start_cell, int range,
                        bool selection);
 void cell_flag_flush(Point *cell_arr);
 Point *get_random_spawn_cell(Point *cell_arr);
+GridConfig * grid_init( int g_off_x, int g_off_y, int g_cell_size,
+                  int max_cell_x, int max_cell_y);
 #endif
