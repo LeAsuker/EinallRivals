@@ -197,8 +197,15 @@ int main(void)
                 DrawRectangleLines(cell_x_pos, cell_y_pos,
                     GRID_CELL_SIZE, GRID_CELL_SIZE, RED);
             }
-            }
+        }
         focused_cell_info(focused_cell, gridPosition);
+
+        // end turn button
+        DrawText(TextFormat(
+            "End Turn: %s", curr_player->name),
+            MAX_GRID_CELLS_X*GRID_CELL_SIZE + gridPosition.x + 20,
+            gridPosition.y + (MAX_GRID_CELLS_Y - 3)*GRID_CELL_SIZE, 20, BLACK);
+
                     
         EndDrawing();
     }
