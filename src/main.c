@@ -88,6 +88,7 @@ int main(void)
         { .has_turn = false, .prim_color = GREEN, .sec_color = WHITE},
         { .has_turn = false, .prim_color = BROWN, .sec_color = BLACK}
     };
+
     strcpy(factions[0].name, "Darkus");
     strcpy(factions[1].name, "Ventus");
     strcpy(factions[2].name, "Gaia");
@@ -132,12 +133,17 @@ int main(void)
         }
         // RMB
         else if (IsMouseButtonPressed(1)) {
-            if ((focused_cell->occupant != NULL) && selected_cell->in_range && selected_cell->occupant == NULL){
+            // movement logic
+            if ((focused_cell->occupant != NULL)
+                && selected_cell->in_range
+                && selected_cell->occupant == NULL
+                && focused_cell->occupant->can_move
+                && focused_cell->occupant->owner->has_turn){
                 // removed due to flushing function
                 // range_calc(mapArr, last_player_position, player.movement, false);
                 selected_cell->occupant = focused_cell->occupant;
                 focused_cell->occupant = NULL;
-                
+                selected_cell->occupant->can_move = false;
                 focused_cell = NULL;
             }
             cell_flag_flush(mapArr); // has to be after so player can move
@@ -262,8 +268,14 @@ void cell_selection(Point * cell_arr, Point * cell, Point ** focused_cell) {
     cell_flag_flush(cell_arr);
     *focused_cell = cell;
     if (cell->occupant != NULL) {
-        range_calc(cell_arr, cell, cell->occupant->movement, true);
-        attack_range_calc(cell_arr, cell, cell->occupant->range, true);
+        if (cell->occupant->owner->has_turn) {
+            if (cell->occupant->can_move) {
+                range_calc(cell_arr, cell, cell->occupant->movement, true);
+            }
+            if (cell->occupant->can_act) {
+                attack_range_calc(cell_arr, cell, cell->occupant->range, true);
+            }
+        }
     }
     return;
 }
