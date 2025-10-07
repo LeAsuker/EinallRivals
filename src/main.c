@@ -6,6 +6,8 @@
 #include <time.h>
 
 #include "main.h"
+#include "types.h"
+#include "rendering.h"
 
 int main(void) {
   Image sea_sprite = LoadImage("resources/sea_ter.png");
@@ -80,6 +82,8 @@ int main(void) {
   int layers = 7;
   generate_all_biomes(grid_config, mapArr, biome_configs, num_biomes, layers);
 
+  RenderContext render_ctx;
+  render_init(&render_ctx, grid_config);
   // init faction player
   Faction factions[] = {
       {.has_turn = true, .prim_color = PURPLE, .sec_color = DARKGRAY},
