@@ -17,10 +17,10 @@
 
 int main(void) {
   Image sea_sprite = LoadImage("resources/sea_ter.png");
-  Image mountains_sprite = LoadImage("resources/mountain_ter.png");
+  Image mountains_sprite = LoadImage("resources/mountain_ter2.png");
   Image plains_sprite = LoadImage("resources/plains_ter.png");
   Image arctic_sprite = LoadImage("resources/arctic_ter.png");
-  Image forest_sprite = LoadImage("resources/forest_ter.png");
+  Image forest_sprite = LoadImage("resources/forest_ter2.png");
 
   Image v_militia_sprite = LoadImage("resources/ventus_militia.png");
   Image d_militia_sprite = LoadImage("resources/darkus_militia.png");
@@ -48,13 +48,17 @@ int main(void) {
   InitWindow(screenWidth, screenHeight, "WaterEmblemProto");
   Terrain Plains = {
       .id = 0, .color = GREEN, .sprite = LoadTextureFromImage(plains_sprite)};
+
   Terrain Mountains = {.id = 1,
                        .color = LIGHTGRAY,
                        .sprite = LoadTextureFromImage(mountains_sprite)};
+
   Terrain Sea = {
       .id = 2, .color = DARKBLUE, .sprite = LoadTextureFromImage(sea_sprite)};
+
   Terrain Arctic = {
       .id = 3, .color = WHITE, .sprite = LoadTextureFromImage(arctic_sprite)};
+
   Terrain Forest = {.id = 4,
                     .color = DARKGREEN,
                     .sprite = LoadTextureFromImage(forest_sprite)};
@@ -67,9 +71,9 @@ int main(void) {
 
   // Configure each biome type
   BiomeConfig biome_configs[] = {
-      {.terrain = Mountains, .max_cores = 3, .max_range = 3},
+      {.terrain = Mountains, .max_cores = 1, .max_range = 3},
       {.terrain = Arctic, .max_cores = 3, .max_range = 3},
-      {.terrain = Forest, .max_cores = 3, .max_range = 3},
+      {.terrain = Forest, .max_cores = 4, .max_range = 3},
       {.terrain = Sea, .max_cores = 2, .max_range = 5}};
 
   // map init
