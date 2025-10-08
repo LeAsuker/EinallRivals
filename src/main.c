@@ -11,6 +11,7 @@
 #include "utils.h"
 #include "input.h"
 #include "map.h"
+#include "actor.h"
 
 int main(void) {
   Image sea_sprite = LoadImage("resources/sea_ter.png");
@@ -160,29 +161,6 @@ int main(void) {
   return 0;
 }
 
-void actor_init(Actor *actor, Faction *owner, Texture2D sprite) {
-  actor->sprite = sprite;
-  strcpy(actor->name, "Azao");
-  actor->owner = owner;
-  actor->can_move = true;
-  actor->can_act = true;
-
-  actor->level = 1;
-  actor->next_level_xp = 100;
-
-  actor->max_health = 20;
-  actor->curr_health = 20;
-
-  actor->movement = 4;
-
-  actor->attack = 8;
-  actor->defense = 3;
-
-  actor->magic_defense = 3;
-  actor->magic_attack = 2;
-
-  actor->range = 1;
-}
 // still used in input.c
 
 void cell_flag_flush(Point *cell_arr, GridConfig * grid) {

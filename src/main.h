@@ -24,7 +24,6 @@ Point *get_random_cell(GridConfig * grid, Point *cell_arr);
 void generate_biome_cores(GridConfig * grid, Point *cell_arr, BiomeConfig config);
 void generate_all_biomes(GridConfig * grid, Point *cell_arr, BiomeConfig *biome_configs,
                          int num_biomes, int layers);
-void actor_init(Actor *actor, Faction *owner, Texture2D sprite);
 void focused_cell_info(Point *selected_cell, GridConfig * grid_config);
 void attack_range_calc(GridConfig * grid, Point *cell_arr, Point *start_cell, int range,
                        bool selection);
