@@ -55,7 +55,27 @@ void input_handle_movement(InputState *state, GridConfig *grid_config, Point *ma
     Point *focused = state->focused_cell;
     Point *selected = state->selected_cell;
     
-    // Check if movement is valid
+    // Check if right-clicking on an enemy (attack)
+    if (focused->occupant != NULL &&
+        selected->occupant != NULL &&
+        actor_is_enemy(focused->occupant, selected->occupant) &&
+        focused->occupant->owner->has_turn &&
+        focused->occupant->can_act) {
+        
+        // Check if enemy is in attack range
+        if (combat_can_attack(grid_config, map, focused, selected)) {
+            printf("\n=== COMBAT ===\n");
+            CombatResult result = combat_execute_at_cells(grid_config, map, focused, selected);
+            printf("=== END COMBAT ===\n\n");
+            
+            // Clear focus after combat
+            state->focused_cell = NULL;
+            map_clear_range_flags(map, grid_config);
+            return;
+        }
+    }
+    
+    // Check if movement is valid (existing code)
     if (focused->occupant != NULL &&
         selected->in_range &&
         selected->occupant == NULL &&
@@ -72,7 +92,7 @@ void input_handle_movement(InputState *state, GridConfig *grid_config, Point *ma
     }
     
     // Always flush flags on right click
-    cell_flag_flush(map, grid_config);
+    map_clear_range_flags(map, grid_config);
 }
 
 bool input_is_mouse_over_end_turn_button(GridConfig *grid_config) {

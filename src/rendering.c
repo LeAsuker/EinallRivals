@@ -100,3 +100,29 @@ static void render_ui(RenderContext *ctx, const char *faction_name) {
     
     DrawText(TextFormat("End Turn: %s", faction_name), ui_x, ui_y, 20, BLACK);
 }
+/*
+void render_combat_forecast(Point *attacker_cell, Point *defender_cell) {
+    if (attacker_cell->occupant == NULL || defender_cell->occupant == NULL) {
+        return;
+    }
+    
+    CombatForecast forecast = combat_forecast(attacker_cell->occupant, 
+                                              defender_cell->occupant);
+    
+    // Display forecast
+    DrawText(TextFormat("Attacker: %d damage -> %d HP",
+                       forecast.attacker_damage,
+                       forecast.defender_health_after),
+             10, 100, 20, RED);
+    
+    DrawText(TextFormat("Defender: %d damage -> %d HP",
+                       forecast.defender_damage,
+                       forecast.attacker_health_after),
+             10, 130, 20, BLUE);
+    
+    DrawText(TextFormat("Hit: %d%% Crit: %d%%",
+                       forecast.hit_chance,
+                       forecast.crit_chance),
+             10, 160, 20, BLACK);
+}
+*/

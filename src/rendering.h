@@ -20,5 +20,5 @@ void render_init(RenderContext *ctx, GridConfig * grid);
 void render_game(RenderContext *ctx, Point *map, Point *focused_cell, const char *current_faction);
 void render_debug_info(RenderContext *ctx, Point *map);
 void render_cell_info(RenderContext *ctx, Point *focused_cell);
-
+void render_combat_forecast(Point *attacker_cell, Point *defender_cell);
 #endif
