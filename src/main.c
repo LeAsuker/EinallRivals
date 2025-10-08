@@ -12,6 +12,7 @@
 #include "input.h"
 #include "map.h"
 #include "actor.h"
+#include "combat.h"
 
 int main(void) {
   Image sea_sprite = LoadImage("resources/sea_ter.png");
