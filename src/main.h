@@ -15,6 +15,7 @@ int safe_mouse_x(GridConfig * grid_config);
 int safe_mouse_y(GridConfig * grid_config);
 Point *mouseToCell(GridConfig * grid_config, Point *point_arr);
 bool mouseInCell(GridConfig * grid_config, Point cell);
+// bool = True or False
 void cell_selection(GridConfig* grid, Point *cell_arr, Point *cell, Point **focused_cell);
 void range_calc(GridConfig * grid, Point *cell_arr, Point *start_cell, int range, bool selection);
 void spread_terrain(GridConfig * grid, Point *cell_arr, Point *start_cell, int range,

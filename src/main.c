@@ -112,8 +112,8 @@ int main(void) {
   Faction *curr_faction = factions + 0;
   Point *focused_cell = NULL;
 
-  InputState input_state;
-  input_init(&input_state);
+  InputState input_state; // object creation
+  input_init(&input_state); // initialization, is made to work, is given attributes
 
   SetTargetFPS(60);
   //--------------------------------------------------------------------------------------
@@ -159,135 +159,7 @@ int main(void) {
 
   return 0;
 }
-/*
-void range_calc(GridConfig * grid, Point *cell_arr, Point *start_cell, int range, bool selection) {
-  // quick fix, also removes targeting and affects flyers
-  // comparison problem, will have to refactor this
-  if (start_cell->terrain.id == 2) {
-    return;
-  }
-  // base case
-  start_cell->in_range = selection;
-  if (range == 0) {
-    return;
-  }
-  int x = start_cell->x;
-  int y = start_cell->y;
-  int x_limit = grid->max_grid_cells_x - 1;
-  int y_limit = grid->max_grid_cells_y - 1;
-  if (y != 0) {
-    Point *cell_up = cell_arr + x + grid->max_grid_cells_x * (y - 1);
-    range_calc(grid, cell_arr, cell_up, range - 1, selection);
-  }
-  if (y < y_limit) {
 
-    Point *cell_down = cell_arr + x + grid->max_grid_cells_x * (y + 1);
-    range_calc(grid, cell_arr, cell_down, range - 1, selection);
-  }
-  if (x != 0) {
-    Point *cell_left = cell_arr + x - 1 + grid->max_grid_cells_x * (y);
-    range_calc(grid, cell_arr, cell_left, range - 1, selection);
-  }
-  if (x < x_limit) {
-    Point *cell_right = cell_arr + x + 1 + grid->max_grid_cells_x * (y);
-    range_calc(grid, cell_arr, cell_right, range - 1, selection);
-  }
-
-  return;
-}
-
-// calcs attack range
-void attack_range_calc(GridConfig * grid, Point *cell_arr, Point *start_cell, int range,
-                       bool selection) {
-  start_cell->in_attack_range = selection;
-  if (range == 0) {
-    return;
-  }
-  int x = start_cell->x;
-  int y = start_cell->y;
-  int x_limit = grid->max_grid_cells_x - 1;
-  int y_limit = grid->max_grid_cells_y - 1;
-  if (y != 0) {
-    Point *cell_up = cell_arr + x + grid->max_grid_cells_x * (y - 1);
-    attack_range_calc(grid, cell_arr, cell_up, range - 1, selection);
-  }
-  if (y < y_limit) {
-
-    Point *cell_down = cell_arr + x + grid->max_grid_cells_x * (y + 1);
-    attack_range_calc(grid, cell_arr, cell_down, range - 1, selection);
-  }
-  if (x != 0) {
-    Point *cell_left = cell_arr + x - 1 + grid->max_grid_cells_x * (y);
-    attack_range_calc(grid, cell_arr, cell_left, range - 1, selection);
-  }
-  if (x < x_limit) {
-    Point *cell_right = cell_arr + x + 1 + grid->max_grid_cells_x * (y);
-    attack_range_calc(grid, cell_arr, cell_right, range - 1, selection);
-  }
-
-  return;
-}
-
-void spread_terrain(GridConfig * grid, Point *cell_arr, Point *start_cell, int range,
-                    Terrain terrain) {
-  // Set current cell's terrain
-  start_cell->terrain = terrain;
-
-  // Base case: stop spreading
-  if (range == 0) {
-    return;
-  }
-
-  int x = start_cell->x;
-  int y = start_cell->y;
-  int x_limit = grid->max_grid_cells_x - 1;
-  int y_limit = grid->max_grid_cells_y - 1;
-
-  // Spread to adjacent cells (up, down, left, right)
-  if (y != 0) {
-    Point *cell_up = cell_arr + x + grid->max_grid_cells_x * (y - 1);
-    spread_terrain(grid, cell_arr, cell_up, range - 1, terrain);
-  }
-  if (y < y_limit) {
-    Point *cell_down = cell_arr + x + grid->max_grid_cells_x * (y + 1);
-    spread_terrain(grid, cell_arr, cell_down, range - 1, terrain);
-  }
-  if (x != 0) {
-    Point *cell_left = cell_arr + x - 1 + grid->max_grid_cells_x * y;
-    spread_terrain(grid, cell_arr, cell_left, range - 1, terrain);
-  }
-  if (x < x_limit) {
-    Point *cell_right = cell_arr + x + 1 + grid->max_grid_cells_x * y;
-    spread_terrain(grid, cell_arr, cell_right, range - 1, terrain);
-  }
-}
-
-Point *get_random_cell(GridConfig * grid, Point *cell_arr) {
-  int rand_x = rand() % grid->max_grid_cells_x;
-  int rand_y = rand() % grid->max_grid_cells_y;
-  return cell_arr + rand_x + rand_y * grid->max_grid_cells_x;
-}
-
-void generate_biome_cores(GridConfig * grid, Point *cell_arr, BiomeConfig config) {
-  // since modulo is offset
-  int num_cores = rand() % (config.max_cores + 1);
-
-  for (int i = 0; i < num_cores; i++) {
-    Point *core = get_random_cell(grid, cell_arr);
-    int range = (rand() % config.max_range) + 1;
-    spread_terrain(grid, cell_arr, core, range, config.terrain);
-  }
-}
-
-void generate_all_biomes(GridConfig * grid, Point *cell_arr, BiomeConfig *biome_configs,
-                         int num_biomes, int layers) {
-  for (int layer = 0; layer < layers; layer++) {
-    for (int i = 0; i < num_biomes; i++) {
-      generate_biome_cores(grid, cell_arr, biome_configs[i]);
-    }
-  }
-}
-*/
 void actor_init(Actor *actor, Faction *owner, Texture2D sprite) {
   actor->sprite = sprite;
   strcpy(actor->name, "Azao");
@@ -311,6 +183,7 @@ void actor_init(Actor *actor, Faction *owner, Texture2D sprite) {
 
   actor->range = 1;
 }
+// still used in input.c
 
 void cell_flag_flush(Point *cell_arr, GridConfig * grid) {
   for (int yCoor = 0; yCoor < grid->max_grid_cells_y; yCoor++) {
@@ -320,17 +193,7 @@ void cell_flag_flush(Point *cell_arr, GridConfig * grid) {
     }
   }
 }
-/*
-// redefining cell point caused the game not to start sometimes
-Point *get_random_spawn_cell(GridConfig * grid, Point *cell_arr) {
-  Point *cell = get_random_cell(grid, cell_arr);
-  while (cell->terrain.id == 2 || cell->occupant != NULL) {
-    cell = get_random_cell(grid, cell_arr);
-    // above Point * cell caused game to not start sometimes
-  }
-  return cell;
-}
-*/
+
 GridConfig * grid_init( int g_off_x, int g_off_y, int g_cell_size,
                   int max_cell_x, int max_cell_y) {
 
