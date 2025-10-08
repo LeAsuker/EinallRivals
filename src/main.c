@@ -74,7 +74,7 @@ int main(void) {
       {.terrain = Mountains, .max_cores = 1, .max_range = 3},
       {.terrain = Arctic, .max_cores = 3, .max_range = 3},
       {.terrain = Forest, .max_cores = 4, .max_range = 3},
-      {.terrain = Sea, .max_cores = 2, .max_range = 5}};
+      {.terrain = Sea, .max_cores = 5, .max_range = 2}};
 
   // map init
 
