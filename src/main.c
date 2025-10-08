@@ -54,7 +54,7 @@ int main(void) {
                        .sprite = LoadTextureFromImage(mountains_sprite)};
 
   Terrain Sea = {
-      .id = 2, .color = DARKBLUE, .sprite = LoadTextureFromImage(sea_sprite)};
+      .id = 2, .color = BLUE, .sprite = LoadTextureFromImage(sea_sprite)};
 
   Terrain Arctic = {
       .id = 3, .color = WHITE, .sprite = LoadTextureFromImage(arctic_sprite)};
@@ -62,6 +62,18 @@ int main(void) {
   Terrain Forest = {.id = 4,
                     .color = DARKGREEN,
                     .sprite = LoadTextureFromImage(forest_sprite)};
+
+  Terrain Coast = {
+    .id = 5, .color = YELLOW
+  };
+
+  Terrain DeepForest = {
+    .id = 41, .color = BLACK
+  };
+
+  Terrain DeepSea = {
+    .id = 21, .color = DARKBLUE
+  };
 
   strcpy(Plains.name, "Plains");
   strcpy(Mountains.name, "Mountains");
