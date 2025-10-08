@@ -13,6 +13,7 @@
 #include "map.h"
 #include "actor.h"
 #include "combat.h"
+#include "game_logic.h"
 
 int main(void) {
   Image sea_sprite = LoadImage("resources/sea_ter.png");
@@ -92,11 +93,13 @@ int main(void) {
   strcpy(factions[1].name, "Ventus");
   strcpy(factions[2].name, "Gaia");
 
-  Actor *dark_troops = malloc(sizeof(Actor) * DARK_TROOP_NUM);
-  Actor *vent_troops = malloc(sizeof(Actor) * VENT_TROOP_NUM);
+  int num_factions = sizeof(factions) / sizeof(Faction);
 
   Texture2D d_militia_text = LoadTextureFromImage(d_militia_sprite);
   Texture2D v_militia_text = LoadTextureFromImage(v_militia_sprite);
+
+  Actor *dark_troops = actor_array_create(DARK_TROOP_NUM, &factions[0], d_militia_text);
+  Actor *vent_troops = actor_array_create(VENT_TROOP_NUM, &factions[1], v_militia_text);
 
   for (int i = 0; i < DARK_TROOP_NUM; i++) {
     actor_init(dark_troops + i, factions + 0, d_militia_text);
@@ -111,8 +114,15 @@ int main(void) {
   }
   // Init current player state
 
-  Faction *curr_faction = factions + 0;
-  Point *focused_cell = NULL;
+
+  GameState *game_state = game_state_create(factions, num_factions);
+
+  TroopGroup troop_groups[] = {
+      troop_group_create(dark_troops, DARK_TROOP_NUM, &factions[0]),
+      troop_group_create(vent_troops, VENT_TROOP_NUM, &factions[1])
+  };
+
+  int num_groups = sizeof(troop_groups) / sizeof(TroopGroup);
 
   InputState input_state; // object creation
   input_init(&input_state); // initialization, is made to work, is given attributes
@@ -127,6 +137,13 @@ int main(void) {
     //----------------------------------------------------------------------------------
     // The XY coords are in the top left corner of the square
     // LMB
+    if (game_is_over(game_state)) {
+      // Game over - just render and wait for window close
+      render_game(&render_ctx, mapArr, input_state.focused_cell, 
+                  game_state->winner ? game_state->winner->name : "Game Over");
+      continue;
+    } 
+
     input_update(&input_state, grid_config, mapArr);
     if (input_state.left_click) {
       input_handle_selection(&input_state, grid_config, mapArr);
@@ -137,23 +154,23 @@ int main(void) {
     }
 
     if (input_state.end_turn_requested) {
-      // TODO: Implement turn system here
-      // For now, just a placeholder
-      printf("End turn requested!\n");
+      game_end_current_turn(game_state, troop_groups, num_groups);
     }
 
     //----------------------------------------------------------------------------------
 
     // Draw
     //----------------------------------------------------------------------------------
-    render_game(&render_ctx, mapArr, input_state.focused_cell, curr_faction->name);
+    Faction *current_faction = game_get_current_faction(game_state);
+    render_game(&render_ctx, mapArr, input_state.focused_cell, current_faction->name);
   }
 
   // De-Initialization
   //--------------------------------------------------------------------------------------
   map_free(mapArr);
-  free(dark_troops);
-  free(vent_troops);
+  actor_array_free(dark_troops, DARK_TROOP_NUM);
+  actor_array_free(vent_troops, VENT_TROOP_NUM);
+  game_state_free(game_state);
   free(grid_config);
 
   CloseWindow(); // Close window and OpenGL context
