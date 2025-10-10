@@ -14,6 +14,7 @@
 #include "actor.h"
 #include "combat.h"
 #include "game_logic.h"
+#include <assert.h>
 
 int main(void) {
   Image sea_sprite = LoadImage("resources/sea_ter.png");
@@ -117,15 +118,71 @@ int main(void) {
   Actor *dark_troops = actor_array_create(DARK_TROOP_NUM, &factions[0], d_militia_text);
   Actor *vent_troops = actor_array_create(VENT_TROOP_NUM, &factions[1], v_militia_text);
 
+  Point * map_get_cell(Point * mapArr, GridConfig * grid_config, int x, int y) {
+      Point *cell = mapArr + grid_config->max_grid_cells_x*y + x;
+      return cell;
+  }
+
+  Point * map_get_random_corner_cell(Point * mapArr, GridConfig * grid_config, int corner, int area_size) {
+    // 0: top left and then like the clock 
+    // +1 so its at least one and in bounds
+    int x_offset = rand() % area_size + 1;
+    int y_offset = rand() % area_size + 1;
+
+    int x_corner, y_corner;
+
+    // top left
+    if ( corner == 0 ) {
+      x_corner = 0;
+      y_corner = 0;
+      return map_get_cell(mapArr, grid_config, x_corner + x_offset, y_corner + y_offset);
+    }
+    // top right
+    if ( corner == 1 ) {
+      x_corner = grid_config->max_grid_cells_x;
+      y_corner = 0;
+      return map_get_cell(mapArr, grid_config, x_corner - x_offset, y_corner + y_offset);
+    }
+    // bottom right
+    if ( corner == 2 ) {
+      x_corner = grid_config->max_grid_cells_x;
+      y_corner = grid_config->max_grid_cells_y;
+      return map_get_cell(mapArr, grid_config, x_corner - x_offset, y_corner - y_offset);
+    }
+    // bottom left
+    if ( corner == 3 ) {
+      x_corner = 0;
+      y_corner = grid_config->max_grid_cells_y;
+      return map_get_cell(mapArr, grid_config, x_corner + x_offset, y_corner - y_offset);
+    }
+
+    assert(false);     
+    // dummy for now
+  }
+  // max_attempts redundant, can do area_size**2
+  Point * map_get_random_corner_spawn_cell(Point* mapArr, GridConfig* grid_config, int corner, int area_size, int max_attempts) {
+    Point * cell = map_get_random_corner_cell(mapArr, grid_config, corner, area_size);
+    int attempts = 1;
+    while (cell->occupant != NULL || cell->terrain.id == 2) {
+      cell = map_get_random_corner_cell(mapArr, grid_config, corner, area_size);
+      attempts++;
+      if (attempts > max_attempts) {
+        printf("Spawn not found after %d attempts", attempts);
+        assert(false);
+      }
+    }
+    return cell;
+  }
+
   for (int i = 0; i < DARK_TROOP_NUM; i++) {
     actor_init(dark_troops + i, factions + 0, d_militia_text);
-    Point *spawn = map_get_random_spawn_cell(mapArr, grid_config);
+    Point *spawn = map_get_random_corner_spawn_cell(mapArr, grid_config, 0, 4, 16);
     spawn->occupant = dark_troops + i;
   }
   
   for (int i = 0; i < VENT_TROOP_NUM; i++) {
     actor_init(vent_troops + i, factions + 1, v_militia_text);
-    Point *spawn = map_get_random_spawn_cell(mapArr, grid_config);
+    Point *spawn = map_get_random_corner_spawn_cell(mapArr, grid_config, 2, 4, 16);
     spawn->occupant = vent_troops + i;
   }
   // Init current player state
