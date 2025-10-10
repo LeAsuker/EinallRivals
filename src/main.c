@@ -38,8 +38,8 @@ int main(void) {
   // Define terrain types
   // Initialization
   //--------------------------------------------------------------------------------------
-  const int screenWidth = 1280;
-  const int screenHeight = 720;
+  const int screenWidth = 1600;
+  const int screenHeight = 900;
   srand(time(NULL));
 
   GridConfig * grid_config = grid_init( GRID_OFFSET_X, GRID_OFFSET_Y, GRID_CELL_SIZE,

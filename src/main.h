@@ -1,9 +1,9 @@
 #ifndef MAIN_H_
 #define MAIN_H_
 
-#define GRID_CELL_SIZE 30
+#define GRID_CELL_SIZE 40
 #define MAX_GRID_CELLS_X 30
-#define MAX_GRID_CELLS_Y 21
+#define MAX_GRID_CELLS_Y 20
 #define DARK_TROOP_NUM 6
 #define VENT_TROOP_NUM 6
 #define GRID_OFFSET_X 40
