@@ -48,32 +48,37 @@ int main(void) {
   // initwindow creates opengl context, texture stuff needs to happen after it
   InitWindow(screenWidth, screenHeight, "WaterEmblemProto");
   Terrain Plains = {
-      .id = 0, .color = GREEN, .sprite = LoadTextureFromImage(plains_sprite)};
+    .id = 0,
+    .color = GREEN,
+    .sprite = LoadTextureFromImage(plains_sprite),
+    .passable = true };
 
   Terrain Mountains = {.id = 1,
                        .color = LIGHTGRAY,
-                       .sprite = LoadTextureFromImage(mountains_sprite)};
+                       .sprite = LoadTextureFromImage(mountains_sprite),
+                       .passable = true };
 
   Terrain Sea = {
-      .id = 2, .color = BLUE, .sprite = LoadTextureFromImage(sea_sprite)};
+      .id = 2, .color = BLUE, .sprite = LoadTextureFromImage(sea_sprite), .passable = false};
 
   Terrain Arctic = {
-      .id = 3, .color = WHITE, .sprite = LoadTextureFromImage(arctic_sprite)};
+      .id = 3, .color = WHITE, .sprite = LoadTextureFromImage(arctic_sprite), .passable = true };
 
   Terrain Forest = {.id = 4,
                     .color = DARKGREEN,
-                    .sprite = LoadTextureFromImage(forest_sprite)};
+                    .sprite = LoadTextureFromImage(forest_sprite),
+                    .passable = true};
 
   Terrain Coast = {
-    .id = 5, .color = YELLOW
+    .id = 5, .color = YELLOW, .passable = true
   };
 
   Terrain DeepForest = {
-    .id = 41, .color = BLACK
+    .id = 41, .color = BLACK, .passable = false
   };
 
   Terrain DeepSea = {
-    .id = 21, .color = DARKBLUE
+    .id = 21, .color = DARKBLUE, .passable = false
   };
 
   strcpy(Plains.name, "Plains");

@@ -233,7 +233,7 @@ void map_generate_all_biomes(GridConfig *grid_config, Point *map,
 bool map_is_terrain_passable(Terrain terrain) {
     // Sea (id == 2) is not passable for ground units
     // You can expand this with more terrain rules
-    return terrain.id != 2;
+    return terrain.passable;
 }
 
 bool map_is_cell_occupied(Point *cell) {

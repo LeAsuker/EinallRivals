@@ -8,6 +8,7 @@ typedef struct Terrain {
   int id;
   Color color;
   Texture2D sprite;
+  bool passable;
   char name[10];
 } Terrain;
 
