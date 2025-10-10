@@ -1,6 +1,7 @@
 #include "map.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 
 // Forward declarations for internal helper functions
 static void calculate_range_recursive(GridConfig *grid_config, Point *map,
@@ -82,6 +83,57 @@ Point *map_get_random_spawn_cell(Point *map, GridConfig *grid_config) {
 bool map_is_valid_coords(GridConfig *grid_config, int x, int y) {
     return (x >= 0 && x < grid_config->max_grid_cells_x &&
             y >= 0 && y < grid_config->max_grid_cells_y);
+}
+
+Point * map_get_random_corner_cell(Point * mapArr, GridConfig * grid_config, int corner, int area_size) {
+    // 0: top left and then like the clock 
+    // +1 so its at least one and in bounds
+    int x_offset = rand() % area_size + 1;
+    int y_offset = rand() % area_size + 1;
+
+    int x_corner, y_corner;
+
+    // top left
+    if ( corner == 0 ) {
+        x_corner = 0;
+        y_corner = 0;
+        return map_get_cell(mapArr, grid_config, x_corner + x_offset, y_corner + y_offset);
+    }
+    // top right
+    if ( corner == 1 ) {
+        x_corner = grid_config->max_grid_cells_x;
+        y_corner = 0;
+        return map_get_cell(mapArr, grid_config, x_corner - x_offset, y_corner + y_offset);
+    }
+    // bottom right
+    if ( corner == 2 ) {
+        x_corner = grid_config->max_grid_cells_x;
+        y_corner = grid_config->max_grid_cells_y;
+        return map_get_cell(mapArr, grid_config, x_corner - x_offset, y_corner - y_offset);
+    }
+    // bottom left
+    if ( corner == 3 ) {
+        x_corner = 0;
+        y_corner = grid_config->max_grid_cells_y;
+        return map_get_cell(mapArr, grid_config, x_corner + x_offset, y_corner - y_offset);
+    }
+
+    assert(false);     
+    // dummy for now
+}
+
+Point * map_get_random_corner_spawn_cell(Point* mapArr, GridConfig* grid_config, int corner, int area_size, int max_attempts) {
+    Point * cell = map_get_random_corner_cell(mapArr, grid_config, corner, area_size);
+    int attempts = 1;
+    while (cell->occupant != NULL || cell->terrain.id == 2) {
+        cell = map_get_random_corner_cell(mapArr, grid_config, corner, area_size);
+        attempts++;
+        if (attempts > max_attempts) {
+            printf("Spawn not found after %d attempts", attempts);
+            assert(false);
+        }
+    }
+    return cell;
 }
 
 // ============================================================================
@@ -202,6 +254,7 @@ bool map_can_unit_enter_cell(Point *cell, Actor *unit) {
     
     return true;
 }
+
 
 // ============================================================================
 // Internal Helper Functions
