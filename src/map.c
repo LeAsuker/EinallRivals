@@ -136,6 +136,24 @@ Point * map_get_random_corner_spawn_cell(Point* mapArr, GridConfig* grid_config,
     return cell;
 }
 
+bool map_all_neighs_terrain(Point * mapArr, GridConfig* grid, Point * cell, Terrain terrain) {
+    int cell_x = cell->x;
+    int cell_y = cell->y;
+    int cell_terrain = cell->terrain.id;
+
+    int* offset = {-1, 0, 1};
+    for (int l = 0; l < 3; l++) {
+        for (int k = 0; k < 3; k++) {
+            Point * neigh = map_get_cell(mapArr, grid, cell_x + offset[k], cell_y + offset[l]);
+            if (neigh != NULL && neigh->terrain.id != cell_terrain) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
 // ============================================================================
 // Range Calculations
 // ============================================================================

@@ -89,10 +89,10 @@ int main(void) {
 
   // Configure each biome type
   BiomeConfig biome_configs[] = {
-      {.terrain = Mountains, .max_cores = 1, .max_range = 3},
-      {.terrain = Arctic, .max_cores = 3, .max_range = 3},
+      {.terrain = Mountains, .max_cores = 0, .max_range = 3},
+      {.terrain = Arctic, .max_cores = 4, .max_range = 4},
       {.terrain = Forest, .max_cores = 4, .max_range = 3},
-      {.terrain = Sea, .max_cores = 5, .max_range = 2}};
+      {.terrain = Sea, .max_cores = 2, .max_range = 5}};
 
   // map init
 
