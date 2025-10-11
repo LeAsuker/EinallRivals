@@ -47,25 +47,29 @@ int main(void) {
     
     // initwindow creates opengl context, texture stuff needs to happen after it
   InitWindow(screenWidth, screenHeight, "WaterEmblemProto");
+
+  Terrain None = {
+    .id = -1, .color = WHITE, .passable = false, .deep_version = NULL
+  };
   Terrain DeepForest = {
-    .id = 41, .color = BLACK, .passable = false, .deep_version = NULL
+    .id = 41, .color = BLACK, .passable = false, .deep_version = &None
   };
 
   Terrain DeepSea = {
-    .id = 21, .color = DARKBLUE, .passable = false, .deep_version = NULL
+    .id = 21, .color = DARKBLUE, .passable = false, .deep_version = &None
   };
   Terrain Plains = {
     .id = 0,
     .color = GREEN,
     .sprite = LoadTextureFromImage(plains_sprite),
     .passable = true,
-    .deep_version = NULL };
+    .deep_version = &None };
 
   Terrain Mountains = {.id = 1,
                        .color = LIGHTGRAY,
                        .sprite = LoadTextureFromImage(mountains_sprite),
                        .passable = true,
-                       .deep_version = NULL };
+                       .deep_version = &None };
 
   Terrain Sea = {
       .id = 2, .color = BLUE, .sprite = LoadTextureFromImage(sea_sprite),
@@ -82,7 +86,7 @@ int main(void) {
                     .deep_version = &DeepForest};
 
   Terrain Coast = {
-    .id = 5, .color = YELLOW, .passable = true, .deep_version = NULL
+    .id = 5, .color = YELLOW, .passable = true, .deep_version = &None
   };
 
 
@@ -106,6 +110,14 @@ int main(void) {
   int num_biomes = sizeof(biome_configs) / sizeof(BiomeConfig);
   int layers = 7;
   map_generate_all_biomes(grid_config, mapArr, biome_configs, num_biomes, layers);
+
+  void map_generate_deep_ter(Point *map, GridConfig * grid) {
+    for (int i = 0; i < grid->max_grid_cells_x*grid->max_grid_cells_y; i++) {
+      Point* cell = map + i;
+
+    }
+    return;
+  }
 
   RenderContext render_ctx;
   render_init(&render_ctx, grid_config);
