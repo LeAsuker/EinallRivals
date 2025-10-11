@@ -125,7 +125,7 @@ Point * map_get_random_corner_cell(Point * mapArr, GridConfig * grid_config, int
 Point * map_get_random_corner_spawn_cell(Point* mapArr, GridConfig* grid_config, int corner, int area_size, int max_attempts) {
     Point * cell = map_get_random_corner_cell(mapArr, grid_config, corner, area_size);
     int attempts = 1;
-    while (cell->occupant != NULL || cell->terrain.id == 2) {
+    while (map_is_cell_occupied(cell) || !map_is_terrain_passable(cell->terrain)) {
         cell = map_get_random_corner_cell(mapArr, grid_config, corner, area_size);
         attempts++;
         if (attempts > max_attempts) {
@@ -145,11 +145,13 @@ bool map_all_8_neighs_terrain(Point * mapArr, GridConfig* grid, Point * cell, Te
     int offset[3] = {-1, 0, 1};
     for (int l = 0; l < 3; l++) {
         for (int k = 0; k < 3; k++) {
-            if (map_is_valid_coords(grid, cell_x + offset[k], cell_y + offset[l])) {
-                Point * neigh = map_get_cell(mapArr, grid, cell_x + offset[k], cell_y + offset[l]);
-                if (neigh != NULL && neigh->terrain.id != cell_terrain.id && neigh->terrain.id != cell->terrain.deep_version->id) {
-                    return false;
-                }
+            Point * neigh = map_get_cell(mapArr, grid, cell_x + offset[k], cell_y + offset[l]);
+            if (neigh != NULL && neigh->terrain.id != cell_terrain.id && neigh->terrain.id != cell->terrain.deep_version->id) {
+                return false;
+            }
+            // deep version is none
+            if (cell->terrain.deep_version->id == -1) {
+                return false;
             }
         }
     }
