@@ -31,55 +31,60 @@ int main(void) {
   ImageResize(&plains_sprite, GRID_CELL_SIZE, GRID_CELL_SIZE);
   ImageResize(&arctic_sprite, GRID_CELL_SIZE, GRID_CELL_SIZE);
   ImageResize(&forest_sprite, GRID_CELL_SIZE, GRID_CELL_SIZE);
-
+  
   ImageResize(&d_militia_sprite, GRID_CELL_SIZE, GRID_CELL_SIZE);
   ImageResize(&v_militia_sprite, GRID_CELL_SIZE, GRID_CELL_SIZE);
-
+  
   // Define terrain types
   // Initialization
   //--------------------------------------------------------------------------------------
   const int screenWidth = 1600;
   const int screenHeight = 900;
   srand(time(NULL));
-
+  
   GridConfig * grid_config = grid_init( GRID_OFFSET_X, GRID_OFFSET_Y, GRID_CELL_SIZE,
-                                      MAX_GRID_CELLS_X, MAX_GRID_CELLS_Y);
-
-  // initwindow creates opengl context, texture stuff needs to happen after it
+    MAX_GRID_CELLS_X, MAX_GRID_CELLS_Y);
+    
+    // initwindow creates opengl context, texture stuff needs to happen after it
   InitWindow(screenWidth, screenHeight, "WaterEmblemProto");
+  Terrain DeepForest = {
+    .id = 41, .color = BLACK, .passable = false, .deep_version = NULL
+  };
+
+  Terrain DeepSea = {
+    .id = 21, .color = DARKBLUE, .passable = false, .deep_version = NULL
+  };
   Terrain Plains = {
     .id = 0,
     .color = GREEN,
     .sprite = LoadTextureFromImage(plains_sprite),
-    .passable = true };
+    .passable = true,
+    .deep_version = NULL };
 
   Terrain Mountains = {.id = 1,
                        .color = LIGHTGRAY,
                        .sprite = LoadTextureFromImage(mountains_sprite),
-                       .passable = true };
+                       .passable = true,
+                       .deep_version = NULL };
 
   Terrain Sea = {
-      .id = 2, .color = BLUE, .sprite = LoadTextureFromImage(sea_sprite), .passable = false};
+      .id = 2, .color = BLUE, .sprite = LoadTextureFromImage(sea_sprite),
+      .passable = false, .deep_version = &DeepSea};
 
   Terrain Arctic = {
-      .id = 3, .color = WHITE, .sprite = LoadTextureFromImage(arctic_sprite), .passable = true };
+      .id = 3, .color = WHITE, .sprite = LoadTextureFromImage(arctic_sprite),
+      .passable = true, .deep_version = &Mountains };
 
   Terrain Forest = {.id = 4,
                     .color = DARKGREEN,
                     .sprite = LoadTextureFromImage(forest_sprite),
-                    .passable = true};
+                    .passable = true,
+                    .deep_version = &DeepForest};
 
   Terrain Coast = {
-    .id = 5, .color = YELLOW, .passable = true
+    .id = 5, .color = YELLOW, .passable = true, .deep_version = NULL
   };
 
-  Terrain DeepForest = {
-    .id = 41, .color = BLACK, .passable = false
-  };
-
-  Terrain DeepSea = {
-    .id = 21, .color = DARKBLUE, .passable = false
-  };
 
   strcpy(Plains.name, "Plains");
   strcpy(Mountains.name, "Mountains");

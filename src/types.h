@@ -3,14 +3,17 @@
 
 #include "raylib.h"
 #include <stdbool.h>
+struct Terrain;
+typedef struct Terrain Terrain;
 
-typedef struct Terrain {
+struct Terrain {
   int id;
   Color color;
   Texture2D sprite;
   bool passable;
+  Terrain * deep_version;
   char name[10];
-} Terrain;
+};
 
 typedef struct Faction {
   Color prim_color;

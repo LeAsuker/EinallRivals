@@ -136,7 +136,7 @@ Point * map_get_random_corner_spawn_cell(Point* mapArr, GridConfig* grid_config,
     return cell;
 }
 
-bool map_all_neighs_terrain(Point * mapArr, GridConfig* grid, Point * cell, Terrain terrain) {
+bool map_all_8_neighs_terrain(Point * mapArr, GridConfig* grid, Point * cell, Terrain terrain) {
     int cell_x = cell->x;
     int cell_y = cell->y;
     int cell_terrain = cell->terrain.id;

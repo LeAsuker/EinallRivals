@@ -16,7 +16,7 @@ Point *map_get_random_spawn_cell(Point *map, GridConfig *grid_config);
 bool map_is_valid_coords(GridConfig *grid_config, int x, int y);
 Point * map_get_random_corner_cell(Point * mapArr, GridConfig * grid_config, int corner, int area_size);
 Point * map_get_random_corner_spawn_cell(Point* mapArr, GridConfig* grid_config, int corner, int area_size, int max_attempts);
-bool map_all_neighs_terrain(Point * mapArr, GridConfig* grid, Point * cell, Terrain terrain);
+bool map_all_8_neighs_terrain(Point * mapArr, GridConfig* grid, Point * cell, Terrain terrain);
 
 // Range and pathfinding calculations
 void map_calculate_movement_range(GridConfig *grid_config, Point *map, 
