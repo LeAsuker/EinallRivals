@@ -111,7 +111,7 @@ int main(void) {
   strcpy(Plains.name, "Plains");
   strcpy(Mountains.name, "Mountains");
   strcpy(Sea.name, "Sea");
-  strcpy(Arctic.name, "Arctic");
+  strcpy(Arctic.name, "Hills");
   strcpy(Forest.name, "Forest");
   strcpy(DeepForest.name, "DeepForest");
   strcpy(DeepSea.name, "DeepSea");
