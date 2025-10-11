@@ -26,6 +26,8 @@ int main(void) {
   Image deep_forest_sprite = LoadImage("resources/deep_forest_ter.png");
   Image deep_sea_sprite = LoadImage("resources/deep_sea_ter.png");
 
+  Image player_base_sprite = LoadImage("resources/base_ter.png");
+
   Image v_militia_sprite = LoadImage("resources/ventus_militia.png");
   Image d_militia_sprite = LoadImage("resources/darkus_militia.png");
 
@@ -37,6 +39,9 @@ int main(void) {
 
   ImageResize(&deep_forest_sprite, GRID_CELL_SIZE, GRID_CELL_SIZE);
   ImageResize(&deep_sea_sprite, GRID_CELL_SIZE, GRID_CELL_SIZE);
+
+  ImageResize(&player_base_sprite, GRID_CELL_SIZE, GRID_CELL_SIZE);
+
   
   ImageResize(&d_militia_sprite, GRID_CELL_SIZE, GRID_CELL_SIZE);
   ImageResize(&v_militia_sprite, GRID_CELL_SIZE, GRID_CELL_SIZE);
@@ -97,6 +102,11 @@ int main(void) {
     .id = 5, .color = YELLOW, .passable = true, .deep_version = &None
   };
 
+  Terrain PlayerBase = {
+    .id = 6, .color = ORANGE, .passable = true, .deep_version = &None,
+    .sprite = LoadTextureFromImage(player_base_sprite)
+  };
+
 
   strcpy(Plains.name, "Plains");
   strcpy(Mountains.name, "Mountains");
@@ -109,7 +119,7 @@ int main(void) {
   // Configure each biome type
   BiomeConfig biome_configs[] = {
       {.terrain = Arctic, .max_cores = 3, .max_range = 4},
-      {.terrain = Forest, .max_cores = 4, .max_range = 3},
+      {.terrain = Forest, .max_cores = 5, .max_range = 4},
       {.terrain = Sea, .max_cores = 2, .max_range = 5}};
 
   // map init

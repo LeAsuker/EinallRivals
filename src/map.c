@@ -260,6 +260,10 @@ void map_generate_deep_ter(Point *map, GridConfig * grid) {
     return;
 }
 
+void map_generate_bases (Point* map, GridConfig* grid) {
+    
+}
+
 // ============================================================================
 // Terrain Queries
 // ============================================================================
