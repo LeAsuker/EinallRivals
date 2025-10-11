@@ -247,7 +247,7 @@ void map_generate_all_biomes(GridConfig *grid_config, Point *map,
             map_generate_biome_cores(grid_config, map, biome_configs[i]);
         }
     }
-    map_generate_deep_ter(map, grid_config);
+
 }
 
 void map_generate_deep_ter(Point *map, GridConfig * grid) {
@@ -261,7 +261,7 @@ void map_generate_deep_ter(Point *map, GridConfig * grid) {
 }
 
 void map_generate_bases (Point* map, GridConfig* grid) {
-    
+
 }
 
 // ============================================================================

@@ -128,7 +128,15 @@ int main(void) {
 
   int num_biomes = sizeof(biome_configs) / sizeof(BiomeConfig);
   int layers = 7;
+
   map_generate_all_biomes(grid_config, mapArr, biome_configs, num_biomes, layers);
+
+  map_generate_deep_ter(mapArr, grid_config);
+
+  // base building
+  map_spread_terrain(grid_config, mapArr, map_get_cell(mapArr, grid_config, 0, 0), 3, PlayerBase);
+  map_spread_terrain(grid_config, mapArr, map_get_cell(mapArr, grid_config, grid_config->max_grid_cells_x - 1,
+      grid_config->max_grid_cells_y - 1), 3, PlayerBase);
 
   RenderContext render_ctx;
   render_init(&render_ctx, grid_config);
