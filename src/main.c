@@ -95,6 +95,7 @@ int main(void) {
   strcpy(Sea.name, "Sea");
   strcpy(Arctic.name, "Arctic");
   strcpy(Forest.name, "Forest");
+  strcpy(DeepForest.name, "DeepForest");
 
   // Configure each biome type
   BiomeConfig biome_configs[] = {
@@ -114,10 +115,14 @@ int main(void) {
   void map_generate_deep_ter(Point *map, GridConfig * grid) {
     for (int i = 0; i < grid->max_grid_cells_x*grid->max_grid_cells_y; i++) {
       Point* cell = map + i;
-
+      if (map_all_8_neighs_terrain(map, grid, cell, cell->terrain)) {
+        cell->terrain = *(cell->terrain.deep_version);
+      }
     }
     return;
   }
+
+  map_generate_deep_ter(mapArr, grid_config);
 
   RenderContext render_ctx;
   render_init(&render_ctx, grid_config);
