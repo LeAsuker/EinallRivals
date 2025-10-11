@@ -104,6 +104,7 @@ int main(void) {
   strcpy(Arctic.name, "Arctic");
   strcpy(Forest.name, "Forest");
   strcpy(DeepForest.name, "DeepForest");
+  strcpy(DeepSea.name, "DeepSea");
 
   // Configure each biome type
   BiomeConfig biome_configs[] = {
