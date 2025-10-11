@@ -32,6 +32,7 @@ void map_generate_biome_cores(GridConfig *grid_config, Point *map,
                               BiomeConfig config);
 void map_generate_all_biomes(GridConfig *grid_config, Point *map, 
                              BiomeConfig *biome_configs, int num_biomes, int layers);
+void map_generate_deep_ter(Point *map, GridConfig * grid);
 
 // Terrain queries
 bool map_is_terrain_passable(Terrain terrain);

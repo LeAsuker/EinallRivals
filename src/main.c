@@ -23,6 +23,9 @@ int main(void) {
   Image arctic_sprite = LoadImage("resources/arctic_ter.png");
   Image forest_sprite = LoadImage("resources/forest_ter2.png");
 
+  Image deep_forest_sprite = LoadImage("resources/deep_forest_ter.png");
+  Image deep_sea_sprite = LoadImage("resources/deep_sea_ter.png");
+
   Image v_militia_sprite = LoadImage("resources/ventus_militia.png");
   Image d_militia_sprite = LoadImage("resources/darkus_militia.png");
 
@@ -31,6 +34,9 @@ int main(void) {
   ImageResize(&plains_sprite, GRID_CELL_SIZE, GRID_CELL_SIZE);
   ImageResize(&arctic_sprite, GRID_CELL_SIZE, GRID_CELL_SIZE);
   ImageResize(&forest_sprite, GRID_CELL_SIZE, GRID_CELL_SIZE);
+
+  ImageResize(&deep_forest_sprite, GRID_CELL_SIZE, GRID_CELL_SIZE);
+  ImageResize(&deep_sea_sprite, GRID_CELL_SIZE, GRID_CELL_SIZE);
   
   ImageResize(&d_militia_sprite, GRID_CELL_SIZE, GRID_CELL_SIZE);
   ImageResize(&v_militia_sprite, GRID_CELL_SIZE, GRID_CELL_SIZE);
@@ -52,11 +58,13 @@ int main(void) {
     .id = -1, .color = WHITE, .passable = false, .deep_version = NULL
   };
   Terrain DeepForest = {
-    .id = 41, .color = BLACK, .passable = false, .deep_version = &None
+    .id = 41, .color = BLACK, .passable = false, .deep_version = &None,
+    .sprite = LoadTextureFromImage(deep_forest_sprite)
   };
 
   Terrain DeepSea = {
-    .id = 21, .color = DARKBLUE, .passable = false, .deep_version = &None
+    .id = 21, .color = DARKBLUE, .passable = false, .deep_version = &None,
+    .sprite = LoadTextureFromImage(deep_sea_sprite)
   };
   Terrain Plains = {
     .id = 0,
@@ -68,7 +76,7 @@ int main(void) {
   Terrain Mountains = {.id = 1,
                        .color = LIGHTGRAY,
                        .sprite = LoadTextureFromImage(mountains_sprite),
-                       .passable = true,
+                       .passable = false,
                        .deep_version = &None };
 
   Terrain Sea = {
@@ -99,8 +107,7 @@ int main(void) {
 
   // Configure each biome type
   BiomeConfig biome_configs[] = {
-      {.terrain = Mountains, .max_cores = 0, .max_range = 3},
-      {.terrain = Arctic, .max_cores = 4, .max_range = 4},
+      {.terrain = Arctic, .max_cores = 3, .max_range = 4},
       {.terrain = Forest, .max_cores = 4, .max_range = 3},
       {.terrain = Sea, .max_cores = 2, .max_range = 5}};
 
@@ -111,18 +118,6 @@ int main(void) {
   int num_biomes = sizeof(biome_configs) / sizeof(BiomeConfig);
   int layers = 7;
   map_generate_all_biomes(grid_config, mapArr, biome_configs, num_biomes, layers);
-
-  void map_generate_deep_ter(Point *map, GridConfig * grid) {
-    for (int i = 0; i < grid->max_grid_cells_x*grid->max_grid_cells_y; i++) {
-      Point* cell = map + i;
-      if (map_all_8_neighs_terrain(map, grid, cell, cell->terrain)) {
-        cell->terrain = *(cell->terrain.deep_version);
-      }
-    }
-    return;
-  }
-
-  map_generate_deep_ter(mapArr, grid_config);
 
   RenderContext render_ctx;
   render_init(&render_ctx, grid_config);
