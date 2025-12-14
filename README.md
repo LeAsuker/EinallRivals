@@ -58,3 +58,6 @@ DO NOT INSTALL ANOTHER MinGW-W64 from another source such as msys2, you don't ne
 
 # Output files
 The built code will be in the bin dir
+
+# Problems
+If textures do not show up after building the game on Linux, go into main.c and add "../../" to the beginning of all the image imports. The executable itself will be in the .../bin/Debug/ folder
