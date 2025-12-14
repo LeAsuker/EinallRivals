@@ -1,4 +1,4 @@
-if [ "$#" -ne 1 ] || [ "$1" != "linux" ] && [ "$1" != "macos" ]; then
+if [ "$#" -ne 1 ] || ( [ "$1" != "linux" ] && [ "$1" != "macos" ] ); then
     echo "USAGE: ./BuildAndLaunch.sh <linux/macos>"
     exit 1
 fi
