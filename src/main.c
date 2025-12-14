@@ -17,19 +17,19 @@
 #include <assert.h>
 
 int main(void) {
-  Image sea_sprite = LoadImage("resources/sea_ter.png");
-  Image mountains_sprite = LoadImage("resources/mountain_ter2.png");
-  Image plains_sprite = LoadImage("resources/plains_ter.png");
-  Image arctic_sprite = LoadImage("resources/arctic_ter.png");
-  Image forest_sprite = LoadImage("resources/forest_ter2.png");
+  Image sea_sprite = LoadImage("../../resources/sea_ter.png");
+  Image mountains_sprite = LoadImage("../../resources/mountain_ter2.png");
+  Image plains_sprite = LoadImage("../../resources/plains_ter.png");
+  Image arctic_sprite = LoadImage("../../resources/arctic_ter.png");
+  Image forest_sprite = LoadImage("../../resources/forest_ter2.png");
 
-  Image deep_forest_sprite = LoadImage("resources/deep_forest_ter.png");
-  Image deep_sea_sprite = LoadImage("resources/deep_sea_ter.png");
+  Image deep_forest_sprite = LoadImage("../../resources/deep_forest_ter.png");
+  Image deep_sea_sprite = LoadImage("../../resources/deep_sea_ter.png");
 
-  Image player_base_sprite = LoadImage("resources/base_ter.png");
+  Image player_base_sprite = LoadImage("../../resources/base_ter.png");
 
-  Image v_militia_sprite = LoadImage("resources/ventus_militia.png");
-  Image d_militia_sprite = LoadImage("resources/darkus_militia.png");
+  Image v_militia_sprite = LoadImage("../../resources/ventus_militia.png");
+  Image d_militia_sprite = LoadImage("../../resources/darkus_militia.png");
 
   ImageResize(&sea_sprite, GRID_CELL_SIZE, GRID_CELL_SIZE);
   ImageResize(&mountains_sprite, GRID_CELL_SIZE, GRID_CELL_SIZE);
