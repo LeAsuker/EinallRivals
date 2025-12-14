@@ -1,9 +1,21 @@
 # Einall Rivals
-A tactical RPG inspired by the Fire Emblem series, written in C with raylib.
+A tactical RPG inspired by the Fire Emblem series, written in C with raylib. Currently supports Linux and Mac.
 
-Notes for compilation, taken straight out of the raylib repo:
+# How to play
 
-# VSCode Users (all platforms)
+1. Clone the repository.
+2. In the root folder, there is a file called BuildAndLaunch.sh
+3. Give it permission to run.
+4a. For linux: './BuildAndLaunch.sh linux'
+4b. For Mac: './BuildAndLaunch.sh macos'
+
+# Problems
+If textures do not show up after building the game on Linux, go into main.c and add "../../" to the beginning of all the image imports. The executable itself will be in the .../bin/Debug/ folder
+
+# Compilation notes
+Not mine, taken straight out of the raylib repo.
+
+## VSCode Users (all platforms)
 *Note* You must have a compiler toolchain installed in addition to vscode.
 
 * Download the quickstart
@@ -12,9 +24,9 @@ Notes for compilation, taken straight out of the raylib repo:
 * Run the build task ( CTRL+SHIFT+B or F5 )
 * You are good to go
 
-# Windows Users
+## Windows Users
 There are two compiler toolchains available for windows, MinGW-W64 (a free compiler using GCC), and Microsoft Visual Studio
-## Using MinGW-W64
+### Using MinGW-W64
 * Double click the `build-MinGW-W64.bat` file
 * CD into the folder in your terminal
   * if you are usiing the W64devkit and have not added it to your system path environment variable, you must use the W64devkit.exe terminal, not CMD.exe
@@ -22,12 +34,12 @@ There are two compiler toolchains available for windows, MinGW-W64 (a free compi
 * run `make`
 * You are good to go
 
-### Note on MinGW-64 versions
+#### Note on MinGW-64 versions
 Make sure you have a modern version of MinGW-W64 (not mingw).
 The best place to get it is from the W64devkit from
 https://github.com/skeeto/w64devkit/releases
 or the version installed with the raylib installer
-#### If you have installed raylib from the installer
+##### If you have installed raylib from the installer
 Make sure you have added the path
 
 `C:\raylib\w64devkit\bin`
@@ -36,28 +48,25 @@ To your path environment variable so that the compiler that came with raylib can
 
 DO NOT INSTALL ANOTHER MinGW-W64 from another source such as msys2, you don't need it.
 
-## Microsoft Visual Studio
+### Microsoft Visual Studio
 * Run `build-VisualStudio2022.bat`
 * double click the `.sln` file that is generated
 * develop your game
 * you are good to go
 
-# Linux Users
+## Linux Users
 * CD into the build folder
 * run `./premake5 gmake`
 * CD back to the root
 * run `make`
 * you are good to go
 
-# MacOS Users
+## MacOS Users
 * CD into the build folder
 * run `./premake5.osx gmake`
 * CD back to the root
 * run `make`
 * you are good to go
 
-# Output files
+## Output files
 The built code will be in the bin dir
-
-# Problems
-If textures do not show up after building the game on Linux, go into main.c and add "../../" to the beginning of all the image imports. The executable itself will be in the .../bin/Debug/ folder
