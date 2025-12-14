@@ -24,7 +24,7 @@ void terrain_init_all(Terrain *terrains, int cell_size) {
     terrains[TERRAIN_DEEP_FOREST].passable = false;
     terrains[TERRAIN_DEEP_FOREST].deep_version = &terrains[TERRAIN_NONE];
     terrains[TERRAIN_DEEP_FOREST].sprite = load_terrain_texture("../../resources/deep_forest_ter.png", cell_size);
-    strcpy(terrains[TERRAIN_DEEP_FOREST].name, "DeepForest");
+    strcpy(terrains[TERRAIN_DEEP_FOREST].name, "Deep Forest");
     
     // Initialize DeepSea
     terrains[TERRAIN_DEEP_SEA].id = 21;
@@ -32,7 +32,7 @@ void terrain_init_all(Terrain *terrains, int cell_size) {
     terrains[TERRAIN_DEEP_SEA].passable = false;
     terrains[TERRAIN_DEEP_SEA].deep_version = &terrains[TERRAIN_NONE];
     terrains[TERRAIN_DEEP_SEA].sprite = load_terrain_texture("../../resources/deep_sea_ter.png", cell_size);
-    strcpy(terrains[TERRAIN_DEEP_SEA].name, "DeepSea");
+    strcpy(terrains[TERRAIN_DEEP_SEA].name, "Deep Sea");
     
     // Initialize Plains
     terrains[TERRAIN_PLAINS].id = 0;
