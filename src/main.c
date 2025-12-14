@@ -14,9 +14,33 @@
 #include "actor.h"
 #include "combat.h"
 #include "game_logic.h"
+#include "menu.h"
 #include <assert.h>
 
 int main(void) {
+  const int screenWidth = 1600;
+  const int screenHeight = 900;
+  srand(time(NULL));
+
+    // initwindow creates opengl context, texture stuff needs to happen after it
+  InitWindow(screenWidth, screenHeight, "WaterEmblemProto");
+  SetTargetFPS(60);
+
+  // Show title screen
+  MenuState menu_state;
+  menu_init(&menu_state);
+  
+  while (!WindowShouldClose() && menu_state.is_active) {
+    menu_update(&menu_state);
+    menu_render(&menu_state, screenWidth, screenHeight);
+    
+    // Check if user selected quit
+    if (menu_get_selected(&menu_state) == MENU_QUIT) {
+      CloseWindow();
+      return 0;
+    }
+  }
+
   Image sea_sprite = LoadImage("../../resources/sea_ter.png");
   Image mountains_sprite = LoadImage("../../resources/mountain_ter2.png");
   Image plains_sprite = LoadImage("../../resources/plains_ter.png");
@@ -49,15 +73,10 @@ int main(void) {
   // Define terrain types
   // Initialization
   //--------------------------------------------------------------------------------------
-  const int screenWidth = 1600;
-  const int screenHeight = 900;
-  srand(time(NULL));
   
   GridConfig * grid_config = grid_init( GRID_OFFSET_X, GRID_OFFSET_Y, GRID_CELL_SIZE,
     MAX_GRID_CELLS_X, MAX_GRID_CELLS_Y);
     
-    // initwindow creates opengl context, texture stuff needs to happen after it
-  InitWindow(screenWidth, screenHeight, "WaterEmblemProto");
 
   Terrain None = {
     .id = -1, .color = WHITE, .passable = false, .deep_version = NULL
@@ -185,7 +204,6 @@ int main(void) {
   InputState input_state; // object creation
   input_init(&input_state); // initialization, is made to work, is given attributes
 
-  SetTargetFPS(60);
   //--------------------------------------------------------------------------------------
 
   // Main game loop
