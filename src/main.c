@@ -203,24 +203,30 @@ int main(void) {
 
   InputState input_state; // object creation
   input_init(&input_state); // initialization, is made to work, is given attributes
+  bool button_is_pressed = false;
 
   //--------------------------------------------------------------------------------------
 
   // Main game loop
   while (!WindowShouldClose()) // Detect window close button or ESC key
   {
+    Faction *current_faction = game_get_current_faction(game_state);
     // Update
     //----------------------------------------------------------------------------------
     // The XY coords are in the top left corner of the square
     // LMB
     if (game_is_over(game_state)) {
       // Game over - just render and wait for window close
-      render_game(&render_ctx, mapArr, input_state.focused_cell, 
-                  game_state->winner ? game_state->winner->name : "Game Over");
+      render_game_full(&render_ctx, mapArr, input_state.focused_cell, 
+                  current_faction, false);
       continue;
     } 
 
     input_update(&input_state, grid_config, mapArr);
+    
+    button_is_pressed = IsMouseButtonDown(MOUSE_BUTTON_LEFT) && 
+                        input_is_mouse_over_end_turn_button(grid_config);
+    
     if (input_state.left_click) {
       input_handle_selection(&input_state, grid_config, mapArr);
     }
@@ -237,8 +243,8 @@ int main(void) {
 
     // Draw
     //----------------------------------------------------------------------------------
-    Faction *current_faction = game_get_current_faction(game_state);
-    render_game(&render_ctx, mapArr, input_state.focused_cell, current_faction->name);
+    render_game_full(&render_ctx, mapArr, input_state.focused_cell,
+                    current_faction, button_is_pressed);
   }
 
   // De-Initialization
