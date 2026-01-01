@@ -61,14 +61,7 @@ int main(void) {
   map_generate_deep_ter(mapArr, grid_config);
 
   // Build player bases
-  map_spread_terrain(grid_config, mapArr, 
-                    map_get_cell(mapArr, grid_config, 0, 0), 
-                    3, terrains[TERRAIN_PLAYER_BASE]);
-  map_spread_terrain(grid_config, mapArr, 
-                    map_get_cell(mapArr, grid_config, 
-                                grid_config->max_grid_cells_x - 1,
-                                grid_config->max_grid_cells_y - 1), 
-                    3, terrains[TERRAIN_PLAYER_BASE]);
+  // Player base generation in corners removed (no longer required)
 
   // Initialize rendering
   RenderContext render_ctx;
