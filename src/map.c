@@ -123,17 +123,59 @@ Point * map_get_random_corner_cell(Point * mapArr, GridConfig * grid_config, int
 }
 
 Point * map_get_random_corner_spawn_cell(Point* mapArr, GridConfig* grid_config, int corner, int area_size, int max_attempts) {
-    Point * cell = map_get_random_corner_cell(mapArr, grid_config, corner, area_size);
-    int attempts = 1;
-    while (map_is_cell_occupied(cell) || !map_is_terrain_passable(cell->terrain)) {
-        cell = map_get_random_corner_cell(mapArr, grid_config, corner, area_size);
-        attempts++;
-        if (attempts > max_attempts) {
-            printf("Spawn not found after %d attempts", attempts);
-            assert(false);
+    // First: try a number of random attempts within the corner area
+    for (int i = 0; i < max_attempts; i++) {
+        Point *cell = map_get_random_corner_cell(mapArr, grid_config, corner, area_size);
+        if (cell != NULL && !map_is_cell_occupied(cell) && map_is_terrain_passable(cell->terrain)) {
+            return cell;
         }
     }
-    return cell;
+
+    // Second: deterministic scan of the corner area (guarantee we check every cell in area)
+    int max_x = grid_config->max_grid_cells_x - 1;
+    int max_y = grid_config->max_grid_cells_y - 1;
+    int start_x, start_y, end_x, end_y;
+
+    if (corner == 0) {
+        start_x = 0; start_y = 0;
+        end_x = (area_size < max_x) ? area_size : max_x;
+        end_y = (area_size < max_y) ? area_size : max_y;
+    } else if (corner == 1) {
+        end_x = max_x; start_y = 0;
+        start_x = (max_x - area_size > 0) ? (max_x - area_size) : 0;
+        end_y = (area_size < max_y) ? area_size : max_y;
+    } else if (corner == 2) {
+        end_x = max_x; end_y = max_y;
+        start_x = (max_x - area_size > 0) ? (max_x - area_size) : 0;
+        start_y = (max_y - area_size > 0) ? (max_y - area_size) : 0;
+    } else { // corner == 3
+        start_x = 0; end_y = max_y;
+        end_x = (area_size < max_x) ? area_size : max_x;
+        start_y = (max_y - area_size > 0) ? (max_y - area_size) : 0;
+    }
+
+    for (int y = start_y; y <= end_y; y++) {
+        for (int x = start_x; x <= end_x; x++) {
+            Point *cell = map_get_cell(mapArr, grid_config, x, y);
+            if (cell != NULL && !map_is_cell_occupied(cell) && map_is_terrain_passable(cell->terrain)) {
+                return cell;
+            }
+        }
+    }
+
+    // Third: fallback to scanning the entire map for any valid spawn cell
+    for (int y = 0; y <= max_y; y++) {
+        for (int x = 0; x <= max_x; x++) {
+            Point *cell = map_get_cell(mapArr, grid_config, x, y);
+            if (cell != NULL && !map_is_cell_occupied(cell) && map_is_terrain_passable(cell->terrain)) {
+                return cell;
+            }
+        }
+    }
+
+    // If we still didn't find anything (extremely unlikely), return (0,0)
+    fprintf(stderr, "Warning: No valid spawn cell found; returning (0,0)\n");
+    return map_get_cell(mapArr, grid_config, 0, 0);
 }
 
 bool map_all_8_neighs_terrain(Point * mapArr, GridConfig* grid, Point * cell, Terrain terrain) {
