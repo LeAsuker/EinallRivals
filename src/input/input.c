@@ -3,6 +3,8 @@
 #include "utils.h"
 #include "main.h"
 #include "map.h"
+#include "actor.h"
+#include <stdio.h>
 #include <stdlib.h>
 
 // Forward declarations for internal helper functions
