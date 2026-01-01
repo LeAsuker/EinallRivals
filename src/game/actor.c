@@ -1,4 +1,4 @@
-#include "actor.h"
+#include "game/actor.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>

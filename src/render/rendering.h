@@ -2,10 +2,8 @@
 #define RENDERING_H_
 
 #include "raylib.h"
-#include "types.h"  // We'll create this for shared types
+#include "types.h"
 #include <stddef.h>
-
-// we use gridconfig for rendering
 
 // Public rendering functions
 typedef struct {

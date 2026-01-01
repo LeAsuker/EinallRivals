@@ -1,4 +1,4 @@
-#include "faction_init.h"
+#include "game/faction_init.h"
 #include <string.h>
 
 int faction_init_default(Faction *factions, int max_factions) {

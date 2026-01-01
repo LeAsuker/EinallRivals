@@ -1,9 +1,9 @@
-#include "input.h"
+#include "input/input.h"
 #include "raylib.h"
-#include "utils.h"
+#include "core/utils.h"
 #include "main.h"
-#include "map.h"
-#include "actor.h"
+#include "game/map.h"
+#include "game/actor.h"
 #include <stdio.h>
 #include <stdlib.h>
 

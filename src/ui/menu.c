@@ -1,4 +1,4 @@
-#include "menu.h"
+#include "ui/menu.h"
 #include "raylib.h"
 
 #define MENU_BUTTON_WIDTH 200

@@ -2,7 +2,7 @@
 #define COMBAT_H_
 
 #include "types.h"
-#include "map.h"
+#include "game/map.h"
 #include <stdbool.h>
 
 // Combat result structure - stores the outcome of a battle

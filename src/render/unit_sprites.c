@@ -1,4 +1,4 @@
-#include "unit_sprites.h"
+#include "render/unit_sprites.h"
 
 // Helper to load and resize unit textures
 static Texture2D load_unit_texture(const char *path, int cell_size) {

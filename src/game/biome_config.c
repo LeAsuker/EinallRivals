@@ -1,5 +1,5 @@
-#include "biome_config.h"
-#include "terrain.h"
+#include "game/biome_config.h"
+#include "game/terrain.h"
 
 int biome_config_get_default(BiomeConfig *configs, int max_configs, Terrain *terrains) {
     if (max_configs < 3) {

@@ -2,7 +2,7 @@
 #define INPUT_H_
 
 #include "types.h"
-#include "combat.h"
+#include "game/combat.h"
 #include <stdbool.h>
 
 // Input state structure - tracks what actions the player wants to take

@@ -1,4 +1,4 @@
-#include "terrain.h"
+#include "game/terrain.h"
 #include <string.h>
 
 // Helper to load and resize textures

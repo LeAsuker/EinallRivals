@@ -1,5 +1,5 @@
-#include "combat.h"
-#include "actor.h"
+#include "game/combat.h"
+#include "game/actor.h"
 #include <stdlib.h>
 #include <stdio.h>
 

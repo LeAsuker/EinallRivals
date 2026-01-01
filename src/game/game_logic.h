@@ -2,7 +2,7 @@
 #define GAME_LOGIC_H_
 
 #include "types.h"
-#include "map.h"
+#include "game/map.h"
 #include <stdbool.h>
 
 // Game phase enum - tracks what phase the game is in

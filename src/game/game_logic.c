@@ -1,5 +1,5 @@
-#include "game_logic.h"
-#include "actor.h"
+#include "game/game_logic.h"
+#include "game/actor.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
