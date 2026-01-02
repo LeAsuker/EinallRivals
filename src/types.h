@@ -37,13 +37,13 @@ typedef struct Actor {
 
   int movement;
 
-  int attack;
-  int defense;
+  int phys_attack;
+  int phys_defense;
 
   int magic_defense;
   int magic_attack;
-
-  int range;
+  int luck;
+  int attack_range;
   char name[10];
 } Actor;
 

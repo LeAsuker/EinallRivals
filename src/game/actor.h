@@ -38,11 +38,12 @@ typedef struct {
     char name[10];
     int max_health;
     int movement;
-    int attack;
-    int defense;
+    int phys_attack;
+    int phys_defense;
     int magic_attack;
     int magic_defense;
-    int range;
+    int luck;
+    int attack_range;
 } ActorTemplate;
 
 void actor_init_from_template(Actor *actor, Faction *owner, 

@@ -151,7 +151,7 @@ static void handle_cell_selection(GridConfig *grid_config, Point *map,
             // Show attack range if unit can still act
             if (occupant->can_act) {
                 map_calculate_attack_range(grid_config, map,
-                                selected_cell, occupant->range, true);
+                                selected_cell, occupant->attack_range, true);
             }
         }
     }

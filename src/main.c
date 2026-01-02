@@ -125,11 +125,11 @@ int main(void) {
     strncpy(WARG_TEMPLATE.name, "Warg", sizeof(WARG_TEMPLATE.name));
     WARG_TEMPLATE.max_health = 16;
     WARG_TEMPLATE.movement = 4;
-    WARG_TEMPLATE.attack = 7;
-    WARG_TEMPLATE.defense = 2;
+    WARG_TEMPLATE.phys_attack = 7;
+    WARG_TEMPLATE.phys_defense = 2;
     WARG_TEMPLATE.magic_attack = 1;
     WARG_TEMPLATE.magic_defense = 1;
-    WARG_TEMPLATE.range = 1;
+    WARG_TEMPLATE.attack_range = 1;
 
     int to_spawn = (rand() % 2) + 2; // 2..3
     int spawned = 0;

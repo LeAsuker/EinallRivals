@@ -159,7 +159,7 @@ void game_process_ai_turn(GameState *state, TroopGroup *troop_groups, int num_gr
             if (map[c].occupant == NULL) continue;
             Actor *other = map[c].occupant;
             if (!actor_is_enemy(actor, other)) continue;
-            if (combat_is_in_range(grid_config, actor_cell, &map[c], actor->range)) {
+            if (combat_is_in_range(grid_config, actor_cell, &map[c], actor->attack_range)) {
                 int d = combat_get_distance(actor_cell, &map[c]);
                 if (d < best_dist) {
                     best_dist = d;
@@ -192,7 +192,7 @@ void game_process_ai_turn(GameState *state, TroopGroup *troop_groups, int num_gr
         }
 
         bool moved = false;
-        if (closest_enemy != NULL && closest_dist <= (actor->movement + actor->range)) {
+        if (closest_enemy != NULL && closest_dist <= (actor->movement + actor->attack_range)) {
             // Move one step towards the enemy (reduce Manhattan distance)
             int dx = closest_enemy->x - actor_cell->x;
             int dy = closest_enemy->y - actor_cell->y;
@@ -271,7 +271,7 @@ void game_process_ai_turn(GameState *state, TroopGroup *troop_groups, int num_gr
                 if (map[c].occupant == NULL) continue;
                 Actor *other = map[c].occupant;
                 if (!actor_is_enemy(actor, other)) continue;
-                if (combat_is_in_range(grid_config, actor_cell, &map[c], actor->range)) {
+                if (combat_is_in_range(grid_config, actor_cell, &map[c], actor->attack_range)) {
                     int d = combat_get_distance(actor_cell, &map[c]);
                     if (d < attack_dist) {
                         attack_dist = d;

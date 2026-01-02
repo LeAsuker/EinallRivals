@@ -31,7 +31,7 @@ CombatResult combat_execute(Actor *attacker, Actor *defender) {
     result.was_critical = false;
     
     // Calculate if defender can counter
-    result.defender_can_counter = (defender->range >= 1); // Simplified check
+    result.defender_can_counter = (defender->attack_range >= 1); // Simplified check
     
     // Attacker's attack
     int hit_chance = calculate_hit_chance(attacker, defender);
@@ -161,7 +161,7 @@ CombatForecast combat_forecast(Actor *attacker, Actor *defender) {
     forecast.defender_kills_attacker = (forecast.attacker_health_after == 0);
     
     // Check if defender can counter
-    forecast.defender_can_counter = (defender->range >= 1);
+    forecast.defender_can_counter = (defender->attack_range >= 1);
     
     // Calculate chances
     forecast.hit_chance = calculate_hit_chance(attacker, defender);
@@ -192,7 +192,7 @@ bool combat_can_attack(GridConfig *grid_config, Point *map,
     
     // Check if defender is in range
     int distance = combat_get_distance(attacker_cell, defender_cell);
-    if (distance > attacker->range) {
+    if (distance > attacker->attack_range) {
         return false;
     }
     
@@ -212,7 +212,7 @@ int combat_calculate_damage(Actor *attacker, Actor *defender, bool is_magic) {
 }
 
 int combat_calculate_physical_damage(Actor *attacker, Actor *defender) {
-    int base_damage = attacker->attack - defender->defense;
+    int base_damage = attacker->phys_attack - defender->phys_defense;
     
     // Minimum damage is 1
     if (base_damage < 1) {
@@ -252,7 +252,7 @@ int combat_get_distance(Point *cell1, Point *cell2) {
 
 bool combat_can_counter_attack(Actor *attacker, Actor *defender, int distance) {
     // Defender can counter if their range reaches the attacker
-    return defender->range >= distance;
+    return defender->attack_range >= distance;
 }
 
 // ============================================================================

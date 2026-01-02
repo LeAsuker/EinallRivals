@@ -8,11 +8,12 @@ static const ActorTemplate DEFAULT_MILITIA = {
     .name = "Militia",
     .max_health = 20,
     .movement = 4,
-    .attack = 8,
-    .defense = 3,
+    .phys_attack = 8,
+    .phys_defense = 3,
     .magic_attack = 2,
     .magic_defense = 3,
-    .range = 1
+    .luck = 1,
+    .attack_range = 1
 };
 
 // Warg: slightly inferior to militia
@@ -20,11 +21,12 @@ static const ActorTemplate DEFAULT_WARG = {
     .name = "Warg",
     .max_health = 16,
     .movement = 3,
-    .attack = 7,
-    .defense = 2,
+    .phys_attack = 7,
+    .phys_defense = 2,
     .magic_attack = 1,
     .magic_defense = 1,
-    .range = 1
+    .luck = 0,
+    .attack_range = 1
 };
 
 // ============================================================================
@@ -69,11 +71,12 @@ void actor_init(Actor *actor, Faction *owner, Texture2D sprite) {
     actor->max_health = DEFAULT_MILITIA.max_health;
     actor->curr_health = DEFAULT_MILITIA.max_health;
     actor->movement = DEFAULT_MILITIA.movement;
-    actor->attack = DEFAULT_MILITIA.attack;
-    actor->defense = DEFAULT_MILITIA.defense;
+    actor->phys_attack = DEFAULT_MILITIA.phys_attack;
+    actor->phys_defense = DEFAULT_MILITIA.phys_defense;
     actor->magic_attack = DEFAULT_MILITIA.magic_attack;
     actor->magic_defense = DEFAULT_MILITIA.magic_defense;
-    actor->range = DEFAULT_MILITIA.range;
+    actor->luck = DEFAULT_MILITIA.luck;
+    actor->attack_range = DEFAULT_MILITIA.attack_range;
 }
 
 void actor_init_from_template(Actor *actor, Faction *owner, 
@@ -92,11 +95,12 @@ void actor_init_from_template(Actor *actor, Faction *owner,
     actor->max_health = template->max_health;
     actor->curr_health = template->max_health;
     actor->movement = template->movement;
-    actor->attack = template->attack;
-    actor->defense = template->defense;
+    actor->phys_attack = template->phys_attack;
+    actor->phys_defense = template->phys_defense;
     actor->magic_attack = template->magic_attack;
     actor->magic_defense = template->magic_defense;
-    actor->range = template->range;
+    actor->luck = template->luck;
+    actor->attack_range = template->attack_range;
 }
 
 void actor_free(Actor *actor) {
@@ -169,8 +173,8 @@ void actor_level_up(Actor *actor) {
     // Stat increases (basic formula, can be expanded)
     actor->max_health += 3;
     actor->curr_health = actor->max_health; // Full heal on level up
-    actor->attack += 1;
-    actor->defense += 1;
+    actor->phys_attack += 1;
+    actor->phys_defense += 1;
     actor->magic_attack += 1;
     actor->magic_defense += 1;
     
