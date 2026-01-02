@@ -247,3 +247,9 @@ int actor_array_count_alive(Actor *actors, int count) {
     
     return alive_count;
 }
+
+// Expose the default Warg template to other modules by copying it out.
+void actor_get_default_warg_template(ActorTemplate *out) {
+    if (out == NULL) return;
+    memcpy(out, &DEFAULT_WARG, sizeof(ActorTemplate));
+}

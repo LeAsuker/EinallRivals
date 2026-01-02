@@ -52,4 +52,7 @@ void actor_init_from_template(Actor *actor, Faction *owner,
 // Allocate and initialize an actor from a template
 Actor *actor_create_from_template(Faction *owner, Texture2D sprite, ActorTemplate *template);
 
+// Helpers to expose default templates from actor.c
+void actor_get_default_warg_template(ActorTemplate *out);
+
 #endif
