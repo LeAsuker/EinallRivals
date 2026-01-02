@@ -19,6 +19,7 @@ typedef struct Faction {
   Color prim_color;
   Color sec_color;
   bool has_turn;
+  bool playable;
   char name[10];
 } Faction;
 

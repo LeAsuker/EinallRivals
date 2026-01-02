@@ -1,5 +1,7 @@
 #include "game/game_logic.h"
 #include "game/actor.h"
+#include "game/map.h"
+#include "game/combat.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -29,6 +31,7 @@ void game_state_init(GameState *state, Faction *factions, int num_factions) {
     state->current_phase = PHASE_PLAYER_TURN;
     state->factions = factions;
     state->num_factions = num_factions;
+    // Start with the first faction (index 0)
     state->current_faction_index = 0;
     state->turn_number = 1;
     state->game_over = false;
@@ -36,14 +39,18 @@ void game_state_init(GameState *state, Faction *factions, int num_factions) {
     
     // Set first faction to have the turn
     if (num_factions > 0) {
-        factions[0].has_turn = true;
-        for (int i = 1; i < num_factions; i++) {
+        for (int i = 0; i < num_factions; i++) {
             factions[i].has_turn = false;
         }
+        factions[0].has_turn = true;
     }
     
     printf("\n=== GAME START ===\n");
-    printf("Turn %d: %s's turn\n\n", state->turn_number, factions[0].name);
+    if (state->current_faction_index < num_factions) {
+        printf("Turn %d: %s's turn\n\n", state->turn_number, factions[state->current_faction_index].name);
+    } else {
+        printf("Turn %d: (no playable faction)\n\n", state->turn_number);
+    }
 }
 
 // ============================================================================
@@ -51,16 +58,14 @@ void game_state_init(GameState *state, Faction *factions, int num_factions) {
 // ============================================================================
 
 void game_next_turn(GameState *state, TroopGroup *troop_groups, int num_groups) {
-    // Move to next faction
+    // Move to next faction in order
     state->current_faction_index++;
-    
-    // If we've cycled through all factions, start a new round
     if (state->current_faction_index >= state->num_factions) {
         state->current_faction_index = 0;
         state->turn_number++;
         printf("\n=== TURN %d ===\n", state->turn_number);
     }
-    
+
     // Update faction turn flags
     for (int i = 0; i < state->num_factions; i++) {
         state->factions[i].has_turn = (i == state->current_faction_index);
@@ -104,11 +109,108 @@ void game_start_faction_turn(GameState *state, TroopGroup *troop_groups, int num
     game_reset_faction_units(troop_groups, num_groups, current_faction);
     
     // Update phase
-    if (state->current_faction_index == 0) {
+    // If the current faction is marked playable, treat it as a player turn
+    if (current_faction != NULL && current_faction->playable) {
         state->current_phase = PHASE_PLAYER_TURN;
     } else {
         state->current_phase = PHASE_ENEMY_TURN;
     }
+}
+
+// ============================================================================
+// AI Processing
+// ============================================================================
+
+void game_process_ai_turn(GameState *state, TroopGroup *troop_groups, int num_groups, Point *map, GridConfig *grid_config) {
+    Faction *current = game_get_current_faction(state);
+    if (current == NULL) return;
+
+    // Find troop group for current faction
+    TroopGroup *group = NULL;
+    for (int i = 0; i < num_groups; i++) {
+        if (troop_groups[i].faction == current) {
+            group = &troop_groups[i];
+            break;
+        }
+    }
+    if (group == NULL) return;
+
+    int total_cells = grid_config->max_grid_cells_x * grid_config->max_grid_cells_y;
+
+    for (int i = 0; i < group->count; i++) {
+        Actor *actor = &group->troops[i];
+        if (!actor_is_alive(actor)) continue;
+        if (!actor_can_perform_action(actor)) continue;
+
+        // Locate actor's cell
+        Point *actor_cell = NULL;
+        for (int c = 0; c < total_cells; c++) {
+            if (map[c].occupant == actor) {
+                actor_cell = &map[c];
+                break;
+            }
+        }
+        if (actor_cell == NULL) continue;
+
+        // Search for enemies in attack range; pick the closest
+        Point *best_target = NULL;
+        int best_dist = 999999;
+        for (int c = 0; c < total_cells; c++) {
+            if (map[c].occupant == NULL) continue;
+            Actor *other = map[c].occupant;
+            if (!actor_is_enemy(actor, other)) continue;
+            if (combat_is_in_range(grid_config, actor_cell, &map[c], actor->range)) {
+                int d = combat_get_distance(actor_cell, &map[c]);
+                if (d < best_dist) {
+                    best_dist = d;
+                    best_target = &map[c];
+                }
+            }
+        }
+
+        if (best_target != NULL && actor->can_act) {
+            combat_execute_at_cells(grid_config, map, actor_cell, best_target);
+            // continue to next actor
+            continue;
+        }
+
+        // No enemy in range: 40% chance to not move, else move one tile randomly
+        int roll = rand() % 100;
+        if (roll < 40 || !actor->can_move) {
+            // do nothing
+            continue;
+        }
+
+        // Try to move by one tile in a random direction (up/down/left/right)
+        int dirs[4][2] = {{0,-1},{0,1},{-1,0},{1,0}};
+        // Shuffle directions
+        for (int k = 0; k < 4; k++) {
+            int r = rand() % 4;
+            int tx = dirs[k][0];
+            int ty = dirs[k][1];
+            dirs[k][0] = dirs[r][0];
+            dirs[k][1] = dirs[r][1];
+            dirs[r][0] = tx;
+            dirs[r][1] = ty;
+        }
+
+        for (int d = 0; d < 4; d++) {
+            int nx = actor_cell->x + dirs[d][0];
+            int ny = actor_cell->y + dirs[d][1];
+            if (!map_is_valid_coords(grid_config, nx, ny)) continue;
+            Point *dest = map_get_cell(map, grid_config, nx, ny);
+            if (dest == NULL) continue;
+            if (!map_can_unit_enter_cell(dest, actor)) continue;
+            // Move actor
+            dest->occupant = actor;
+            actor_cell->occupant = NULL;
+            actor->can_move = false;
+            break;
+        }
+    }
+
+    // After AI processes, end the faction's turn
+    game_end_current_turn(state, troop_groups, num_groups);
 }
 
 Faction *game_get_current_faction(GameState *state) {

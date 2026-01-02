@@ -188,6 +188,11 @@ int main(void) {
 
     input_update(&input_state, grid_config, mapArr);
     
+    // If it's an AI faction's turn, process AI actions automatically
+    if (!game_is_player_turn(game_state) && !game_is_over(game_state)) {
+      game_process_ai_turn(game_state, troop_groups_ext != NULL ? troop_groups_ext : troop_groups, num_groups_ext, mapArr, grid_config);
+      continue; // skip player input/render frame; AI processing and turn advancement handled
+    }
     button_is_pressed = IsMouseButtonDown(MOUSE_BUTTON_LEFT) && 
                         input_is_mouse_over_end_turn_button(grid_config);
     

@@ -43,6 +43,9 @@ void game_end_current_turn(GameState *state, TroopGroup *troop_groups, int num_g
 void game_start_faction_turn(GameState *state, TroopGroup *troop_groups, int num_groups);
 Faction *game_get_current_faction(GameState *state);
 
+// AI processing for non-player factions
+void game_process_ai_turn(GameState *state, TroopGroup *troop_groups, int num_groups, Point *map, GridConfig *grid_config);
+
 // Unit turn management
 void game_reset_faction_units(TroopGroup *troop_groups, int num_groups, Faction *faction);
 void game_end_all_unit_turns(TroopGroup *troop_groups, int num_groups, Faction *faction);
