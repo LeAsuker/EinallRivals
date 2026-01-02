@@ -40,6 +40,7 @@ void map_init_cells(Point *map, GridConfig *grid_config, Terrain default_terrain
             map[index].occupant = NULL;
             map[index].in_range = false;
             map[index].in_attack_range = false;
+            map[index].structure = NULL;
             map[index].terrain = default_terrain;
         }
     }
@@ -331,8 +332,41 @@ bool map_can_unit_enter_cell(Point *cell, Actor *unit) {
     if (!map_is_terrain_passable(cell->terrain)) {
         return false;
     }
+
+    // Check if a structure blocks entry
+    if (cell->structure != NULL && !cell->structure->passable) {
+        return false;
+    }
     
     return true;
+}
+
+// ============================================================================
+// Structure placement
+// ============================================================================
+
+bool map_place_structure(Point *map, GridConfig *grid_config, int x, int y, Structure *s) {
+    if (!map_is_valid_coords(grid_config, x, y)) return false;
+    Point *cell = map_get_cell(map, grid_config, x, y);
+    if (!cell) return false;
+    cell->structure = s;
+    return true;
+}
+
+Structure *map_remove_structure(Point *map, GridConfig *grid_config, int x, int y) {
+    if (!map_is_valid_coords(grid_config, x, y)) return NULL;
+    Point *cell = map_get_cell(map, grid_config, x, y);
+    if (!cell) return NULL;
+    Structure *old = cell->structure;
+    cell->structure = NULL;
+    return old;
+}
+
+Structure *map_get_structure_at(Point *map, GridConfig *grid_config, int x, int y) {
+    if (!map_is_valid_coords(grid_config, x, y)) return NULL;
+    Point *cell = map_get_cell(map, grid_config, x, y);
+    if (!cell) return NULL;
+    return cell->structure;
 }
 
 
@@ -344,10 +378,17 @@ static void calculate_range_recursive(GridConfig *grid_config, Point *map,
                                       Point *current_cell, int remaining_range,
                                       bool enable, bool is_attack_range) {
 
-    // cant go through sea, later integrate traversability
-    // can still go into sea hmmm
-    if (!(is_attack_range) && !map_is_terrain_passable(current_cell->terrain)) {
-        return;
+    // Movement range can't traverse impassable terrain, occupied cells, or blocking structures.
+    if (!is_attack_range) {
+        if (!map_is_terrain_passable(current_cell->terrain)) {
+            return;
+        }
+        if (current_cell->structure != NULL && !current_cell->structure->passable) {
+            return;
+        }
+        if (map_is_cell_occupied(current_cell)) {
+            return;
+        }
     }
 
     // Set the appropriate flag for this cell

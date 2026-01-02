@@ -23,7 +23,7 @@ void terrain_init_all(Terrain *terrains, int cell_size) {
     terrains[TERRAIN_DEEP_FOREST].color = BLACK;
     terrains[TERRAIN_DEEP_FOREST].passable = false;
     terrains[TERRAIN_DEEP_FOREST].deep_version = &terrains[TERRAIN_NONE];
-    terrains[TERRAIN_DEEP_FOREST].sprite = load_terrain_texture("../../resources/deep_forest_ter.png", cell_size);
+    terrains[TERRAIN_DEEP_FOREST].sprite = load_terrain_texture("../../resources/terrain/deep_forest_ter.png", cell_size);
     strcpy(terrains[TERRAIN_DEEP_FOREST].name, "Deep Forest");
     
     // Initialize DeepSea
@@ -31,7 +31,7 @@ void terrain_init_all(Terrain *terrains, int cell_size) {
     terrains[TERRAIN_DEEP_SEA].color = DARKBLUE;
     terrains[TERRAIN_DEEP_SEA].passable = false;
     terrains[TERRAIN_DEEP_SEA].deep_version = &terrains[TERRAIN_NONE];
-    terrains[TERRAIN_DEEP_SEA].sprite = load_terrain_texture("../../resources/deep_sea_ter.png", cell_size);
+    terrains[TERRAIN_DEEP_SEA].sprite = load_terrain_texture("../../resources/terrain/deep_sea_ter.png", cell_size);
     strcpy(terrains[TERRAIN_DEEP_SEA].name, "Deep Sea");
     
     // Initialize Plains
@@ -39,7 +39,7 @@ void terrain_init_all(Terrain *terrains, int cell_size) {
     terrains[TERRAIN_PLAINS].color = GREEN;
     terrains[TERRAIN_PLAINS].passable = true;
     terrains[TERRAIN_PLAINS].deep_version = &terrains[TERRAIN_NONE];
-    terrains[TERRAIN_PLAINS].sprite = load_terrain_texture("../../resources/plains_ter.png", cell_size);
+    terrains[TERRAIN_PLAINS].sprite = load_terrain_texture("../../resources/terrain/plains_ter.png", cell_size);
     strcpy(terrains[TERRAIN_PLAINS].name, "Plains");
     
     // Initialize Mountains
@@ -47,7 +47,7 @@ void terrain_init_all(Terrain *terrains, int cell_size) {
     terrains[TERRAIN_MOUNTAINS].color = LIGHTGRAY;
     terrains[TERRAIN_MOUNTAINS].passable = false;
     terrains[TERRAIN_MOUNTAINS].deep_version = &terrains[TERRAIN_NONE];
-    terrains[TERRAIN_MOUNTAINS].sprite = load_terrain_texture("../../resources/mountain_ter2.png", cell_size);
+    terrains[TERRAIN_MOUNTAINS].sprite = load_terrain_texture("../../resources/terrain/mountain_ter2.png", cell_size);
     strcpy(terrains[TERRAIN_MOUNTAINS].name, "Mountains");
     
     // Initialize Sea
@@ -55,7 +55,7 @@ void terrain_init_all(Terrain *terrains, int cell_size) {
     terrains[TERRAIN_SEA].color = BLUE;
     terrains[TERRAIN_SEA].passable = false;
     terrains[TERRAIN_SEA].deep_version = &terrains[TERRAIN_DEEP_SEA];
-    terrains[TERRAIN_SEA].sprite = load_terrain_texture("../../resources/sea_ter.png", cell_size);
+    terrains[TERRAIN_SEA].sprite = load_terrain_texture("../../resources/terrain/sea_ter.png", cell_size);
     strcpy(terrains[TERRAIN_SEA].name, "Sea");
     
     // Initialize Arctic/Hills
@@ -63,7 +63,7 @@ void terrain_init_all(Terrain *terrains, int cell_size) {
     terrains[TERRAIN_ARCTIC].color = WHITE;
     terrains[TERRAIN_ARCTIC].passable = true;
     terrains[TERRAIN_ARCTIC].deep_version = &terrains[TERRAIN_MOUNTAINS];
-    terrains[TERRAIN_ARCTIC].sprite = load_terrain_texture("../../resources/arctic_ter.png", cell_size);
+    terrains[TERRAIN_ARCTIC].sprite = load_terrain_texture("../../resources/terrain/arctic_ter.png", cell_size);
     strcpy(terrains[TERRAIN_ARCTIC].name, "Hills");
     
     // Initialize Forest
@@ -71,7 +71,7 @@ void terrain_init_all(Terrain *terrains, int cell_size) {
     terrains[TERRAIN_FOREST].color = DARKGREEN;
     terrains[TERRAIN_FOREST].passable = true;
     terrains[TERRAIN_FOREST].deep_version = &terrains[TERRAIN_DEEP_FOREST];
-    terrains[TERRAIN_FOREST].sprite = load_terrain_texture("../../resources/forest_ter2.png", cell_size);
+    terrains[TERRAIN_FOREST].sprite = load_terrain_texture("../../resources/terrain/forest_ter2.png", cell_size);
     strcpy(terrains[TERRAIN_FOREST].name, "Forest");
     
     // Initialize Player Base
@@ -79,7 +79,7 @@ void terrain_init_all(Terrain *terrains, int cell_size) {
     terrains[TERRAIN_PLAYER_BASE].color = ORANGE;
     terrains[TERRAIN_PLAYER_BASE].passable = true;
     terrains[TERRAIN_PLAYER_BASE].deep_version = &terrains[TERRAIN_NONE];
-    terrains[TERRAIN_PLAYER_BASE].sprite = load_terrain_texture("../../resources/base_ter.png", cell_size);
+    terrains[TERRAIN_PLAYER_BASE].sprite = load_terrain_texture("../../resources/terrain/base_ter.png", cell_size);
     strcpy(terrains[TERRAIN_PLAYER_BASE].name, "Base");
 }
 

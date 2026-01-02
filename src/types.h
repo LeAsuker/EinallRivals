@@ -46,12 +46,20 @@ typedef struct Actor {
   char name[10];
 } Actor;
 
+typedef struct Structure {
+  Texture2D sprite;
+  bool passable; // can units enter this tile when structure present
+  bool lootable; // can be looted
+  char name[16];
+} Structure;
+
 typedef struct Point {
   int x;
   int y;
   Actor *occupant;
   bool in_range;
   bool in_attack_range;
+  Structure *structure;
   Terrain terrain;
 } Point;
 

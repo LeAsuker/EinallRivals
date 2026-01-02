@@ -11,8 +11,8 @@ static Texture2D load_unit_texture(const char *path, int cell_size) {
 
 UnitSprites unit_sprites_load(int cell_size) {
     UnitSprites sprites;
-    sprites.darkus_militia = load_unit_texture("../../resources/darkus_militia.png", cell_size);
-    sprites.ventus_militia = load_unit_texture("../../resources/ventus_militia.png", cell_size);
+    sprites.darkus_militia = load_unit_texture("../../resources/units/darkus_militia.png", cell_size);
+    sprites.ventus_militia = load_unit_texture("../../resources/units/ventus_militia.png", cell_size);
     return sprites;
 }
 

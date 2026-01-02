@@ -39,4 +39,8 @@ bool map_is_terrain_passable(Terrain terrain);
 bool map_is_cell_occupied(Point *cell);
 bool map_can_unit_enter_cell(Point *cell, Actor *unit);
 
+// Structure placement and queries
+bool map_place_structure(Point *map, GridConfig *grid_config, int x, int y, Structure *s);
+Structure *map_remove_structure(Point *map, GridConfig *grid_config, int x, int y);
+Structure *map_get_structure_at(Point *map, GridConfig *grid_config, int x, int y);
 #endif

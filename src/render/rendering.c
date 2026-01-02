@@ -93,6 +93,11 @@ static void render_map(RenderContext *ctx, Point *map) {
                      cell->terrain.color);
         DrawTexture(cell->terrain.sprite, x_pos, y_pos, WHITE);
         
+        // Draw structure (if present)
+        if (cell->structure != NULL) {
+            DrawTexture(cell->structure->sprite, x_pos, y_pos, WHITE);
+        }
+        
         // Draw occupant
         if (cell->occupant != NULL) {
             DrawTexture(cell->occupant->sprite, x_pos, y_pos, WHITE);
