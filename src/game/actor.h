@@ -48,4 +48,7 @@ typedef struct {
 void actor_init_from_template(Actor *actor, Faction *owner, 
                               Texture2D sprite, ActorTemplate *template);
 
+// Allocate and initialize an actor from a template
+Actor *actor_create_from_template(Faction *owner, Texture2D sprite, ActorTemplate *template);
+
 #endif

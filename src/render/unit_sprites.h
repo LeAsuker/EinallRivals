@@ -7,6 +7,7 @@
 typedef struct {
     Texture2D darkus_militia;
     Texture2D ventus_militia;
+    Texture2D warg;
 } UnitSprites;
 
 // Load all unit sprites

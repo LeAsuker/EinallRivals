@@ -12,12 +12,14 @@
 #include "input/input.h"
 #include "game/map.h"
 #include "game/actor.h"
+#include "game/structure.h"
 #include "game/combat.h"
 #include "game/game_logic.h"
 #include "ui/menu.h"
 #include "game/terrain.h"
 #include "game/biome_config.h"
 #include "render/unit_sprites.h"
+#include "render/structure_sprites.h"
 #include "game/faction_init.h"
 
 int main(void) {
@@ -73,6 +75,8 @@ int main(void) {
 
   // Load unit sprites
   UnitSprites unit_sprites = unit_sprites_load(GRID_CELL_SIZE);
+  // Load structure sprites
+  StructureSprites structure_sprites = structure_sprites_load(GRID_CELL_SIZE);
 
   // Create units
   Actor *dark_troops = actor_array_create(DARK_TROOP_NUM, &factions[0], 
@@ -91,6 +95,63 @@ int main(void) {
     spawn->occupant = vent_troops + i;
   }
 
+  // Place between 4 and 6 Warg Lairs on random plains tiles; each spawns 2-3 Gaia wargs
+  int num_lairs = (rand() % 3) + 4; // 4..6
+  int max_possible_wargs = num_lairs * 3;
+  Actor *gaia_wargs = NULL;
+  int gaia_warg_count = 0;
+  if (max_possible_wargs > 0) {
+    gaia_wargs = malloc(sizeof(Actor) * max_possible_wargs);
+  }
+
+  int lairs_placed = 0;
+  int attempts = 0;
+  int offsets[8][2] = {{-1,-1},{0,-1},{1,-1},{-1,0},{1,0},{-1,1},{0,1},{1,1}};
+
+  while (lairs_placed < num_lairs && attempts < 1000) {
+    attempts++;
+    Point *candidate = map_get_random_cell(mapArr, grid_config);
+    if (candidate == NULL) continue;
+    if (candidate->terrain.id != terrains[TERRAIN_PLAINS].id) continue;
+    if (candidate->occupant != NULL || candidate->structure != NULL) continue;
+
+    // Place lair
+    Structure *lair = structure_create(structure_sprites.warg_lair, "Warg Lair", false, false);
+    if (lair == NULL) continue;
+    map_place_structure(mapArr, grid_config, candidate->x, candidate->y, lair);
+
+    // Warg template
+    ActorTemplate WARG_TEMPLATE;
+    strncpy(WARG_TEMPLATE.name, "Warg", sizeof(WARG_TEMPLATE.name));
+    WARG_TEMPLATE.max_health = 16;
+    WARG_TEMPLATE.movement = 4;
+    WARG_TEMPLATE.attack = 7;
+    WARG_TEMPLATE.defense = 2;
+    WARG_TEMPLATE.magic_attack = 1;
+    WARG_TEMPLATE.magic_defense = 1;
+    WARG_TEMPLATE.range = 1;
+
+    int to_spawn = (rand() % 2) + 2; // 2..3
+    int spawned = 0;
+    for (int o = 0; o < 8 && spawned < to_spawn; o++) {
+      int nx = candidate->x + offsets[o][0];
+      int ny = candidate->y + offsets[o][1];
+      if (!map_is_valid_coords(grid_config, nx, ny)) continue;
+      Point *dest = map_get_cell(mapArr, grid_config, nx, ny);
+      if (dest == NULL) continue;
+      if (!map_can_unit_enter_cell(dest, NULL)) continue;
+
+      // initialize warg actor
+      actor_init_from_template(&gaia_wargs[gaia_warg_count], &factions[2], unit_sprites.warg, &WARG_TEMPLATE);
+      dest->occupant = &gaia_wargs[gaia_warg_count];
+      gaia_warg_count++;
+      spawned++;
+      if (gaia_warg_count >= max_possible_wargs) break;
+    }
+
+    lairs_placed++;
+  }
+
   // Initialize game state
   GameState *game_state = game_state_create(factions, num_factions);
 
@@ -99,6 +160,16 @@ int main(void) {
       troop_group_create(vent_troops, VENT_TROOP_NUM, &factions[1])
   };
   int num_groups = sizeof(troop_groups) / sizeof(TroopGroup);
+
+  // If Gaia wargs were created, add them as a troop group so game logic tracks them
+  TroopGroup *troop_groups_ext = NULL;
+  int num_groups_ext = num_groups;
+  if (gaia_wargs != NULL && gaia_warg_count > 0) {
+    troop_groups_ext = malloc(sizeof(TroopGroup) * (num_groups + 1));
+    memcpy(troop_groups_ext, troop_groups, sizeof(TroopGroup) * num_groups);
+    troop_groups_ext[num_groups] = troop_group_create(gaia_wargs, gaia_warg_count, &factions[2]);
+    num_groups_ext = num_groups + 1;
+  }
 
   // Initialize input
   InputState input_state;
@@ -129,21 +200,25 @@ int main(void) {
     }
 
     if (input_state.end_turn_requested) {
-      game_end_current_turn(game_state, troop_groups, num_groups);
+      game_end_current_turn(game_state, troop_groups_ext != NULL ? troop_groups_ext : troop_groups, num_groups_ext);
     }
 
     render_game_full(&render_ctx, mapArr, input_state.focused_cell,
-                     current_faction, button_is_pressed);
+             current_faction, button_is_pressed);
   }
 
   // Cleanup
   map_free(mapArr);
   actor_array_free(dark_troops, DARK_TROOP_NUM);
   actor_array_free(vent_troops, VENT_TROOP_NUM);
+  if (gaia_wargs != NULL) free(gaia_wargs);
   game_state_free(game_state);
   unit_sprites_unload(&unit_sprites);
+  structure_sprites_unload(&structure_sprites);
   terrain_unload_all(terrains, TERRAIN_COUNT);
   free(grid_config);
+
+  if (troop_groups_ext != NULL) free(troop_groups_ext);
 
   CloseWindow();
   return 0;

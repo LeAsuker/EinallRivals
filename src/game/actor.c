@@ -15,6 +15,18 @@ static const ActorTemplate DEFAULT_MILITIA = {
     .range = 1
 };
 
+// Warg: slightly inferior to militia
+static const ActorTemplate DEFAULT_WARG = {
+    .name = "Warg",
+    .max_health = 16,
+    .movement = 4,
+    .attack = 7,
+    .defense = 2,
+    .magic_attack = 1,
+    .magic_defense = 1,
+    .range = 1
+};
+
 // ============================================================================
 // Actor Creation and Initialization
 // ============================================================================
@@ -27,6 +39,16 @@ Actor *actor_create(Faction *owner, Texture2D sprite) {
     }
     
     actor_init(actor, owner, sprite);
+    return actor;
+}
+
+Actor *actor_create_from_template(Faction *owner, Texture2D sprite, ActorTemplate *template) {
+    Actor *actor = malloc(sizeof(Actor));
+    if (actor == NULL) {
+        fprintf(stderr, "Error: Failed to allocate memory for actor\n");
+        return NULL;
+    }
+    actor_init_from_template(actor, owner, sprite, template);
     return actor;
 }
 
