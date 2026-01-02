@@ -174,38 +174,114 @@ void game_process_ai_turn(GameState *state, TroopGroup *troop_groups, int num_gr
             continue;
         }
 
-        // No enemy in range: 40% chance to not move, else move one tile randomly
-        int roll = rand() % 100;
-        if (roll < 40 || !actor->can_move) {
-            // do nothing
-            continue;
+        // No enemy in immediate attack range
+        if (!actor->can_move) continue;
+
+        // First: try to find a closest enemy that can be reached (move + range)
+        Point *closest_enemy = NULL;
+        int closest_dist = 999999;
+        for (int c = 0; c < total_cells; c++) {
+            if (map[c].occupant == NULL) continue;
+            Actor *other = map[c].occupant;
+            if (!actor_is_enemy(actor, other)) continue;
+            int d = combat_get_distance(actor_cell, &map[c]);
+            if (d < closest_dist) {
+                closest_dist = d;
+                closest_enemy = &map[c];
+            }
         }
 
-        // Try to move by one tile in a random direction (up/down/left/right)
-        int dirs[4][2] = {{0,-1},{0,1},{-1,0},{1,0}};
-        // Shuffle directions
-        for (int k = 0; k < 4; k++) {
-            int r = rand() % 4;
-            int tx = dirs[k][0];
-            int ty = dirs[k][1];
-            dirs[k][0] = dirs[r][0];
-            dirs[k][1] = dirs[r][1];
-            dirs[r][0] = tx;
-            dirs[r][1] = ty;
+        bool moved = false;
+        if (closest_enemy != NULL && closest_dist <= (actor->movement + actor->range)) {
+            // Move one step towards the enemy (reduce Manhattan distance)
+            int dx = closest_enemy->x - actor_cell->x;
+            int dy = closest_enemy->y - actor_cell->y;
+            int sx = (dx > 0) ? 1 : (dx < 0) ? -1 : 0;
+            int sy = (dy > 0) ? 1 : (dy < 0) ? -1 : 0;
+
+            // Prefer the axis with larger distance
+            int try_x_first = (abs(dx) >= abs(dy));
+            int try_order[2][2];
+            if (try_x_first) {
+                try_order[0][0] = sx; try_order[0][1] = 0;
+                try_order[1][0] = 0; try_order[1][1] = sy;
+            } else {
+                try_order[0][0] = 0; try_order[0][1] = sy;
+                try_order[1][0] = sx; try_order[1][1] = 0;
+            }
+
+            for (int t = 0; t < 2 && !moved; t++) {
+                int nx = actor_cell->x + try_order[t][0];
+                int ny = actor_cell->y + try_order[t][1];
+                if (!map_is_valid_coords(grid_config, nx, ny)) continue;
+                Point *dest = map_get_cell(map, grid_config, nx, ny);
+                if (dest == NULL) continue;
+                if (!map_can_unit_enter_cell(dest, actor)) continue;
+                // Move actor
+                dest->occupant = actor;
+                actor_cell->occupant = NULL;
+                actor->can_move = false;
+                moved = true;
+                // update actor_cell to new location so we can attempt an attack after moving
+                actor_cell = dest;
+                break;
+            }
         }
 
-        for (int d = 0; d < 4; d++) {
-            int nx = actor_cell->x + dirs[d][0];
-            int ny = actor_cell->y + dirs[d][1];
-            if (!map_is_valid_coords(grid_config, nx, ny)) continue;
-            Point *dest = map_get_cell(map, grid_config, nx, ny);
-            if (dest == NULL) continue;
-            if (!map_can_unit_enter_cell(dest, actor)) continue;
-            // Move actor
-            dest->occupant = actor;
-            actor_cell->occupant = NULL;
-            actor->can_move = false;
-            break;
+        // If we didn't move towards an enemy, fallback to probabilistic random move
+        if (!moved) {
+            int roll = rand() % 100;
+            if (roll < 40) {
+                // stay still
+                continue;
+            }
+
+            int dirs[4][2] = {{0,-1},{0,1},{-1,0},{1,0}};
+            // Shuffle directions
+            for (int k = 0; k < 4; k++) {
+                int r = rand() % 4;
+                int tx = dirs[k][0];
+                int ty = dirs[k][1];
+                dirs[k][0] = dirs[r][0];
+                dirs[k][1] = dirs[r][1];
+                dirs[r][0] = tx;
+                dirs[r][1] = ty;
+            }
+
+            for (int d = 0; d < 4; d++) {
+                int nx = actor_cell->x + dirs[d][0];
+                int ny = actor_cell->y + dirs[d][1];
+                if (!map_is_valid_coords(grid_config, nx, ny)) continue;
+                Point *dest = map_get_cell(map, grid_config, nx, ny);
+                if (dest == NULL) continue;
+                if (!map_can_unit_enter_cell(dest, actor)) continue;
+                // Move actor
+                dest->occupant = actor;
+                actor_cell->occupant = NULL;
+                actor->can_move = false;
+                break;
+            }
+        }
+        
+        // After moving (either toward enemy or random), if actor can still act, try to attack any enemy now in range
+        if (actor->can_act) {
+            Point *attack_target = NULL;
+            int attack_dist = 999999;
+            for (int c = 0; c < total_cells; c++) {
+                if (map[c].occupant == NULL) continue;
+                Actor *other = map[c].occupant;
+                if (!actor_is_enemy(actor, other)) continue;
+                if (combat_is_in_range(grid_config, actor_cell, &map[c], actor->range)) {
+                    int d = combat_get_distance(actor_cell, &map[c]);
+                    if (d < attack_dist) {
+                        attack_dist = d;
+                        attack_target = &map[c];
+                    }
+                }
+            }
+            if (attack_target != NULL) {
+                combat_execute_at_cells(grid_config, map, actor_cell, attack_target);
+            }
         }
     }
 
