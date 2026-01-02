@@ -2,7 +2,13 @@
 #include "types.h"
 #include <stddef.h>
 
-static void render_map(RenderContext *ctx, Point *map);
+static void render_map(RenderContext *ctx, Point *map, Point *focused_cell);
+static bool cell_is_focused(Point *cell, Point *focused_cell);
+
+static bool cell_is_focused(Point *cell, Point *focused_cell) {
+    if (focused_cell == NULL) return false;
+    return (cell->x == focused_cell->x && cell->y == focused_cell->y);
+}
 void render_debug_info(RenderContext *ctx, Point *map);
 void render_cell_info(RenderContext *ctx, Point *focused_cell);
 static void render_ui(RenderContext *ctx, const char *faction_name, Faction *current_faction, bool button_pressed);
@@ -21,7 +27,7 @@ void render_game(RenderContext *ctx, Point *map, Point *focused_cell, const char
     ClearBackground(RAYWHITE);
     
     render_debug_info(ctx, map);
-    render_map(ctx, map);
+    render_map(ctx, map, focused_cell);
     render_map_border(ctx);
     render_cell_info(ctx, focused_cell);
     render_ui(ctx, current_faction, NULL, false);
@@ -36,7 +42,7 @@ void render_game_full(RenderContext *ctx, Point *map, Point *focused_cell,
     ClearBackground(RAYWHITE);
     
     render_debug_info(ctx, map);
-    render_map(ctx, map);
+    render_map(ctx, map, focused_cell);
     render_map_border(ctx);
     render_cell_info(ctx, focused_cell);
     render_ui(ctx, current_faction->name, current_faction, button_pressed);
@@ -80,7 +86,7 @@ static void render_map_border(RenderContext *ctx) {
 }
 
 // Private helper function (not in header, only used internally)
-static void render_map(RenderContext *ctx, Point *map) {
+static void render_map(RenderContext *ctx, Point *map, Point *focused_cell) {
     int total_cells = ctx->grid_cells_x * ctx->grid_cells_y;
     
     for (int i = 0; i < total_cells; i++) {
@@ -93,6 +99,26 @@ static void render_map(RenderContext *ctx, Point *map) {
                      cell->terrain.color);
         DrawTexture(cell->terrain.sprite, x_pos, y_pos, WHITE);
         
+        // Draw structure (if present) and occupant after tint so they remain on top
+
+        // Apply move/attack tints over the terrain (transparent fill)
+        if (!cell_is_focused(cell, focused_cell)) {
+            if (cell->in_range) {
+                Color move_tint = (Color){0, 0, 255, 120};
+                DrawRectangle(x_pos, y_pos, ctx->grid_cell_size, ctx->grid_cell_size, move_tint);
+            }
+            if (cell->in_attack_range) {
+                Color attack_tint = (Color){255, 0, 0, 120};
+                DrawRectangle(x_pos, y_pos, ctx->grid_cell_size, ctx->grid_cell_size, attack_tint);
+            }
+        }
+
+        // Draw selection tint (transparent yellow) if this is the focused cell
+        if (focused_cell != NULL && cell->x == focused_cell->x && cell->y == focused_cell->y) {
+            Color select_tint = (Color){255, 255, 0, 120};
+            DrawRectangle(x_pos, y_pos, ctx->grid_cell_size, ctx->grid_cell_size, select_tint);
+        }
+
         // Draw structure (if present)
         if (cell->structure != NULL) {
             DrawTexture(cell->structure->sprite, x_pos, y_pos, WHITE);
@@ -111,12 +137,7 @@ static void render_map(RenderContext *ctx, Point *map) {
             DrawRectangleLines(x_pos, y_pos, ctx->grid_cell_size, ctx->grid_cell_size,
                              cell->occupant->owner->prim_color);
         }
-        if (cell->in_range) {
-            DrawRectangleLines(x_pos, y_pos, ctx->grid_cell_size, ctx->grid_cell_size, BLUE);
-        }
-        if (cell->in_attack_range) {
-            DrawRectangleLines(x_pos, y_pos, ctx->grid_cell_size, ctx->grid_cell_size, RED);
-        }
+        // range/attack tints are drawn above terrain but below units/structures
     }
 }
 
@@ -144,11 +165,7 @@ void render_cell_info(RenderContext *ctx, Point *focused_cell) {
                 info_x, info_y, 20, BLACK);
     }
     
-    // Draw selection highlight
-    DrawRectangleLines(
-        focused_cell->x * ctx->grid_cell_size + ctx->grid_offset_x,
-        focused_cell->y * ctx->grid_cell_size + ctx->grid_offset_y,
-        ctx->grid_cell_size, ctx->grid_cell_size, YELLOW);
+    // Selection highlight is now rendered as a transparent background tint
 }
 
 static void render_ui(RenderContext *ctx, const char *faction_name,
