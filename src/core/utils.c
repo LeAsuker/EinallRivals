@@ -1,4 +1,5 @@
 #include "core/utils.h"
+#include <stdlib.h>
 
 int safe_mouse_x(GridConfig * grid_config) {
   int mouse_pos = GetMouseX();
