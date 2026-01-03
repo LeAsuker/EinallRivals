@@ -22,6 +22,7 @@
 #include "render/structure_sprites.h"
 #include "game/faction_init.h"
 #include "game/structure_generation.h"
+#include "game/spawning.h"
 
 int main(void) {
   const int screenWidth = 1600;
@@ -83,33 +84,27 @@ int main(void) {
                                          unit_sprites.darkus_militia, &DEFAULT_MILITIA_TEMPLATE);
   Actor *vent_troops = actor_array_create_from_template(VENT_TROOP_NUM, &factions[1], 
                                          unit_sprites.ventus_militia, &DEFAULT_MILITIA_TEMPLATE);
-  // Spawn units
-  for (int i = 0; i < DARK_TROOP_NUM; i++) {
-    Point *spawn = map_get_random_corner_spawn_cell(mapArr, grid_config, 0, 4, 16);
-    spawn->occupant = dark_troops + i;
-  }
-  
-  for (int i = 0; i < VENT_TROOP_NUM; i++) {
-    Point *spawn = map_get_random_corner_spawn_cell(mapArr, grid_config, 2, 4, 16);
-    spawn->occupant = vent_troops + i;
-  }
-
-  // Place Warg Lairs and spawn Gaia wargs using the structure generation helper
-  int gaia_warg_count = 0;
-  Actor *gaia_wargs = structure_generation_place_warg_lairs(
-      mapArr, grid_config, terrains, TERRAIN_COUNT,
-      structure_sprites, unit_sprites, &factions[2], &gaia_warg_count);
-
-  // Assign actor arrays to their owning factions
+  // Assign actor arrays to their owning factions before placing them
   factions[0].actors = dark_troops;
   factions[0].actor_count = DARK_TROOP_NUM;
 
   factions[1].actors = vent_troops;
   factions[1].actor_count = VENT_TROOP_NUM;
 
-  if (gaia_wargs != NULL && gaia_warg_count > 0) {
-    factions[2].actors = gaia_wargs;
-    factions[2].actor_count = gaia_warg_count;
+  // Place faction troops into their corners
+  spawning_place_faction_in_corner(mapArr, grid_config, &factions[0], 0, 4, 16);
+  spawning_place_faction_in_corner(mapArr, grid_config, &factions[1], 2, 4, 16);
+
+  // Place Warg Lairs first, then spawn Gaia wargs around those lairs
+  int lairs = structure_generation_place_warg_lairs(mapArr, grid_config, terrains, TERRAIN_COUNT, structure_sprites);
+  int gaia_warg_count = 0;
+  Actor *gaia_wargs = NULL;
+  if (lairs > 0) {
+    gaia_wargs = structure_generation_spawn_wargs_around_lairs(mapArr, grid_config, unit_sprites, &factions[2], &gaia_warg_count);
+    if (gaia_wargs != NULL && gaia_warg_count > 0) {
+      factions[2].actors = gaia_wargs;
+      factions[2].actor_count = gaia_warg_count;
+    }
   }
 
   // Initialize game state
