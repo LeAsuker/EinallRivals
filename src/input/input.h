@@ -3,6 +3,7 @@
 
 #include "types.h"
 #include "game/combat.h"
+#include "render/rendering.h"
 #include <stdbool.h>
 
 // Input state structure - tracks what actions the player wants to take
@@ -28,6 +29,6 @@ void input_handle_selection(InputState *state, GridConfig *grid_config, Point *m
 void input_handle_movement(InputState *state, GridConfig *grid_config, Point *map);
 
 // Check if mouse is over the end turn button
-bool input_is_mouse_over_end_turn_button(GridConfig *grid_config);
+bool input_is_mouse_over_end_turn_button(RenderContext *ctx);
 
 #endif

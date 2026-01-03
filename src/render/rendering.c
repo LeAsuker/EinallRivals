@@ -130,13 +130,6 @@ void render_cell_info(RenderContext *ctx, Point *focused_cell) {
     
     int info_x = ctx->grid_cells_x * ctx->grid_cell_size + ctx->grid_offset_x + 20;
     int info_y = ctx->grid_offset_y;
-
-    int border_thickness = 3;
-    for (int i = 0; i < border_thickness; i++) {
-        DrawRectangleLines(info_x - i, info_y - i, 
-                          ctx->grid_cell_size * 8 + i * 2, ctx->grid_cell_size * 17 + i * 2, 
-                          BLACK);
-    }
     
     if (focused_cell->occupant != NULL) {
         Actor *occupant = focused_cell->occupant;
@@ -157,12 +150,23 @@ void render_cell_info(RenderContext *ctx, Point *focused_cell) {
 
 static void render_ui(RenderContext *ctx, const char *faction_name,
                         Faction *current_faction, bool button_pressed) {
+
+    int info_x = ctx->grid_cells_x * ctx->grid_cell_size + ctx->grid_offset_x + 20;
+    int info_y = ctx->grid_offset_y;
+
+    int border_thickness = 3;
+    for (int i = 0; i < border_thickness; i++) {
+        DrawRectangleLines(info_x - i, info_y - i, 
+                          ctx->grid_cell_size * 8 + i * 2, ctx->grid_cell_size * 17 + i * 2, 
+                          BLACK);
+    }
+
     int ui_x = ctx->grid_cells_x * ctx->grid_cell_size + ctx->grid_offset_x + 20;
     int ui_y = ctx->grid_offset_y + (ctx->grid_cells_y - 2) * ctx->grid_cell_size;
     
     int button_width = ctx->grid_cell_size * 8;
     int button_height = ctx->grid_cell_size * 2;
-    int border_thickness = 3;
+    border_thickness = 3;
     
     // Determine button colors
     Color button_color;

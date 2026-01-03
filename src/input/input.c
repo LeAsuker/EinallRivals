@@ -4,6 +4,7 @@
 #include "main.h"
 #include "game/map.h"
 #include "game/actor.h"
+#include "render/rendering.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -29,10 +30,19 @@ void input_update(InputState *state, GridConfig *grid_config, Point *map) {
     state->right_click = IsMouseButtonPressed(MOUSE_BUTTON_RIGHT);
     
     // Check for end turn button (you can add keyboard shortcut here too)
-    if (state->left_click && input_is_mouse_over_end_turn_button(grid_config)) {
-        state->end_turn_requested = true;
-    } else {
-        state->end_turn_requested = false;
+    {
+        RenderContext tmp_ctx;
+        tmp_ctx.grid_offset_x = grid_config->grid_offset_x;
+        tmp_ctx.grid_offset_y = grid_config->grid_offset_y;
+        tmp_ctx.grid_cell_size = grid_config->grid_cell_size;
+        tmp_ctx.grid_cells_x = grid_config->max_grid_cells_x;
+        tmp_ctx.grid_cells_y = grid_config->max_grid_cells_y;
+
+        if (state->left_click && input_is_mouse_over_end_turn_button(&tmp_ctx)) {
+            state->end_turn_requested = true;
+        } else {
+            state->end_turn_requested = false;
+        }
     }
     
     // Could add keyboard shortcuts here, e.g.:
@@ -97,16 +107,16 @@ void input_handle_movement(InputState *state, GridConfig *grid_config, Point *ma
     map_clear_range_flags(map, grid_config);
 }
 
-bool input_is_mouse_over_end_turn_button(GridConfig *grid_config) {
+bool input_is_mouse_over_end_turn_button(RenderContext *ctx) {
     // End turn button position (matching your original code)
-    int button_x = grid_config->max_grid_cells_x * grid_config->grid_cell_size + 
-                   grid_config->grid_offset_x + 20;
-    int button_y = grid_config->grid_offset_y + 
-                   (grid_config->max_grid_cells_y - 3) * grid_config->grid_cell_size;
+    int button_x = ctx->grid_cells_x * ctx->grid_cell_size + 
+                   ctx->grid_offset_x + 20;
+    int button_y = ctx->grid_offset_y + 
+                   (ctx->grid_cells_y - 2) * ctx->grid_cell_size;
     
     // Button dimensions (approximate - adjust based on your UI)
-    int button_width = 200;
-    int button_height = 30;
+    int button_width = ctx->grid_cell_size * 8;
+    int button_height = ctx->grid_cell_size * 2;
     
     int mouse_x = GetMouseX();
     int mouse_y = GetMouseY();

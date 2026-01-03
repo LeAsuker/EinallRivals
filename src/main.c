@@ -132,7 +132,7 @@ int main(void) {
       continue; // skip player input/render frame; AI processing and turn advancement handled
     }
     button_is_pressed = IsMouseButtonDown(MOUSE_BUTTON_LEFT) && 
-                        input_is_mouse_over_end_turn_button(grid_config);
+                        input_is_mouse_over_end_turn_button(&render_ctx);
     
     if (input_state.left_click) {
       input_handle_selection(&input_state, grid_config, mapArr);
@@ -146,6 +146,7 @@ int main(void) {
       game_end_current_turn(game_state);
     }
 
+    // renders only after first click to avoid null focused_cell
     render_game(&render_ctx, mapArr, input_state.focused_cell,
              current_faction, button_is_pressed);
   }
