@@ -22,21 +22,9 @@ void render_init(RenderContext *ctx, GridConfig* grid) {
     ctx->grid_cells_y = grid->max_grid_cells_y;
 }
 
-void render_game(RenderContext *ctx, Point *map, Point *focused_cell, const char *current_faction) {
-    BeginDrawing();
-    ClearBackground(RAYWHITE);
-    
-    render_debug_info(ctx, map);
-    render_map(ctx, map, focused_cell);
-    render_map_border(ctx);
-    render_cell_info(ctx, focused_cell);
-    render_ui(ctx, current_faction, NULL, false);
-    
-    EndDrawing();
-}
 
 // New function to render game with full button state
-void render_game_full(RenderContext *ctx, Point *map, Point *focused_cell, 
+void render_game(RenderContext *ctx, Point *map, Point *focused_cell, 
                      Faction *current_faction, bool button_pressed) {
     BeginDrawing();
     ClearBackground(RAYWHITE);

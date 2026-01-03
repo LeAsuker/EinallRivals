@@ -119,7 +119,7 @@ int main(void) {
     Faction *current_faction = game_get_current_faction(game_state);
     
     if (game_is_over(game_state)) {
-      render_game_full(&render_ctx, mapArr, input_state.focused_cell, 
+      render_game(&render_ctx, mapArr, input_state.focused_cell, 
                        current_faction, false);
       continue;
     }
@@ -146,7 +146,7 @@ int main(void) {
       game_end_current_turn(game_state);
     }
 
-    render_game_full(&render_ctx, mapArr, input_state.focused_cell,
+    render_game(&render_ctx, mapArr, input_state.focused_cell,
              current_faction, button_is_pressed);
   }
 
