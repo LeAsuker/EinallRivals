@@ -80,30 +80,29 @@ int main(void) {
   // Create units
   ActorTemplate DEFAULT_MILITIA_TEMPLATE;
   actor_get_default_militia_template(&DEFAULT_MILITIA_TEMPLATE);
-  Actor *dark_troops = actor_array_create_from_template(DARK_TROOP_NUM, &factions[0], 
+  Actor *dark_troops = actor_array_create_from_template(DARK_TROOP_NUM, &factions[DARKUS], 
                                          unit_sprites.darkus_militia, &DEFAULT_MILITIA_TEMPLATE);
-  Actor *vent_troops = actor_array_create_from_template(VENT_TROOP_NUM, &factions[1], 
+  Actor *vent_troops = actor_array_create_from_template(VENT_TROOP_NUM, &factions[VENTUS], 
                                          unit_sprites.ventus_militia, &DEFAULT_MILITIA_TEMPLATE);
   // Assign actor arrays to their owning factions before placing them
-  factions[0].actors = dark_troops;
-  factions[0].actor_count = DARK_TROOP_NUM;
+  factions[DARKUS].actors = dark_troops;
+  factions[DARKUS].actor_count = DARK_TROOP_NUM;
 
-  factions[1].actors = vent_troops;
-  factions[1].actor_count = VENT_TROOP_NUM;
-
+  factions[VENTUS].actors = vent_troops;
+  factions[VENTUS].actor_count = VENT_TROOP_NUM;
   // Place faction troops into their corners
-  spawning_place_faction_in_corner(mapArr, grid_config, &factions[0], 0, 4, 16);
-  spawning_place_faction_in_corner(mapArr, grid_config, &factions[1], 2, 4, 16);
+  spawning_place_faction_in_corner(mapArr, grid_config, &factions[DARKUS], 0, 4, 16);
+  spawning_place_faction_in_corner(mapArr, grid_config, &factions[VENTUS], 2, 4, 16);
 
   // Place Warg Lairs first, then spawn Gaia wargs around those lairs
   int lairs = structure_generation_place_warg_lairs(mapArr, grid_config, terrains, TERRAIN_COUNT, structure_sprites);
   int gaia_warg_count = 0;
   Actor *gaia_wargs = NULL;
   if (lairs > 0) {
-    gaia_wargs = structure_generation_spawn_wargs_around_lairs(mapArr, grid_config, unit_sprites, &factions[2], &gaia_warg_count);
+    gaia_wargs = structure_generation_spawn_wargs_around_lairs(mapArr, grid_config, unit_sprites, &factions[GAIA], &gaia_warg_count);
     if (gaia_wargs != NULL && gaia_warg_count > 0) {
-      factions[2].actors = gaia_wargs;
-      factions[2].actor_count = gaia_warg_count;
+      factions[GAIA].actors = gaia_wargs;
+      factions[GAIA].actor_count = gaia_warg_count;
     }
   }
 
