@@ -141,7 +141,29 @@ void render_cell_info(RenderContext *ctx, Point *focused_cell) {
                            occupant->luck, occupant->attack_range),
                 info_x + 5, info_y + 5, 26, BLACK);
     } else {
-        DrawText(TextFormat("TRN: %s", focused_cell->terrain.name),
+        DrawText(TextFormat("OCC: None"),
+                info_x + 5, info_y + 5, 26, BLACK);
+    }
+
+    info_y += 300;
+    DrawLine(info_x, info_y, info_x + ctx->grid_cell_size * 8, info_y, BLACK);
+    DrawText(TextFormat("TRN: %s\nPASS: %s",
+                       focused_cell->terrain.name,
+                       focused_cell->terrain.passable ? "Yes" : "No"),
+                info_x + 5, info_y + 5, 26, BLACK);
+
+    info_y += 100;
+    DrawLine(info_x, info_y, info_x + ctx->grid_cell_size * 8, info_y, BLACK);
+
+    if (focused_cell->structure != NULL) {
+        Structure *structure = focused_cell->structure;
+        DrawText(TextFormat("STRCT: %s\nPASS: %s\nLOOT: %s",
+                           structure->name, 
+                           structure->passable ? "Yes" : "No",
+                           structure->lootable ? "Yes" : "No"),
+                info_x + 5, info_y + 5, 26, BLACK);
+    } else {
+        DrawText(TextFormat("STRCT: None"),
                 info_x + 5, info_y + 5, 26, BLACK);
     }
     

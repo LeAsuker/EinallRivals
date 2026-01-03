@@ -26,7 +26,7 @@ int structure_generation_place_warg_lairs(Point *mapArr, GridConfig *grid_config
         if (candidate->occupant != NULL || candidate->structure != NULL) continue;
 
         // Place lair structure only
-        Structure *lair = structure_create(structure_sprites.warg_lair, "Warg Lair", false, false);
+        Structure *lair = structure_create(structure_sprites.warg_lair, "Warg Lair", true, false);
         if (lair == NULL) continue;
         map_place_structure(mapArr, grid_config, candidate->x, candidate->y, lair);
 
