@@ -205,7 +205,8 @@ int actor_get_health_percentage(Actor *actor) {
 // Actor Arrays and Groups
 // ============================================================================
 
-Actor *actor_array_create(int count, Faction *owner, Texture2D sprite) {
+Actor *actor_array_create_from_template(int count, Faction *owner,
+                                        Texture2D sprite, ActorTemplate *template) {
     Actor *actors = malloc(sizeof(Actor) * count);
     
     if (actors == NULL) {
@@ -215,7 +216,8 @@ Actor *actor_array_create(int count, Faction *owner, Texture2D sprite) {
     
     // Initialize all actors
     for (int i = 0; i < count; i++) {
-        militia_init(&actors[i], owner, sprite);
+        // Init since we have an array, use init function directly
+        actor_init_from_template(&actors[i], owner, sprite, template);
     }
     
     return actors;
@@ -252,4 +254,9 @@ int actor_array_count_alive(Actor *actors, int count) {
 void actor_get_default_warg_template(ActorTemplate *out) {
     if (out == NULL) return;
     memcpy(out, &DEFAULT_WARG, sizeof(ActorTemplate));
+}
+
+void actor_get_default_militia_template(ActorTemplate *out) {
+    if (out == NULL) return;
+    memcpy(out, &DEFAULT_MILITIA, sizeof(ActorTemplate));
 }

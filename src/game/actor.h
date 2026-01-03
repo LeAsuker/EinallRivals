@@ -28,7 +28,7 @@ bool actor_is_enemy(Actor *actor1, Actor *actor2);
 int actor_get_health_percentage(Actor *actor);
 
 // Actor arrays and groups
-Actor *actor_array_create(int count, Faction *owner, Texture2D sprite);
+Actor *actor_array_create_from_template(int count, Faction *owner, Texture2D sprite, ActorTemplate *template);
 void actor_array_free(Actor *actors, int count);
 void actor_array_reset_turns(Actor *actors, int count);
 int actor_array_count_alive(Actor *actors, int count);
@@ -54,5 +54,6 @@ Actor *actor_create_from_template(Faction *owner, Texture2D sprite, ActorTemplat
 
 // Helpers to expose default templates from actor.c
 void actor_get_default_warg_template(ActorTemplate *out);
+void actor_get_default_militia_template(ActorTemplate *out);
 
 #endif
