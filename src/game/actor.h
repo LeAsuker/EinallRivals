@@ -6,8 +6,8 @@
 #include <stdbool.h>
 
 // Actor creation and initialization
-Actor *actor_create(Faction *owner, Texture2D sprite);
-void actor_init(Actor *actor, Faction *owner, Texture2D sprite);
+Actor *militia_create(Faction *owner, Texture2D sprite);
+void militia_init(Actor *actor, Faction *owner, Texture2D sprite);
 void actor_free(Actor *actor);
 
 // Actor state management

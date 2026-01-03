@@ -63,9 +63,6 @@ int main(void) {
   map_generate_all_biomes(grid_config, mapArr, biome_configs, num_biomes, layers);
   map_generate_deep_ter(mapArr, grid_config);
 
-  // Build player bases
-  // Player base generation in corners removed (no longer required)
-
   // Initialize rendering
   RenderContext render_ctx;
   render_init(&render_ctx, grid_config);

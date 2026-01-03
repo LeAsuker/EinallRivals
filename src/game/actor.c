@@ -33,14 +33,14 @@ static const ActorTemplate DEFAULT_WARG = {
 // Actor Creation and Initialization
 // ============================================================================
 
-Actor *actor_create(Faction *owner, Texture2D sprite) {
+Actor *militia_create(Faction *owner, Texture2D sprite) {
     Actor *actor = malloc(sizeof(Actor));
     if (actor == NULL) {
         fprintf(stderr, "Error: Failed to allocate memory for actor\n");
         return NULL;
     }
     
-    actor_init(actor, owner, sprite);
+    militia_init(actor, owner, sprite);
     return actor;
 }
 
@@ -54,7 +54,7 @@ Actor *actor_create_from_template(Faction *owner, Texture2D sprite, ActorTemplat
     return actor;
 }
 
-void actor_init(Actor *actor, Faction *owner, Texture2D sprite) {
+void militia_init(Actor *actor, Faction *owner, Texture2D sprite) {
     actor->sprite = sprite;
     actor->owner = owner;
     
@@ -215,7 +215,7 @@ Actor *actor_array_create(int count, Faction *owner, Texture2D sprite) {
     
     // Initialize all actors
     for (int i = 0; i < count; i++) {
-        actor_init(&actors[i], owner, sprite);
+        militia_init(&actors[i], owner, sprite);
     }
     
     return actors;
