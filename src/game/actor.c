@@ -1,4 +1,5 @@
 #include "game/actor.h"
+#include "game/actions.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -77,6 +78,13 @@ void militia_init(Actor *actor, Faction *owner, Texture2D sprite) {
     actor->magic_defense = DEFAULT_MILITIA.magic_defense;
     actor->luck = DEFAULT_MILITIA.luck;
     actor->attack_range = DEFAULT_MILITIA.attack_range;
+    // Initialize skills
+    actor->skill_count = 0;
+    {
+        Skill tmp;
+        action_copy_spear_strike(&tmp);
+        action_add_skill_to_actor(actor, &tmp);
+    }
 }
 
 void actor_init_from_template(Actor *actor, Faction *owner, 
@@ -101,10 +109,25 @@ void actor_init_from_template(Actor *actor, Faction *owner,
     actor->magic_defense = template->magic_defense;
     actor->luck = template->luck;
     actor->attack_range = template->attack_range;
+    // Initialize skills and assign based on template name
+    actor->skill_count = 0;
+    if (strcmp(template->name, "Militia") == 0) {
+        Skill tmp;
+        action_copy_spear_strike(&tmp);
+        action_add_skill_to_actor(actor, &tmp);
+    } else if (strcmp(template->name, "Warg") == 0) {
+        Skill tmp;
+        action_copy_bite(&tmp);
+        action_add_skill_to_actor(actor, &tmp);
+    }
 }
 
 void actor_free(Actor *actor) {
     if (actor != NULL) {
+        // Free any per-skill allocations
+        for (int i = 0; i < actor->skill_count; i++) {
+            skill_free(&actor->skills[i]);
+        }
         free(actor);
     }
 }
@@ -231,8 +254,12 @@ Actor *actor_array_create_from_template(int count, Faction *owner,
 }
 
 void actor_array_free(Actor *actors, int count) {
-    (void)count; // Unused parameter, but kept for API consistency
     if (actors != NULL) {
+        for (int i = 0; i < count; i++) {
+            for (int s = 0; s < actors[i].skill_count; s++) {
+                skill_free(&actors[i].skills[s]);
+            }
+        }
         free(actors);
     }
 }

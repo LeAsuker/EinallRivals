@@ -3,6 +3,23 @@
 
 #include "raylib.h"
 #include <stdbool.h>
+
+typedef struct Coord {
+  int x;
+  int y;
+} Coord;
+
+typedef struct Skill {
+  char name[20];
+  int id;
+  int damage;
+  bool is_magic;
+  int cooldown;
+  int range;
+  Coord *area_of_effect; // Array of relative coordinates defining the AoE
+  int aoe_size;          // Number of coordinates in the AoE array
+  Texture2D icon;        // Icon representing the skill
+} Skill;
 struct Terrain;
 typedef struct Terrain Terrain;
 
@@ -49,6 +66,10 @@ typedef struct Actor {
   int magic_attack;
   int luck;
   int attack_range;
+
+  Skill skills[5];
+  int skill_count;
+
   char name[10];
 } Actor;
 
