@@ -1,6 +1,7 @@
 #include "game/actions.h"
 #include <stdlib.h>
 #include <string.h>
+#include "raylib.h"
 
 
 void skill_free(Skill *skill) {
@@ -48,6 +49,20 @@ void action_copy_bite(Skill *dest_skill) {
     return;
 }
 
+// Load action-related icons/resources. Call after InitWindow.
+void actions_load_icons(void) {
+    // Load spear strike icon
+    spear_strike.icon = LoadTexture("../../resources/actions/spear_strike_icon.png");
+    // If there were other action icons, load them similarly, e.g.:
+    // bite.icon = LoadTexture("../../resources/actions/bite_icon.png");
+}
+
+// Unload action-related icons/resources. Call during cleanup after actors freed.
+void actions_unload_icons(void) {
+    if (spear_strike.icon.id) UnloadTexture(spear_strike.icon);
+    if (bite.icon.id) UnloadTexture(bite.icon);
+}
+
 void action_set_damage(Skill *skill, Actor *owner) {
     if (skill == NULL) return;
     if (owner == NULL) return;
@@ -64,7 +79,7 @@ void action_set_damage(Skill *skill, Actor *owner) {
 void action_add_skill_to_actor(Actor *actor, Skill *skill) {
     if (actor == NULL || skill == NULL) return;
     if (actor->skill_count >= 5) return; // Max skills reached
-
+    action_set_damage(skill, actor);
     actor->skills[actor->skill_count] = *skill;
     actor->skill_count++;
 }

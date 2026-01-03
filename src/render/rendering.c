@@ -243,16 +243,32 @@ void render_actions(RenderContext *ctx, Actor *actor) {
     int box_w = ctx->grid_cell_size * 2;
     int box_h = ctx->grid_cell_size * 2;
 
-    // Draw background lightly so boxes are visible even if overlapping window edges
+
     Color bg = (Color){200, 200, 200, 40};
+    // 5 boxes for skills: draw actor's skill icons where available
     for (int i = 0; i < 5; i++) {
-        DrawRectangle(actions_x + i * box_w, actions_y, box_w, box_h, bg);
-        DrawRectangleLines(actions_x + i * box_w, actions_y, box_w, box_h, BLACK);
+        int bx = actions_x + i * box_w;
+        int by = actions_y;
+        DrawRectangle(bx, by, box_w, box_h, bg);
+        DrawRectangleLines(bx, by, box_w, box_h, GRAY);
+
+        if (actor != NULL && i < actor->skill_count) {
+            Skill *s = &actor->skills[i];
+            if (s->icon.id) {
+                Rectangle src = (Rectangle){0, 0, (float)s->icon.width, (float)s->icon.height};
+                Rectangle dst = (Rectangle){(float)bx, (float)by, (float)box_w, (float)box_h};
+                Vector2 origin = (Vector2){0.0f, 0.0f};
+                DrawTexturePro(s->icon, src, dst, origin, 0.0f, WHITE);
+            } else {
+                // No icon: draw a simple inner placeholder
+                DrawRectangle(bx + 4, by + 4, box_w - 8, box_h - 8, (Color){150,150,150,200});
+            }
+        }
     }
 
     for (int i = 0; i < 5; i++) {
         DrawRectangle(actions_x + 6* box_w + i * box_w, actions_y, box_w, box_h, bg);
-        DrawRectangleLines(actions_x + 6* box_w + i * box_w, actions_y, box_w, box_h, BLACK);
+        DrawRectangleLines(actions_x + 6* box_w + i * box_w, actions_y, box_w, box_h, GRAY);
     }
 
 }

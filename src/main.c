@@ -23,6 +23,7 @@
 #include "game/faction_init.h"
 #include "game/structure_generation.h"
 #include "game/spawning.h"
+#include "game/actions.h"
 
 int main(void) {
   const int screenWidth = 1600;
@@ -76,6 +77,8 @@ int main(void) {
   UnitSprites unit_sprites = unit_sprites_load(GRID_CELL_SIZE);
   // Load structure sprites
   StructureSprites structure_sprites = structure_sprites_load(GRID_CELL_SIZE);
+  // Load action icons (skills)
+  actions_load_icons();
 
   // Create units
   ActorTemplate DEFAULT_MILITIA_TEMPLATE;
@@ -154,6 +157,8 @@ int main(void) {
   // Cleanup
   map_free(mapArr);
   factions_free_actors(factions, num_factions);
+  // Unload any action icons we loaded earlier
+  actions_unload_icons();
   game_state_free(game_state);
   unit_sprites_unload(&unit_sprites);
   structure_sprites_unload(&structure_sprites);
