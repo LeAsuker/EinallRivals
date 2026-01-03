@@ -77,12 +77,12 @@ int main(void) {
   StructureSprites structure_sprites = structure_sprites_load(GRID_CELL_SIZE);
 
   // Create units
-  ActorTemplate* DEFAULT_MILITIA_TEMPLATE = malloc(sizeof(ActorTemplate));
-  actor_get_default_militia_template(DEFAULT_MILITIA_TEMPLATE);
+  ActorTemplate DEFAULT_MILITIA_TEMPLATE;
+  actor_get_default_militia_template(&DEFAULT_MILITIA_TEMPLATE);
   Actor *dark_troops = actor_array_create_from_template(DARK_TROOP_NUM, &factions[0], 
-                                         unit_sprites.darkus_militia, DEFAULT_MILITIA_TEMPLATE);
+                                         unit_sprites.darkus_militia, &DEFAULT_MILITIA_TEMPLATE);
   Actor *vent_troops = actor_array_create_from_template(VENT_TROOP_NUM, &factions[1], 
-                                         unit_sprites.ventus_militia, DEFAULT_MILITIA_TEMPLATE);
+                                         unit_sprites.ventus_militia, &DEFAULT_MILITIA_TEMPLATE);
   // Spawn units
   for (int i = 0; i < DARK_TROOP_NUM; i++) {
     Point *spawn = map_get_random_corner_spawn_cell(mapArr, grid_config, 0, 4, 16);
