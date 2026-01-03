@@ -34,6 +34,7 @@ void render_game(RenderContext *ctx, Point *map, Point *focused_cell,
     render_map_border(ctx);
     render_cell_info(ctx, focused_cell);
     render_ui(ctx, current_faction->name, current_faction, button_pressed);
+    render_actions(ctx, (focused_cell != NULL) ? focused_cell->occupant : NULL);
     
     EndDrawing();
 }
@@ -232,4 +233,26 @@ static void render_ui(RenderContext *ctx, const char *faction_name,
     int text_y = ui_y + (button_height - text_size) / 2;
     
     DrawText(button_text, text_x, text_y, text_size, text_color);
+}
+
+void render_actions(RenderContext *ctx, Actor *actor) {
+    // Render action panels to the right of the map (aligned with UI panel)
+    int actions_x = ctx->grid_offset_x;
+    int actions_y = ctx->grid_offset_y + ctx->grid_cells_y * ctx->grid_cell_size + ctx->grid_cell_size;
+
+    int box_w = ctx->grid_cell_size * 2;
+    int box_h = ctx->grid_cell_size * 2;
+
+    // Draw background lightly so boxes are visible even if overlapping window edges
+    Color bg = (Color){200, 200, 200, 40};
+    for (int i = 0; i < 5; i++) {
+        DrawRectangle(actions_x + i * box_w, actions_y, box_w, box_h, bg);
+        DrawRectangleLines(actions_x + i * box_w, actions_y, box_w, box_h, BLACK);
+    }
+
+    for (int i = 0; i < 5; i++) {
+        DrawRectangle(actions_x + 6* box_w + i * box_w, actions_y, box_w, box_h, bg);
+        DrawRectangleLines(actions_x + 6* box_w + i * box_w, actions_y, box_w, box_h, BLACK);
+    }
+
 }

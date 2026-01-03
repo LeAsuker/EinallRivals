@@ -165,8 +165,7 @@ void actor_gain_experience(Actor *actor, int xp) {
     if (actor->next_level_xp <= 0) {
         actor->next_level_xp = 0;
         actor->level_up_pending = true;
-        printf("%s has enough experience to level up (manual).
-", actor->name);
+        printf("%s has enough experience to level up (manual).\n", actor->name);
     }
 }
 

@@ -20,4 +20,5 @@ void render_cell_info(RenderContext *ctx, Point *focused_cell);
 void render_combat_forecast(Point *attacker_cell, Point *defender_cell);
 void render_game(RenderContext *ctx, Point *map, Point *focused_cell, 
                      Faction *current_faction, bool button_pressed);
+void render_actions(RenderContext *ctx, Actor *actor);
 #endif
