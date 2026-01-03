@@ -26,7 +26,7 @@
 
 int main(void) {
   const int screenWidth = 1600;
-  const int screenHeight = 900;
+  const int screenHeight = 1000;
   srand(time(NULL));
 
   InitWindow(screenWidth, screenHeight, "WaterEmblemProto");

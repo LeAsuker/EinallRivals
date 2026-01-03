@@ -187,7 +187,7 @@ static void render_ui(RenderContext *ctx, const char *faction_name,
     int ui_y = ctx->grid_offset_y + (ctx->grid_cells_y - 2) * ctx->grid_cell_size;
     
     int button_width = ctx->grid_cell_size * 8;
-    int button_height = ctx->grid_cell_size * 2;
+    int button_height = ctx->grid_cell_size * 5;
     border_thickness = 3;
     
     // Determine button colors

@@ -116,7 +116,7 @@ bool input_is_mouse_over_end_turn_button(RenderContext *ctx) {
     
     // Button dimensions (approximate - adjust based on your UI)
     int button_width = ctx->grid_cell_size * 8;
-    int button_height = ctx->grid_cell_size * 2;
+    int button_height = ctx->grid_cell_size * 5;
     
     int mouse_x = GetMouseX();
     int mouse_y = GetMouseY();
