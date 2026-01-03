@@ -152,14 +152,7 @@ int main(void) {
 
   // Cleanup
   map_free(mapArr);
-  // Free faction-owned actor arrays
-  for (int i = 0; i < num_factions; i++) {
-    if (factions[i].actors != NULL) {
-      actor_array_free(factions[i].actors, factions[i].actor_count);
-      factions[i].actors = NULL;
-      factions[i].actor_count = 0;
-    }
-  }
+  factions_free_actors(factions, num_factions);
   game_state_free(game_state);
   unit_sprites_unload(&unit_sprites);
   structure_sprites_unload(&structure_sprites);

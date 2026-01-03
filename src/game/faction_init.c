@@ -1,5 +1,6 @@
 #include "game/faction_init.h"
 #include <string.h>
+#include <stdlib.h>
 
 int faction_init_default(Faction *factions, int max_factions) {
     if (max_factions < 3) {
@@ -35,4 +36,20 @@ int faction_init_default(Faction *factions, int max_factions) {
     factions[GAIA].actor_count = 0;
     
     return 3;
+}
+
+void faction_free_actors(Faction *faction) {
+    if (faction == NULL || faction->actors == NULL) return;
+    
+    free(faction->actors);
+    faction->actors = NULL;
+    faction->actor_count = 0;
+}
+
+void factions_free_actors(Faction *factions, int faction_count) {
+    if (factions == NULL || faction_count <= 0) return;
+    
+    for (int i = 0; i < faction_count; i++) {
+        faction_free_actors(&factions[i]);
+    }
 }
