@@ -32,6 +32,8 @@ typedef struct Actor {
   bool can_move;
   bool can_act;
 
+  bool level_up_pending;
+
   int level;
   int next_level_xp;
 

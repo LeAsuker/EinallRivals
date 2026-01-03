@@ -160,10 +160,13 @@ void actor_heal(Actor *actor, int amount) {
 
 void actor_gain_experience(Actor *actor, int xp) {
     actor->next_level_xp -= xp;
-    
-    // Check for level up
-    while (actor->next_level_xp <= 0) {
-        actor_level_up(actor);
+
+    // If we've reached or passed required XP, mark a pending level-up
+    if (actor->next_level_xp <= 0) {
+        actor->next_level_xp = 0;
+        actor->level_up_pending = true;
+        printf("%s has enough experience to level up (manual).
+", actor->name);
     }
 }
 
@@ -180,7 +183,8 @@ void actor_level_up(Actor *actor) {
     
     // Experience needed for next level (exponential growth)
     actor->next_level_xp = 100 * actor->level;
-    
+    // Clear pending flag when level-up is performed manually
+    actor->level_up_pending = false;
     printf("%s leveled up to level %d!\n", actor->name, actor->level);
 }
 
@@ -199,6 +203,10 @@ bool actor_is_enemy(Actor *actor1, Actor *actor2) {
 int actor_get_health_percentage(Actor *actor) {
     if (actor->max_health == 0) return 0;
     return (actor->curr_health * 100) / actor->max_health;
+}
+
+bool actor_has_pending_level_up(Actor *actor) {
+    return actor->level_up_pending;
 }
 
 // ============================================================================

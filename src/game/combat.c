@@ -29,78 +29,34 @@ CombatResult combat_execute(Actor *attacker, Actor *defender) {
     result.attacker_died = false;
     result.defender_died = false;
     result.was_critical = false;
-    
-    // Calculate if defender can counter
-    result.defender_can_counter = (defender->attack_range >= 1); // Simplified check
-    
-    // Attacker's attack
-    int hit_chance = calculate_hit_chance(attacker, defender);
-    if (roll_hit(hit_chance)) {
-        int damage = combat_calculate_damage(attacker, defender, false);
-        
-        // Check for critical hit
-        int crit_chance = calculate_crit_chance(attacker, defender);
-        if (roll_crit(crit_chance)) {
-            damage = damage * 3; // Critical hits do triple damage
-            result.was_critical = true;
-            printf("Critical hit! ");
-        }
-        
-        result.attacker_damage_dealt = damage;
-        apply_combat_damage(defender, damage);
-        
-        printf("%s attacks %s for %d damage! (%s: %d/%d HP)\n",
-               attacker->name, defender->name, damage,
-               defender->name, defender->curr_health, defender->max_health);
-        
-        // Check if defender died
-        if (!actor_is_alive(defender)) {
-            result.defender_died = true;
-            printf("%s has been defeated!\n", defender->name);
-            
-            // Grant experience for kill
-            combat_grant_experience(attacker, defender, true);
-            
-            // Attacker can act again after killing
-            attacker->can_act = false;
-            return result;
-        }
-    } else {
-        printf("%s's attack missed!\n", attacker->name);
+    // New rule: battle skills are single-sided actions used during the actor's turn.
+    // They hit deterministically and do raw physical attack equal to attacker's phys_attack.
+    result.attacker_damage_dealt = attacker->phys_attack;
+    result.defender_damage_dealt = 0;
+    result.defender_can_counter = false;
+
+    apply_combat_damage(defender, result.attacker_damage_dealt);
+
+    printf("%s uses a battle skill on %s for %d damage! (%s: %d/%d HP)\n",
+           attacker->name, defender->name, result.attacker_damage_dealt,
+           defender->name, defender->curr_health, defender->max_health);
+
+    // Check if defender died
+    if (!actor_is_alive(defender)) {
+        result.defender_died = true;
+        printf("%s has been defeated!\n", defender->name);
+        combat_grant_experience(attacker, defender, true);
+        // Attacker used their action
+        attacker->can_act = false;
+        return result;
     }
-    
-    // Defender's counter-attack (if alive and in range)
-    if (actor_is_alive(defender) && result.defender_can_counter) {
-        hit_chance = calculate_hit_chance(defender, attacker);
-        if (roll_hit(hit_chance)) {
-            int damage = combat_calculate_damage(defender, attacker, false);
-            
-            result.defender_damage_dealt = damage;
-            apply_combat_damage(attacker, damage);
-            
-            printf("%s counters for %d damage! (%s: %d/%d HP)\n",
-                   defender->name, damage,
-                   attacker->name, attacker->curr_health, attacker->max_health);
-            
-            // Check if attacker died from counter
-            if (!actor_is_alive(attacker)) {
-                result.attacker_died = true;
-                printf("%s has been defeated by counter-attack!\n", attacker->name);
-                return result;
-            }
-        } else {
-            printf("%s's counter-attack missed!\n", defender->name);
-        }
-    }
-    
-    // Grant experience if no one died
-    if (!result.defender_died) {
-        combat_grant_experience(attacker, defender, false);
-    }
-    
+
+    // Grant experience for the engagement (non-kill)
+    combat_grant_experience(attacker, defender, false);
+
     // Attacker has used their action
     attacker->can_act = false;
-    
+
     return result;
 }
 
@@ -143,30 +99,22 @@ CombatResult combat_execute_at_cells(GridConfig *grid_config, Point *map,
 
 CombatForecast combat_forecast(Actor *attacker, Actor *defender) {
     CombatForecast forecast = {0};
-    
-    // Calculate damages
-    forecast.attacker_damage = combat_calculate_damage(attacker, defender, false);
-    forecast.defender_damage = combat_calculate_damage(defender, attacker, false);
-    
-    // Calculate health after combat
-    forecast.attacker_health_after = attacker->curr_health - forecast.defender_damage;
+    // Single-sided skill forecast: attacker deals raw phys_attack, no counter.
+    forecast.attacker_damage = attacker->phys_attack;
+    forecast.defender_damage = 0;
+
+    forecast.attacker_health_after = attacker->curr_health; // unchanged
     forecast.defender_health_after = defender->curr_health - forecast.attacker_damage;
-    
-    // Clamp to 0
-    if (forecast.attacker_health_after < 0) forecast.attacker_health_after = 0;
     if (forecast.defender_health_after < 0) forecast.defender_health_after = 0;
-    
-    // Determine if anyone dies
+
     forecast.attacker_kills_defender = (forecast.defender_health_after == 0);
-    forecast.defender_kills_attacker = (forecast.attacker_health_after == 0);
-    
-    // Check if defender can counter
-    forecast.defender_can_counter = (defender->attack_range >= 1);
-    
-    // Calculate chances
-    forecast.hit_chance = calculate_hit_chance(attacker, defender);
-    forecast.crit_chance = calculate_crit_chance(attacker, defender);
-    
+    forecast.defender_kills_attacker = false;
+    forecast.defender_can_counter = false;
+
+    // Deterministic skill: always hits, no crit by default
+    forecast.hit_chance = 100;
+    forecast.crit_chance = 0;
+
     return forecast;
 }
 

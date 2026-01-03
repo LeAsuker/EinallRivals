@@ -21,6 +21,7 @@ void actor_take_damage(Actor *actor, int damage);
 void actor_heal(Actor *actor, int amount);
 void actor_gain_experience(Actor *actor, int xp);
 void actor_level_up(Actor *actor);
+bool actor_has_pending_level_up(Actor *actor);
 
 // Actor queries
 bool actor_belongs_to_faction(Actor *actor, Faction *faction);
