@@ -40,7 +40,7 @@ void render_game(RenderContext *ctx, Point *map, Point *focused_cell,
 
 
 static void render_map_border(RenderContext *ctx) {
-    int border_thickness = 4;
+    int border_thickness = 3;
     int map_x = ctx->grid_offset_x;
     int map_y = ctx->grid_offset_y;
     int map_width = ctx->grid_cells_x * ctx->grid_cell_size;
@@ -53,24 +53,12 @@ static void render_map_border(RenderContext *ctx) {
                       map_height + border_thickness * 2,
                       BLACK);
     
-    // Draw inner border for extra thickness
-    DrawRectangleLines(map_x - border_thickness + 1, 
-                      map_y - border_thickness + 1,
-                      map_width + (border_thickness - 1) * 2,
-                      map_height + (border_thickness - 1) * 2,
-                      BLACK);
-    
-    DrawRectangleLines(map_x - border_thickness + 2, 
-                      map_y - border_thickness + 2,
-                      map_width + (border_thickness - 2) * 2,
-                      map_height + (border_thickness - 2) * 2,
-                      BLACK);
-    
-    DrawRectangleLines(map_x - border_thickness + 3, 
-                      map_y - border_thickness + 3,
-                      map_width + (border_thickness - 3) * 2,
-                      map_height + (border_thickness - 3) * 2,
-                      BLACK);
+
+    for (int i = 0; i < border_thickness; i++) {
+    DrawRectangleLines(map_x - border_thickness + i, map_y - border_thickness + i, 
+                        map_width + (border_thickness - i) * 2, map_height + (border_thickness - i) * 2, 
+                        BLACK);
+    }
 }
 
 // Private helper function (not in header, only used internally)
@@ -83,6 +71,7 @@ static void render_map(RenderContext *ctx, Point *map, Point *focused_cell) {
         int y_pos = ctx->grid_offset_y + cell->y * ctx->grid_cell_size;
         
         // Draw terrain
+        // Possibly add default error texture if terrain sprite is NULL
         DrawRectangle(x_pos, y_pos, ctx->grid_cell_size, ctx->grid_cell_size, 
                      cell->terrain.color);
         DrawTexture(cell->terrain.sprite, x_pos, y_pos, WHITE);
@@ -141,16 +130,26 @@ void render_cell_info(RenderContext *ctx, Point *focused_cell) {
     
     int info_x = ctx->grid_cells_x * ctx->grid_cell_size + ctx->grid_offset_x + 20;
     int info_y = ctx->grid_offset_y;
+
+    int border_thickness = 3;
+    for (int i = 0; i < border_thickness; i++) {
+        DrawRectangleLines(info_x - i, info_y - i, 
+                          ctx->grid_cell_size * 8 + i * 2, ctx->grid_cell_size * 17 + i * 2, 
+                          BLACK);
+    }
     
     if (focused_cell->occupant != NULL) {
         Actor *occupant = focused_cell->occupant;
-        DrawText(TextFormat("NAME: %s\nFAC: %s\nLVL: %d\nHP: %d/%d",
+        DrawText(TextFormat("NAME: %s\nFAC: %s\nLVL: %d\nHP: %d/%d\nPATK: %d\nPDEF: %d\nMATK: %d\nMDEF: %d\nLCK: %d\nRNG: %d",
                            occupant->name, occupant->owner->name, 
-                           occupant->level, occupant->curr_health, occupant->max_health),
-                info_x, info_y, 20, BLACK);
+                           occupant->level, occupant->curr_health, occupant->max_health,
+                           occupant->phys_attack, occupant->phys_defense,
+                           occupant->magic_attack, occupant->magic_defense,
+                           occupant->luck, occupant->attack_range),
+                info_x + 5, info_y + 5, 26, BLACK);
     } else {
         DrawText(TextFormat("TRN: %s", focused_cell->terrain.name),
-                info_x, info_y, 20, BLACK);
+                info_x + 5, info_y + 5, 26, BLACK);
     }
     
     // Selection highlight is now rendered as a transparent background tint
@@ -159,10 +158,10 @@ void render_cell_info(RenderContext *ctx, Point *focused_cell) {
 static void render_ui(RenderContext *ctx, const char *faction_name,
                         Faction *current_faction, bool button_pressed) {
     int ui_x = ctx->grid_cells_x * ctx->grid_cell_size + ctx->grid_offset_x + 20;
-    int ui_y = ctx->grid_offset_y + (ctx->grid_cells_y - 3) * ctx->grid_cell_size;
+    int ui_y = ctx->grid_offset_y + (ctx->grid_cells_y - 2) * ctx->grid_cell_size;
     
-    int button_width = 200;
-    int button_height = 40;
+    int button_width = ctx->grid_cell_size * 8;
+    int button_height = ctx->grid_cell_size * 2;
     int border_thickness = 3;
     
     // Determine button colors
@@ -200,36 +199,11 @@ static void render_ui(RenderContext *ctx, const char *faction_name,
     }
     
     // Draw button text
+    const int text_size = 22;
     const char *button_text = TextFormat("End Turn: %s", faction_name);
-    int text_width = MeasureText(button_text, 18);
+    int text_width = MeasureText(button_text, text_size);
     int text_x = ui_x + (button_width - text_width) / 2;
-    int text_y = ui_y + (button_height - 18) / 2;
+    int text_y = ui_y + (button_height - text_size) / 2;
     
-    DrawText(button_text, text_x, text_y, 18, text_color);
+    DrawText(button_text, text_x, text_y, text_size, text_color);
 }
-/*
-void render_combat_forecast(Point *attacker_cell, Point *defender_cell) {
-    if (attacker_cell->occupant == NULL || defender_cell->occupant == NULL) {
-        return;
-    }
-    
-    CombatForecast forecast = combat_forecast(attacker_cell->occupant, 
-                                              defender_cell->occupant);
-    
-    // Display forecast
-    DrawText(TextFormat("Attacker: %d damage -> %d HP",
-                       forecast.attacker_damage,
-                       forecast.defender_health_after),
-             10, 100, 20, RED);
-    
-    DrawText(TextFormat("Defender: %d damage -> %d HP",
-                       forecast.defender_damage,
-                       forecast.attacker_health_after),
-             10, 130, 20, BLUE);
-    
-    DrawText(TextFormat("Hit: %d%% Crit: %d%%",
-                       forecast.hit_chance,
-                       forecast.crit_chance),
-             10, 160, 20, BLACK);
-}
-*/
