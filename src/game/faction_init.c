@@ -13,7 +13,7 @@ int faction_init_default(Faction *factions, int max_factions) {
     factions[0].sec_color = DARKGRAY;
     strcpy(factions[0].name, "Darkus");
     
-    // Ventus faction (AI)
+    // Ventus faction (Player)
     factions[1].has_turn = false;
     factions[1].playable = true;
     factions[1].prim_color = GREEN;
