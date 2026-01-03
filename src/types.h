@@ -21,6 +21,9 @@ typedef struct Faction {
   bool has_turn;
   bool playable;
   char name[10];
+  // Each faction now owns a contiguous array of Actors and its count.
+  struct Actor *actors;
+  int actor_count;
 } Faction;
 
 typedef struct Actor {

@@ -27,12 +27,6 @@ bool actor_belongs_to_faction(Actor *actor, Faction *faction);
 bool actor_is_enemy(Actor *actor1, Actor *actor2);
 int actor_get_health_percentage(Actor *actor);
 
-// Actor arrays and groups
-Actor *actor_array_create_from_template(int count, Faction *owner, Texture2D sprite, ActorTemplate *template);
-void actor_array_free(Actor *actors, int count);
-void actor_array_reset_turns(Actor *actors, int count);
-int actor_array_count_alive(Actor *actors, int count);
-
 // Unit template system (for future expansion)
 typedef struct {
     char name[10];
@@ -45,6 +39,12 @@ typedef struct {
     int luck;
     int attack_range;
 } ActorTemplate;
+
+// Actor arrays and groups
+Actor *actor_array_create_from_template(int count, Faction *owner, Texture2D sprite, ActorTemplate *template);
+void actor_array_free(Actor *actors, int count);
+void actor_array_reset_turns(Actor *actors, int count);
+int actor_array_count_alive(Actor *actors, int count);
 
 void actor_init_from_template(Actor *actor, Faction *owner, 
                               Texture2D sprite, ActorTemplate *template);

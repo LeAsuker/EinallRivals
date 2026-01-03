@@ -57,7 +57,7 @@ void game_state_init(GameState *state, Faction *factions, int num_factions) {
 // Turn Management
 // ============================================================================
 
-void game_next_turn(GameState *state, TroopGroup *troop_groups, int num_groups) {
+void game_next_turn(GameState *state) {
     // Move to next faction in order
     state->current_faction_index++;
     if (state->current_faction_index >= state->num_factions) {
@@ -75,14 +75,14 @@ void game_next_turn(GameState *state, TroopGroup *troop_groups, int num_groups) 
     printf("\n--- %s's turn ---\n", current_faction->name);
     
     // Start the new faction's turn
-    game_start_faction_turn(state, troop_groups, num_groups);
+    game_start_faction_turn(state);
     
     // Check victory conditions
-    if (game_check_victory_conditions(state, troop_groups, num_groups)) {
+    if (game_check_victory_conditions(state)) {
         state->game_over = true;
         state->current_phase = PHASE_GAME_OVER;
         
-        Faction *winner = game_get_winner(state, troop_groups, num_groups);
+        Faction *winner = game_get_winner(state);
         if (winner != NULL) {
             printf("\n=== VICTORY ===\n");
             printf("%s has won the game!\n", winner->name);
@@ -91,22 +91,22 @@ void game_next_turn(GameState *state, TroopGroup *troop_groups, int num_groups) 
     }
 }
 
-void game_end_current_turn(GameState *state, TroopGroup *troop_groups, int num_groups) {
+void game_end_current_turn(GameState *state) {
     Faction *current_faction = game_get_current_faction(state);
     printf("Ending turn for %s\n", current_faction->name);
     
     // End all units' turns for current faction
-    game_end_all_unit_turns(troop_groups, num_groups, current_faction);
+    game_end_all_unit_turns(current_faction);
     
     // Move to next turn
-    game_next_turn(state, troop_groups, num_groups);
+    game_next_turn(state);
 }
 
-void game_start_faction_turn(GameState *state, TroopGroup *troop_groups, int num_groups) {
+void game_start_faction_turn(GameState *state) {
     Faction *current_faction = game_get_current_faction(state);
     
     // Reset all units for the current faction
-    game_reset_faction_units(troop_groups, num_groups, current_faction);
+    game_reset_faction_units(current_faction);
     
     // Update phase
     // If the current faction is marked playable, treat it as a player turn
@@ -121,24 +121,14 @@ void game_start_faction_turn(GameState *state, TroopGroup *troop_groups, int num
 // AI Processing
 // ============================================================================
 
-void game_process_ai_turn(GameState *state, TroopGroup *troop_groups, int num_groups, Point *map, GridConfig *grid_config) {
+void game_process_ai_turn(GameState *state, Point *map, GridConfig *grid_config) {
     Faction *current = game_get_current_faction(state);
     if (current == NULL) return;
 
-    // Find troop group for current faction
-    TroopGroup *group = NULL;
-    for (int i = 0; i < num_groups; i++) {
-        if (troop_groups[i].faction == current) {
-            group = &troop_groups[i];
-            break;
-        }
-    }
-    if (group == NULL) return;
-
     int total_cells = grid_config->max_grid_cells_x * grid_config->max_grid_cells_y;
 
-    for (int i = 0; i < group->count; i++) {
-        Actor *actor = &group->troops[i];
+    for (int i = 0; i < current->actor_count; i++) {
+        Actor *actor = &current->actors[i];
         if (!actor_is_alive(actor)) continue;
         if (!actor_can_perform_action(actor)) continue;
 
@@ -286,7 +276,7 @@ void game_process_ai_turn(GameState *state, TroopGroup *troop_groups, int num_gr
     }
 
     // After AI processes, end the faction's turn
-    game_end_current_turn(state, troop_groups, num_groups);
+    game_end_current_turn(state);
 }
 
 Faction *game_get_current_faction(GameState *state) {
@@ -301,36 +291,27 @@ Faction *game_get_current_faction(GameState *state) {
 // Unit Turn Management
 // ============================================================================
 
-void game_reset_faction_units(TroopGroup *troop_groups, int num_groups, Faction *faction) {
-    for (int i = 0; i < num_groups; i++) {
-        if (troop_groups[i].faction == faction) {
-            actor_array_reset_turns(troop_groups[i].troops, troop_groups[i].count);
+void game_reset_faction_units(Faction *faction) {
+    if (faction == NULL) return;
+    actor_array_reset_turns(faction->actors, faction->actor_count);
+}
+
+void game_end_all_unit_turns(Faction *faction) {
+    if (faction == NULL) return;
+    for (int j = 0; j < faction->actor_count; j++) {
+        Actor *actor = &faction->actors[j];
+        if (actor_is_alive(actor)) {
+            actor_end_turn(actor);
         }
     }
 }
 
-void game_end_all_unit_turns(TroopGroup *troop_groups, int num_groups, Faction *faction) {
-    for (int i = 0; i < num_groups; i++) {
-        if (troop_groups[i].faction == faction) {
-            for (int j = 0; j < troop_groups[i].count; j++) {
-                Actor *actor = &troop_groups[i].troops[j];
-                if (actor_is_alive(actor)) {
-                    actor_end_turn(actor);
-                }
-            }
-        }
-    }
-}
-
-bool game_faction_has_actions_remaining(TroopGroup *troop_groups, int num_groups, Faction *faction) {
-    for (int i = 0; i < num_groups; i++) {
-        if (troop_groups[i].faction == faction) {
-            for (int j = 0; j < troop_groups[i].count; j++) {
-                Actor *actor = &troop_groups[i].troops[j];
-                if (actor_is_alive(actor) && actor_can_perform_action(actor)) {
-                    return true;
-                }
-            }
+bool game_faction_has_actions_remaining(Faction *faction) {
+    if (faction == NULL) return false;
+    for (int j = 0; j < faction->actor_count; j++) {
+        Actor *actor = &faction->actors[j];
+        if (actor_is_alive(actor) && actor_can_perform_action(actor)) {
+            return true;
         }
     }
     return false;
@@ -340,36 +321,28 @@ bool game_faction_has_actions_remaining(TroopGroup *troop_groups, int num_groups
 // Victory Condition Checking
 // ============================================================================
 
-bool game_check_victory_conditions(GameState *state, TroopGroup *troop_groups, int num_groups) {
+bool game_check_victory_conditions(GameState *state) {
     int factions_alive = 0;
-    
+
     // Count how many factions still have units
     for (int i = 0; i < state->num_factions; i++) {
-        if (!game_is_faction_defeated(troop_groups, num_groups, &state->factions[i])) {
+        if (!game_is_faction_defeated(&state->factions[i])) {
             factions_alive++;
         }
     }
-    
+
     // Victory if only one faction remains
     return factions_alive <= 1;
 }
-
-bool game_is_faction_defeated(TroopGroup *troop_groups, int num_groups, Faction *faction) {
-    for (int i = 0; i < num_groups; i++) {
-        if (troop_groups[i].faction == faction) {
-            int alive_count = troop_group_count_alive(&troop_groups[i]);
-            if (alive_count > 0) {
-                return false; // Faction still has units alive
-            }
-        }
-    }
-    return true; // Faction has no units alive
+bool game_is_faction_defeated(Faction *faction) {
+    if (faction == NULL) return true;
+    int alive_count = faction_count_alive(faction);
+    return alive_count == 0;
 }
-
-Faction *game_get_winner(GameState *state, TroopGroup *troop_groups, int num_groups) {
+Faction *game_get_winner(GameState *state) {
     // Find the faction that still has units alive
     for (int i = 0; i < state->num_factions; i++) {
-        if (!game_is_faction_defeated(troop_groups, num_groups, &state->factions[i])) {
+        if (!game_is_faction_defeated(&state->factions[i])) {
             return &state->factions[i];
         }
     }
@@ -404,17 +377,11 @@ const char *game_get_phase_name(GamePhase phase) {
 }
 
 // ============================================================================
-// Troop Group Utilities
+// ============================================================================
+// Faction / troop utilities
 // ============================================================================
 
-TroopGroup troop_group_create(Actor *troops, int count, Faction *faction) {
-    TroopGroup group;
-    group.troops = troops;
-    group.count = count;
-    group.faction = faction;
-    return group;
-}
-
-int troop_group_count_alive(TroopGroup *group) {
-    return actor_array_count_alive(group->troops, group->count);
+int faction_count_alive(Faction *faction) {
+    if (faction == NULL) return 0;
+    return actor_array_count_alive(faction->actors, faction->actor_count);
 }

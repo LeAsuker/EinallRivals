@@ -100,24 +100,20 @@ int main(void) {
       mapArr, grid_config, terrains, TERRAIN_COUNT,
       structure_sprites, unit_sprites, &factions[2], &gaia_warg_count);
 
+  // Assign actor arrays to their owning factions
+  factions[0].actors = dark_troops;
+  factions[0].actor_count = DARK_TROOP_NUM;
+
+  factions[1].actors = vent_troops;
+  factions[1].actor_count = VENT_TROOP_NUM;
+
+  if (gaia_wargs != NULL && gaia_warg_count > 0) {
+    factions[2].actors = gaia_wargs;
+    factions[2].actor_count = gaia_warg_count;
+  }
+
   // Initialize game state
   GameState *game_state = game_state_create(factions, num_factions);
-
-  TroopGroup troop_groups[] = {
-      troop_group_create(dark_troops, DARK_TROOP_NUM, &factions[0]),
-      troop_group_create(vent_troops, VENT_TROOP_NUM, &factions[1])
-  };
-  int num_groups = sizeof(troop_groups) / sizeof(TroopGroup);
-
-  // If Gaia wargs were created, add them as a troop group so game logic tracks them
-  TroopGroup *troop_groups_ext = NULL;
-  int num_groups_ext = num_groups;
-  if (gaia_wargs != NULL && gaia_warg_count > 0) {
-    troop_groups_ext = malloc(sizeof(TroopGroup) * (num_groups + 1));
-    memcpy(troop_groups_ext, troop_groups, sizeof(TroopGroup) * num_groups);
-    troop_groups_ext[num_groups] = troop_group_create(gaia_wargs, gaia_warg_count, &factions[2]);
-    num_groups_ext = num_groups + 1;
-  }
 
   // Initialize input
   InputState input_state;
@@ -138,7 +134,7 @@ int main(void) {
     
     // If it's an AI faction's turn, process AI actions automatically
     if (!game_is_player_turn(game_state) && !game_is_over(game_state)) {
-      game_process_ai_turn(game_state, troop_groups_ext != NULL ? troop_groups_ext : troop_groups, num_groups_ext, mapArr, grid_config);
+      game_process_ai_turn(game_state, mapArr, grid_config);
       continue; // skip player input/render frame; AI processing and turn advancement handled
     }
     button_is_pressed = IsMouseButtonDown(MOUSE_BUTTON_LEFT) && 
@@ -153,7 +149,7 @@ int main(void) {
     }
 
     if (input_state.end_turn_requested) {
-      game_end_current_turn(game_state, troop_groups_ext != NULL ? troop_groups_ext : troop_groups, num_groups_ext);
+      game_end_current_turn(game_state);
     }
 
     render_game_full(&render_ctx, mapArr, input_state.focused_cell,
@@ -162,16 +158,21 @@ int main(void) {
 
   // Cleanup
   map_free(mapArr);
-  actor_array_free(dark_troops, DARK_TROOP_NUM);
-  actor_array_free(vent_troops, VENT_TROOP_NUM);
-  if (gaia_wargs != NULL) free(gaia_wargs);
+  // Free faction-owned actor arrays
+  for (int i = 0; i < num_factions; i++) {
+    if (factions[i].actors != NULL) {
+      actor_array_free(factions[i].actors, factions[i].actor_count);
+      factions[i].actors = NULL;
+      factions[i].actor_count = 0;
+    }
+  }
   game_state_free(game_state);
   unit_sprites_unload(&unit_sprites);
   structure_sprites_unload(&structure_sprites);
   terrain_unload_all(terrains, TERRAIN_COUNT);
   free(grid_config);
 
-  if (troop_groups_ext != NULL) free(troop_groups_ext);
+  // troop_groups removed; no extra cleanup required
 
   CloseWindow();
   return 0;
