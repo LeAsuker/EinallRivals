@@ -30,6 +30,9 @@ void input_init(InputState *state) {
         button_init(&state->action_buttons[i], 0, 0, 0, 0);
         state->action_clicked[i] = false;
     }
+    // Track initial screen size for resize detection
+    state->last_screen_width = GetScreenWidth();
+    state->last_screen_height = GetScreenHeight();
 }
 
 void input_update(InputState *state, GridConfig *grid_config, Point *map) {
@@ -39,6 +42,15 @@ void input_update(InputState *state, GridConfig *grid_config, Point *map) {
     // Check for mouse button presses
     state->left_click = IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
     state->right_click = IsMouseButtonPressed(MOUSE_BUTTON_RIGHT);
+
+    // If the window size changed, recompute button layout once
+    int cur_w = GetScreenWidth();
+    int cur_h = GetScreenHeight();
+    if (cur_w != state->last_screen_width || cur_h != state->last_screen_height) {
+        input_layout_buttons(state, grid_config);
+        state->last_screen_width = cur_w;
+        state->last_screen_height = cur_h;
+    }
     
     // Update end-turn button bounds based on grid layout, then update its
     // Update pressed state and end-turn request based on stored rects
@@ -87,6 +99,17 @@ void input_layout_buttons(InputState *state, GridConfig *grid_config) {
         state->action_buttons[i].border_color = GRAY;
         state->action_buttons[i].border_thickness = 1;
     }
+}
+
+int input_get_clicked_action(InputState *state) {
+    for (int i = 0; i < ACTION_BUTTON_COUNT; i++) {
+        if (state->action_clicked[i]) {
+            // Consume click
+            state->action_clicked[i] = false;
+            return i;
+        }
+    }
+    return -1;
 }
 
     // Could add keyboard shortcuts here, e.g.:

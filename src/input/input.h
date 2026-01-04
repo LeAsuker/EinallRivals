@@ -25,6 +25,9 @@ typedef struct {
     // and tracked by the input system.
     Button action_buttons[ACTION_BUTTON_COUNT];
     bool action_clicked[ACTION_BUTTON_COUNT];
+    // Track last known screen size to detect window resizes and re-layout
+    int last_screen_width;
+    int last_screen_height;
 } InputState;
 
 // Initialize input state
@@ -38,6 +41,10 @@ void input_layout_buttons(InputState *state, GridConfig *grid_config);
 // Update input state based on current frame's input
 // Returns the cell currently under the mouse cursor
 void input_update(InputState *state, GridConfig *grid_config, Point *map);
+
+// Return index of the first action button that was clicked this frame,
+// or -1 if none. This consumes the click state (clears the flag).
+int input_get_clicked_action(InputState *state);
 
 // Handle left click selection logic
 void input_handle_selection(InputState *state, GridConfig *grid_config, Point *map);
