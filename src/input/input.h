@@ -4,6 +4,7 @@
 #include "types.h"
 #include "game/combat.h"
 #include "render/rendering.h"
+#include "ui/button.h"
 #include <stdbool.h>
 
 // Input state structure - tracks what actions the player wants to take
@@ -13,6 +14,9 @@ typedef struct {
     bool left_click;           // True if left mouse button was just pressed
     bool right_click;          // True if right mouse button was just pressed
     bool end_turn_requested;   // True if player wants to end turn
+
+    // End-turn button instance (refactored to use Button API)
+    Button end_turn_button;
 } InputState;
 
 // Initialize input state
@@ -30,5 +34,9 @@ void input_handle_movement(InputState *state, GridConfig *grid_config, Point *ma
 
 // Check if mouse is over the end turn button
 bool input_is_mouse_over_end_turn_button(RenderContext *ctx);
+
+// Check if the mouse is over the map area (returns true if the cursor
+// is inside the grid bounds, false otherwise)
+bool input_is_mouse_over_map(GridConfig *grid_config);
 
 #endif

@@ -134,8 +134,8 @@ int main(void) {
       game_process_ai_turn(game_state, mapArr, grid_config);
       continue; // skip player input/render frame; AI processing and turn advancement handled
     }
-    button_is_pressed = IsMouseButtonDown(MOUSE_BUTTON_LEFT) && 
-                        input_is_mouse_over_end_turn_button(&render_ctx);
+    // Use the End Turn button's pressed state (updated in input_update)
+    button_is_pressed = input_state.end_turn_button.pressed;
     
     if (input_state.left_click) {
       input_handle_selection(&input_state, grid_config, mapArr);

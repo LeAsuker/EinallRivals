@@ -19,6 +19,11 @@ void input_init(InputState *state) {
     state->left_click = false;
     state->right_click = false;
     state->end_turn_requested = false;
+
+    // Initialize end-turn button with a sensible default rect. The exact
+    // position/size will be updated every frame in input_update based on
+    // the current GridConfig so we don't need layout data here.
+    button_init(&state->end_turn_button, 0, 0, 0, 0);
 }
 
 void input_update(InputState *state, GridConfig *grid_config, Point *map) {
@@ -29,16 +34,24 @@ void input_update(InputState *state, GridConfig *grid_config, Point *map) {
     state->left_click = IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
     state->right_click = IsMouseButtonPressed(MOUSE_BUTTON_RIGHT);
     
-    // Check for end turn button (you can add keyboard shortcut here too)
+    // Update end-turn button bounds based on grid layout, then update its
+    // pressed state and derive end_turn_requested from click events.
     {
-        RenderContext tmp_ctx;
-        tmp_ctx.grid_offset_x = grid_config->grid_offset_x;
-        tmp_ctx.grid_offset_y = grid_config->grid_offset_y;
-        tmp_ctx.grid_cell_size = grid_config->grid_cell_size;
-        tmp_ctx.grid_cells_x = grid_config->max_grid_cells_x;
-        tmp_ctx.grid_cells_y = grid_config->max_grid_cells_y;
+        // Compute the same rectangle that the UI uses for the end-turn button
+        int button_x = grid_config->max_grid_cells_x * grid_config->grid_cell_size +
+                       grid_config->grid_offset_x + 20;
+        int button_y = grid_config->grid_offset_y +
+                       (grid_config->max_grid_cells_y - 2) * grid_config->grid_cell_size;
+        int button_width = grid_config->grid_cell_size * 8;
+        int button_height = grid_config->grid_cell_size * 5;
 
-        if (state->left_click && input_is_mouse_over_end_turn_button(&tmp_ctx)) {
+        button_set_rect(&state->end_turn_button, button_x, button_y, button_width, button_height);
+
+        // Update pressed state (true while holding the mouse down over the button)
+        button_update(&state->end_turn_button, IsMouseButtonDown(MOUSE_BUTTON_LEFT));
+
+        // Register an end turn request when the left mouse button was *pressed* this frame
+        if (state->left_click && button_is_mouse_over(&state->end_turn_button)) {
             state->end_turn_requested = true;
         } else {
             state->end_turn_requested = false;
@@ -108,33 +121,51 @@ void input_handle_movement(InputState *state, GridConfig *grid_config, Point *ma
 }
 
 bool input_is_mouse_over_end_turn_button(RenderContext *ctx) {
-    // End turn button position (matching your original code)
-    int button_x = ctx->grid_cells_x * ctx->grid_cell_size + 
-                   ctx->grid_offset_x + 20;
-    int button_y = ctx->grid_offset_y + 
-                   (ctx->grid_cells_y - 2) * ctx->grid_cell_size;
-    
-    // Button dimensions (approximate - adjust based on your UI)
-    int button_width = ctx->grid_cell_size * 8;
-    int button_height = ctx->grid_cell_size * 5;
-    
-    int mouse_x = GetMouseX();
-    int mouse_y = GetMouseY();
-    
-    return (mouse_x >= button_x && mouse_x <= button_x + button_width &&
-            mouse_y >= button_y && mouse_y <= button_y + button_height);
+    // Create a temporary button using the same layout rules and query it.
+    Button tmp;
+    button_init(&tmp,
+                ctx->grid_cells_x * ctx->grid_cell_size + ctx->grid_offset_x + 20,
+                ctx->grid_offset_y + (ctx->grid_cells_y - 2) * ctx->grid_cell_size,
+                ctx->grid_cell_size * 8,
+                ctx->grid_cell_size * 5);
+
+    return button_is_mouse_over(&tmp);
 }
 
 // ============================================================================
 // Internal helper functions
 // ============================================================================
 
+bool input_is_mouse_over_map(GridConfig *grid_config) {
+    int mouse_x = GetMouseX();
+    int mouse_y = GetMouseY();
+
+    int left = grid_config->grid_offset_x;
+    int top = grid_config->grid_offset_y;
+    int right = left + grid_config->grid_cell_size * grid_config->max_grid_cells_x;
+    int bottom = top + grid_config->grid_cell_size * grid_config->max_grid_cells_y;
+
+    return (mouse_x >= left && mouse_x < right &&
+            mouse_y >= top && mouse_y < bottom);
+}
+
 static Point *mouse_to_cell(GridConfig *grid_config, Point *map) {
-    int x = (safe_mouse_x(grid_config) - grid_config->grid_offset_x) / 
+    // If the mouse is outside the map area, don't compute a cell index.
+    // This prevents accidental selection/focus changes when interacting
+    // with UI elements outside the grid (including the end turn button
+    // or any future interactive UI elements).
+    if (!input_is_mouse_over_map(grid_config)) return NULL;
+
+    int x = (GetMouseX() - grid_config->grid_offset_x) /
             grid_config->grid_cell_size;
-    int y = (safe_mouse_y(grid_config) - grid_config->grid_offset_y) / 
+    int y = (GetMouseY() - grid_config->grid_offset_y) /
             grid_config->grid_cell_size;
-    
+
+    if (x < 0 || x >= grid_config->max_grid_cells_x ||
+        y < 0 || y >= grid_config->max_grid_cells_y) {
+        return NULL;
+    }
+
     return map + grid_config->max_grid_cells_x * y + x;
 }
 
