@@ -125,7 +125,7 @@ int main(void) {
     
     if (game_is_over(game_state)) {
       render_game(&render_ctx, mapArr, input_state.focused_cell, 
-                       current_faction, &input_state.end_turn_button, input_state.action_buttons, ACTION_BUTTON_COUNT);
+                       current_faction, &input_state, &input_state.end_turn_button, input_state.action_buttons, ACTION_BUTTON_COUNT);
       continue;
     }
 
@@ -152,7 +152,7 @@ int main(void) {
 
     // renders only after first click to avoid null focused_cell
     render_game(&render_ctx, mapArr, input_state.focused_cell,
-         current_faction, &input_state.end_turn_button, input_state.action_buttons, ACTION_BUTTON_COUNT);
+         current_faction, &input_state, &input_state.end_turn_button, input_state.action_buttons, ACTION_BUTTON_COUNT);
   }
 
   // Cleanup

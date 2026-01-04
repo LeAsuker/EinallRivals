@@ -1,4 +1,5 @@
 #include "render/rendering.h"
+#include "input/input.h"
 #include "types.h"
 #include <stddef.h>
 #include "ui/button.h"
@@ -26,7 +27,7 @@ void render_init(RenderContext *ctx, GridConfig* grid) {
 
 // New function to render game with full button state
 void render_game(RenderContext *ctx, Point *map, Point *focused_cell, 
-                     Faction *current_faction, struct Button *end_turn_button, struct Button action_buttons[], int action_count) {
+                     Faction *current_faction, InputState *input_state, Button *end_turn_button, Button action_buttons[], int action_count) {
     BeginDrawing();
     ClearBackground(RAYWHITE);
     
@@ -35,7 +36,7 @@ void render_game(RenderContext *ctx, Point *map, Point *focused_cell,
     render_map_border(ctx);
     render_cell_info(ctx, focused_cell);
     render_ui(ctx, current_faction->name, current_faction, end_turn_button);
-    render_actions(ctx, (focused_cell != NULL) ? focused_cell->occupant : NULL, action_buttons, action_count);
+    render_actions(ctx, (focused_cell != NULL) ? focused_cell->occupant : NULL, input_state, action_buttons, action_count);
     
     EndDrawing();
 }
@@ -216,8 +217,9 @@ static void render_ui(RenderContext *ctx, const char *faction_name,
     button_draw(&tmp_btn);
 }
 
-void render_actions(RenderContext *ctx, Actor *actor, struct Button action_buttons[], int action_count) {
-    // Render action panels to the right of the map (aligned with UI panel)
+void render_actions(RenderContext *ctx, Actor *actor, InputState *input_state, Button action_buttons[], int action_count) {
+    // Render action panels to the bottom of the map (aligned with UI panel)
+    
     int box_w = ctx->grid_cell_size * 2;
     int box_h = ctx->grid_cell_size * 2;
 
@@ -231,6 +233,9 @@ void render_actions(RenderContext *ctx, Actor *actor, struct Button action_butto
 
         if (actor != NULL && i < actor->skill_count) {
             Skill *s = &actor->skills[i];
+            if (input_state != NULL && input_state->selected_action == i) {
+                DrawThickRectangleLines(bx, by, box_w, box_h, (Color){255, 255, 100, 255}, 5);
+            }
             if (s->icon.id) {
                 Rectangle src = (Rectangle){0, 0, (float)s->icon.width, (float)s->icon.height};
                 Rectangle dst = (Rectangle){(float)bx, (float)by, (float)box_w, (float)box_h};

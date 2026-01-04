@@ -149,7 +149,7 @@ void input_handle_left_click(InputState *state, GridConfig *grid_config, Point *
             selected->occupant = unit;
             focused->occupant = NULL;
             selected->occupant->can_move = false;
-            state->focused_cell = NULL;
+            state->focused_cell = selected; // focus moved unit's new cell
             map_clear_range_flags(map, grid_config);
             return;
         }

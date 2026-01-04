@@ -3,15 +3,18 @@
 
 #include "types.h"
 #include "game/combat.h"
-#include "render/rendering.h"
 #include "ui/button.h"
 #include <stdbool.h>
+#include "game/actions.h"
 
-// Number of action buttons shown under the map
 #define ACTION_BUTTON_COUNT 10
 
+
+// Number of action buttons shown under the map
+typedef struct RenderContext RenderContext;
+
 // Input state structure - tracks what actions the player wants to take
-typedef struct {
+typedef struct InputState {
     Point *selected_cell;      // Cell currently under mouse
     Point *focused_cell;       // Cell that has been clicked/selected
     bool left_click;           // True if left mouse button was just pressed
