@@ -7,6 +7,9 @@
 #include "ui/button.h"
 #include <stdbool.h>
 
+// Number of action buttons shown under the map
+#define ACTION_BUTTON_COUNT 10
+
 // Input state structure - tracks what actions the player wants to take
 typedef struct {
     Point *selected_cell;      // Cell currently under mouse
@@ -17,10 +20,20 @@ typedef struct {
 
     // End-turn button instance (refactored to use Button API)
     Button end_turn_button;
+    
+    // Action buttons (10 slots drawn below the map). These are clickable
+    // and tracked by the input system.
+    Button action_buttons[ACTION_BUTTON_COUNT];
+    bool action_clicked[ACTION_BUTTON_COUNT];
 } InputState;
 
 // Initialize input state
 void input_init(InputState *state);
+
+// Layout input-owned buttons based on the provided grid configuration.
+// Call once after grid/layout is initialized, and again if the grid
+// or UI layout changes (e.g., window resize).
+void input_layout_buttons(InputState *state, GridConfig *grid_config);
 
 // Update input state based on current frame's input
 // Returns the cell currently under the mouse cursor

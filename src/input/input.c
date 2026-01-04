@@ -24,6 +24,12 @@ void input_init(InputState *state) {
     // position/size will be updated every frame in input_update based on
     // the current GridConfig so we don't need layout data here.
     button_init(&state->end_turn_button, 0, 0, 0, 0);
+    
+    // Initialize action buttons
+    for (int i = 0; i < ACTION_BUTTON_COUNT; i++) {
+        button_init(&state->action_buttons[i], 0, 0, 0, 0);
+        state->action_clicked[i] = false;
+    }
 }
 
 void input_update(InputState *state, GridConfig *grid_config, Point *map) {
@@ -35,32 +41,56 @@ void input_update(InputState *state, GridConfig *grid_config, Point *map) {
     state->right_click = IsMouseButtonPressed(MOUSE_BUTTON_RIGHT);
     
     // Update end-turn button bounds based on grid layout, then update its
-    // pressed state and derive end_turn_requested from click events.
-    {
-        // Compute the same rectangle that the UI uses for the end-turn button
-        int button_x = grid_config->max_grid_cells_x * grid_config->grid_cell_size +
-                       grid_config->grid_offset_x + 20;
-        int button_y = grid_config->grid_offset_y +
-                       (grid_config->max_grid_cells_y - 2) * grid_config->grid_cell_size;
-        int button_width = grid_config->grid_cell_size * 8;
-        int button_height = grid_config->grid_cell_size * 5;
-
-        button_set_rect(&state->end_turn_button, button_x, button_y, button_width, button_height);
-
-        // Update pressed state (true while holding the mouse down over the button)
-        button_update(&state->end_turn_button, IsMouseButtonDown(MOUSE_BUTTON_LEFT));
-
-        // Register an end turn request when the left mouse button was *pressed* this frame
-        if (state->left_click && button_is_mouse_over(&state->end_turn_button)) {
-            state->end_turn_requested = true;
-        } else {
-            state->end_turn_requested = false;
-        }
+    // Update pressed state and end-turn request based on stored rects
+    button_update(&state->end_turn_button, IsMouseButtonDown(MOUSE_BUTTON_LEFT));
+    if (state->left_click && button_is_mouse_over(&state->end_turn_button)) {
+        state->end_turn_requested = true;
+    } else {
+        state->end_turn_requested = false;
     }
     
+    // Update action buttons pressed/clicked state based on previously laid-out rects
+    for (int i = 0; i < ACTION_BUTTON_COUNT; i++) {
+        button_update(&state->action_buttons[i], IsMouseButtonDown(MOUSE_BUTTON_LEFT));
+        if (state->left_click && button_is_mouse_over(&state->action_buttons[i])) {
+            state->action_clicked[i] = true;
+        } else {
+            state->action_clicked[i] = false;
+        }
+    }
+}
+
+void input_layout_buttons(InputState *state, GridConfig *grid_config) {
+    // Position end-turn button
+    int button_x = grid_config->max_grid_cells_x * grid_config->grid_cell_size +
+                   grid_config->grid_offset_x + 20;
+    int button_y = grid_config->grid_offset_y +
+                   (grid_config->max_grid_cells_y - 2) * grid_config->grid_cell_size;
+    int button_width = grid_config->grid_cell_size * 8;
+    int button_height = grid_config->grid_cell_size * 5;
+    button_set_rect(&state->end_turn_button, button_x, button_y, button_width, button_height);
+
+    // Layout action buttons (10 slots)
+    int actions_x = grid_config->grid_offset_x;
+    int actions_y = grid_config->grid_offset_y + grid_config->max_grid_cells_y * grid_config->grid_cell_size + grid_config->grid_cell_size;
+    int box_w = grid_config->grid_cell_size * 2;
+    int box_h = grid_config->grid_cell_size * 2;
+
+    for (int i = 0; i < ACTION_BUTTON_COUNT; i++) {
+        int bx;
+        if (i < 5) bx = actions_x + i * box_w;
+        else bx = actions_x + 6 * box_w + (i - 5) * box_w;
+        int by = actions_y;
+        button_set_rect(&state->action_buttons[i], bx, by, box_w, box_h);
+        // set default visuals
+        state->action_buttons[i].bg_color = (Color){200,200,200,40};
+        state->action_buttons[i].border_color = GRAY;
+        state->action_buttons[i].border_thickness = 1;
+    }
+}
+
     // Could add keyboard shortcuts here, e.g.:
     // if (IsKeyPressed(KEY_SPACE)) state->end_turn_requested = true;
-}
 
 void input_handle_selection(InputState *state, GridConfig *grid_config, Point *map) {
     if (!state->left_click) return;

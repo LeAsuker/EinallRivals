@@ -1,6 +1,7 @@
 #include "render/rendering.h"
 #include "types.h"
 #include <stddef.h>
+#include "ui/button.h"
 
 static void render_map(RenderContext *ctx, Point *map, Point *focused_cell);
 static bool cell_is_focused(Point *cell, Point *focused_cell);
@@ -11,7 +12,7 @@ static bool cell_is_focused(Point *cell, Point *focused_cell) {
 }
 void render_debug_info(RenderContext *ctx, Point *map);
 void render_cell_info(RenderContext *ctx, Point *focused_cell);
-static void render_ui(RenderContext *ctx, const char *faction_name, Faction *current_faction, bool button_pressed);
+static void render_ui(RenderContext *ctx, const char *faction_name, Faction *current_faction, Button *end_turn_button);
 static void render_map_border(RenderContext *ctx);
 
 void render_init(RenderContext *ctx, GridConfig* grid) {
@@ -25,7 +26,7 @@ void render_init(RenderContext *ctx, GridConfig* grid) {
 
 // New function to render game with full button state
 void render_game(RenderContext *ctx, Point *map, Point *focused_cell, 
-                     Faction *current_faction, bool button_pressed) {
+                     Faction *current_faction, struct Button *end_turn_button, struct Button action_buttons[], int action_count) {
     BeginDrawing();
     ClearBackground(RAYWHITE);
     
@@ -33,8 +34,8 @@ void render_game(RenderContext *ctx, Point *map, Point *focused_cell,
     render_map(ctx, map, focused_cell);
     render_map_border(ctx);
     render_cell_info(ctx, focused_cell);
-    render_ui(ctx, current_faction->name, current_faction, button_pressed);
-    render_actions(ctx, (focused_cell != NULL) ? focused_cell->occupant : NULL);
+    render_ui(ctx, current_faction->name, current_faction, end_turn_button);
+    render_actions(ctx, (focused_cell != NULL) ? focused_cell->occupant : NULL, action_buttons, action_count);
     
     EndDrawing();
 }
@@ -48,18 +49,9 @@ static void render_map_border(RenderContext *ctx) {
     int map_height = ctx->grid_cells_y * ctx->grid_cell_size;
     
     // Draw thick black border around the map
-    DrawRectangleLines(map_x - border_thickness, 
-                      map_y - border_thickness,
-                      map_width + border_thickness * 2,
-                      map_height + border_thickness * 2,
-                      BLACK);
-    
-
-    for (int i = 0; i < border_thickness; i++) {
-    DrawRectangleLines(map_x - border_thickness + i, map_y - border_thickness + i, 
-                        map_width + (border_thickness - i) * 2, map_height + (border_thickness - i) * 2, 
-                        BLACK);
-    }
+    DrawThickRectangleLines(map_x - border_thickness, map_y - border_thickness,
+                            map_width + border_thickness * 2, map_height + border_thickness * 2,
+                            BLACK, border_thickness);
 }
 
 // Private helper function (not in header, only used internally)
@@ -172,17 +164,13 @@ void render_cell_info(RenderContext *ctx, Point *focused_cell) {
 }
 
 static void render_ui(RenderContext *ctx, const char *faction_name,
-                        Faction *current_faction, bool button_pressed) {
+                        Faction *current_faction, Button *end_turn_button) {
 
     int info_x = ctx->grid_cells_x * ctx->grid_cell_size + ctx->grid_offset_x + 20;
     int info_y = ctx->grid_offset_y;
 
     int border_thickness = 3;
-    for (int i = 0; i < border_thickness; i++) {
-        DrawRectangleLines(info_x - i, info_y - i, 
-                          ctx->grid_cell_size * 8 + i * 2, ctx->grid_cell_size * 17 + i * 2, 
-                          BLACK);
-    }
+    DrawThickRectangleLines(info_x, info_y, ctx->grid_cell_size * 8, ctx->grid_cell_size * 17, BLACK, border_thickness);
 
     int ui_x = ctx->grid_cells_x * ctx->grid_cell_size + ctx->grid_offset_x + 20;
     int ui_y = ctx->grid_offset_y + (ctx->grid_cells_y - 2) * ctx->grid_cell_size;
@@ -197,7 +185,7 @@ static void render_ui(RenderContext *ctx, const char *faction_name,
     Color text_color;
     
     if (current_faction != NULL) {
-        if (button_pressed) {
+        if (end_turn_button != NULL && end_turn_button->pressed) {
             // When pressed, use secondary color for background and primary for border
             button_color = current_faction->sec_color;
             border_color = current_faction->prim_color;
@@ -210,47 +198,36 @@ static void render_ui(RenderContext *ctx, const char *faction_name,
         }
     } else {
         // Fallback colors if faction is NULL
-        button_color = button_pressed ? GRAY : DARKGRAY;
+        button_color = (end_turn_button != NULL && end_turn_button->pressed) ? GRAY : DARKGRAY;
         border_color = BLACK;
         text_color = border_color;
     }
     
-    // Draw button background
-    DrawRectangle(ui_x, ui_y, button_width, button_height, button_color);
-    
-    // Draw button border (thick)
-    for (int i = 0; i < border_thickness; i++) {
-        DrawRectangleLines(ui_x - i, ui_y - i, 
-                          button_width + i * 2, button_height + i * 2, 
-                          border_color);
-    }
-    
-    // Draw button text
+    // Use the persistent end_turn_button rect, but update visuals based on faction
+    Button tmp_btn = *end_turn_button;
+    button_set_colors(&tmp_btn, button_color, border_color);
+    button_set_border_thickness(&tmp_btn, border_thickness);
+
+    // Set the label so button_draw will render it centered
     const int text_size = 22;
     const char *button_text = TextFormat("End Turn: %s", faction_name);
-    int text_width = MeasureText(button_text, text_size);
-    int text_x = ui_x + (button_width - text_width) / 2;
-    int text_y = ui_y + (button_height - text_size) / 2;
+    button_set_label(&tmp_btn, button_text, text_size, text_color);
     
-    DrawText(button_text, text_x, text_y, text_size, text_color);
+    button_draw(&tmp_btn);
 }
 
-void render_actions(RenderContext *ctx, Actor *actor) {
+void render_actions(RenderContext *ctx, Actor *actor, struct Button action_buttons[], int action_count) {
     // Render action panels to the right of the map (aligned with UI panel)
-    int actions_x = ctx->grid_offset_x;
-    int actions_y = ctx->grid_offset_y + ctx->grid_cells_y * ctx->grid_cell_size + ctx->grid_cell_size;
-
     int box_w = ctx->grid_cell_size * 2;
     int box_h = ctx->grid_cell_size * 2;
 
+    // Draw the persistent action buttons and icons where applicable
+    for (int i = 0; i < action_count; i++) {
+        Button *b = &action_buttons[i];
+        button_draw(b);
 
-    Color bg = (Color){200, 200, 200, 40};
-    // 5 boxes for skills: draw actor's skill icons where available
-    for (int i = 0; i < 5; i++) {
-        int bx = actions_x + i * box_w;
-        int by = actions_y;
-        DrawRectangle(bx, by, box_w, box_h, bg);
-        DrawRectangleLines(bx, by, box_w, box_h, GRAY);
+        int bx = b->x;
+        int by = b->y;
 
         if (actor != NULL && i < actor->skill_count) {
             Skill *s = &actor->skills[i];
@@ -260,15 +237,9 @@ void render_actions(RenderContext *ctx, Actor *actor) {
                 Vector2 origin = (Vector2){0.0f, 0.0f};
                 DrawTexturePro(s->icon, src, dst, origin, 0.0f, WHITE);
             } else {
-                // No icon: draw a simple inner placeholder
                 DrawRectangle(bx + 4, by + 4, box_w - 8, box_h - 8, (Color){150,150,150,200});
             }
         }
-    }
-
-    for (int i = 0; i < 5; i++) {
-        DrawRectangle(actions_x + 6* box_w + i * box_w, actions_y, box_w, box_h, bg);
-        DrawRectangleLines(actions_x + 6* box_w + i * box_w, actions_y, box_w, box_h, GRAY);
     }
 
 }

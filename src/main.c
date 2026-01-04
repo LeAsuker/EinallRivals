@@ -115,6 +115,8 @@ int main(void) {
   // Initialize input
   InputState input_state;
   input_init(&input_state);
+  // Layout persistent UI buttons now that grid_config is available
+  input_layout_buttons(&input_state, grid_config);
   bool button_is_pressed = false;
 
   // Main game loop
@@ -123,7 +125,7 @@ int main(void) {
     
     if (game_is_over(game_state)) {
       render_game(&render_ctx, mapArr, input_state.focused_cell, 
-                       current_faction, false);
+                       current_faction, &input_state.end_turn_button, input_state.action_buttons, ACTION_BUTTON_COUNT);
       continue;
     }
 
@@ -151,7 +153,7 @@ int main(void) {
 
     // renders only after first click to avoid null focused_cell
     render_game(&render_ctx, mapArr, input_state.focused_cell,
-             current_faction, button_is_pressed);
+         current_faction, &input_state.end_turn_button, input_state.action_buttons, ACTION_BUTTON_COUNT);
   }
 
   // Cleanup
