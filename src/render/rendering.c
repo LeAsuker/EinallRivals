@@ -245,7 +245,7 @@ void render_actions(RenderContext *ctx, Actor *actor, InputState *input_state, B
             if (input_state != NULL && input_state->selected_action == i) {
                 DrawThickRectangleLines(bx, by, box_w, box_h, (Color){255, 255, 100, 255}, 5);
             }
-            if (input_state != NULL && !actor->can_act) {
+            if (input_state != NULL && (!actor->can_act || !actor->owner->has_turn)) {
                 // Dim the icon if actor cannot act
                 DrawRectangle(bx, by, box_w, box_h, (Color){100, 100, 100, 180});
             }
