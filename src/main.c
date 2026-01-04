@@ -142,11 +142,8 @@ int main(void) {
     button_is_pressed = input_state.end_turn_button.pressed;
     
     if (input_state.left_click) {
-      input_handle_selection(&input_state, grid_config, mapArr);
-    }
-
-    if (input_state.right_click) {
-      input_handle_movement(&input_state, grid_config, mapArr);
+      // Handle left-click-based control (movement, actions, focus)
+      input_handle_left_click(&input_state, grid_config, mapArr);
     }
 
     if (input_state.end_turn_requested) {

@@ -34,6 +34,7 @@ void input_init(InputState *state) {
     // Track initial screen size for resize detection
     state->last_screen_width = GetScreenWidth();
     state->last_screen_height = GetScreenHeight();
+    state->selected_action = -1;
 }
 
 void input_update(InputState *state, GridConfig *grid_config, Point *map) {
@@ -117,21 +118,61 @@ void input_handle_action_click(InputState *state, GridConfig *grid_config, Point
     int clicked_action = input_get_clicked_action(state);
     if (clicked_action < 0) return;
 
-    Point *focused = state->focused_cell;
-    Point *selected = state->selected_cell;
-    if (focused == NULL || focused->occupant == NULL) return;
-    Actor *user = focused->occupant;
+    // Toggle selection: clicking an already-selected action disables it.
+    if (state->selected_action == clicked_action) {
+        state->selected_action = -1;
+    } else {
+        state->selected_action = clicked_action;
+    }
+}
 
-    if (clicked_action < user->skill_count && selected != NULL && selected->occupant != NULL) {
-        Skill *s = &user->skills[clicked_action];
-        if (actor_is_enemy(user, selected->occupant)) {
-            // Execute skill using actions API
-            execute_skill_at_cells(grid_config, map, focused, selected, s);
-            // Mirror existing behavior: clear focus and flags
+void input_handle_left_click(InputState *state, GridConfig *grid_config, Point *map) {
+    // Must have a cell under mouse to do map interactions
+    Point *selected = state->selected_cell;
+    if (selected == NULL) return;
+
+    Point *focused = state->focused_cell;
+
+    // If clicked the focused cell -> clear focus
+    if (focused != NULL && selected->x == focused->x && selected->y == focused->y) {
+        state->focused_cell = NULL;
+        cell_flag_flush(map, grid_config);
+        return;
+    }
+
+    // If there is a focused unit, try movement first
+    if (focused != NULL && focused->occupant != NULL) {
+        Actor *unit = focused->occupant;
+
+        // Movement: if clicked tile is in movement range and is empty
+        if (selected->in_range && selected->occupant == NULL && unit->can_move && unit->owner->has_turn) {
+            selected->occupant = unit;
+            focused->occupant = NULL;
+            selected->occupant->can_move = false;
             state->focused_cell = NULL;
             map_clear_range_flags(map, grid_config);
+            return;
+        }
+
+        // Action: if an action is selected and clicked tile is in range
+        if (state->selected_action >= 0 && state->selected_action < unit->skill_count) {
+            Skill *s = &unit->skills[state->selected_action];
+            // check target exists and is enemy and within skill range
+            if (selected->occupant != NULL && actor_is_enemy(unit, selected->occupant)) {
+                int dist = abs(focused->x - selected->x) + abs(focused->y - selected->y);
+                if (dist <= s->range && unit->can_act) {
+                    execute_skill_at_cells(grid_config, map, focused, selected, s);
+                    state->selected_action = -1; // consume action
+                    state->focused_cell = NULL;
+                    map_clear_range_flags(map, grid_config);
+                    return;
+                }
+            }
         }
     }
+
+    // Default: focus the clicked cell
+    handle_cell_selection(grid_config, map, selected, &state->focused_cell);
 }
 
     // Could add keyboard shortcuts here, e.g.:

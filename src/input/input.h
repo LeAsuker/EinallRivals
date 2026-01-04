@@ -28,6 +28,8 @@ typedef struct {
     // Track last known screen size to detect window resizes and re-layout
     int last_screen_width;
     int last_screen_height;
+    // Currently selected action index (-1 = none). Set when clicking action button.
+    int selected_action;
 } InputState;
 
 // Initialize input state
@@ -54,6 +56,10 @@ void input_handle_selection(InputState *state, GridConfig *grid_config, Point *m
 
 // Handle right click movement logic
 void input_handle_movement(InputState *state, GridConfig *grid_config, Point *map);
+
+// Handle a left-click on the map according to game rules (movement, action,
+// focus toggle). Should be called when `state->left_click` is true.
+void input_handle_left_click(InputState *state, GridConfig *grid_config, Point *map);
 
 // Check if mouse is over the end turn button
 bool input_is_mouse_over_end_turn_button(RenderContext *ctx);
