@@ -54,6 +54,11 @@ CombatResult combat_execute(Actor *attacker, Actor *defender) {
     // Grant experience for the engagement (non-kill)
     combat_grant_experience(attacker, defender, false);
 
+    if (attacker->level_up_pending) {
+        actor_level_up(attacker);
+    }
+
+
     // Attacker has used their action
     attacker->can_act = false;
 

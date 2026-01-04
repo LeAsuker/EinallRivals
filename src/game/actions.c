@@ -46,6 +46,24 @@ Skill bite = {
     .icon = {0}
 };
 
+Skill Loot = {
+    .name = "Loot",
+    .id = 103,
+    .damage = 0, // No damage
+    .is_magic = false,
+    .cooldown = 0,
+    .range = 1, 
+    .area_of_effect = NULL,
+    .aoe_size = 0,
+    .icon = {0}
+};
+
+void action_copy_loot(Skill *dest_skill) {
+    if (dest_skill == NULL) return;
+    memcpy(dest_skill, &Loot, sizeof(Skill));
+    return;
+}
+
 void action_copy_bite(Skill *dest_skill) {
     if (dest_skill == NULL) return;
     memcpy(dest_skill, &bite, sizeof(Skill));
@@ -132,4 +150,32 @@ void execute_skill_at_cells(GridConfig *grid_config, Point *map, Point *attacker
 
     // Attacker used their action
     attacker->can_act = false;
+}
+
+void execute_loot_at_cells(GridConfig *grid_config, Point *map, Point *looter_cell, Point *lootable, Skill *skill) {
+    if (looter_cell == NULL || lootable == NULL || skill == NULL) return;
+    if (looter_cell->occupant == NULL) return;
+
+    Actor *looter = looter_cell->occupant;
+    // Looter must be able to act
+    if (!looter->can_act) return;
+    if (lootable->structure == NULL || !lootable->structure->lootable) return; // Must be a lootable structure to loot
+
+    // Check range
+    int dx = abs(looter_cell->x - lootable->x);
+    int dy = abs(looter_cell->y - lootable->y);
+    int dist = dx + dy;
+    if (dist > skill->range) return;
+
+    // Perform loot action
+    printf("%s loots %s at (%d, %d)!\n",
+           looter->name, skill->name, lootable->x, lootable->y);
+
+    // Here you could add logic to give resources/items to the looter
+    // Looter used their action
+    actor_gain_experience(looter, 100); // Example: gain some XP for looting
+    if (looter->level_up_pending) {
+        actor_level_up(looter);
+    }
+    looter->can_act = false;
 }

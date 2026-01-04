@@ -82,43 +82,76 @@ void militia_init(Actor *actor, Faction *owner, Texture2D sprite) {
     actor->skill_count = 0;
     {
         Skill tmp;
+        action_copy_loot(&tmp);
+        action_add_skill_to_actor(actor, &tmp);
         action_copy_spear_strike(&tmp);
+        action_add_skill_to_actor(actor, &tmp);
+    }
+}
+
+void warg_init(Actor *actor, Faction *owner, Texture2D sprite) {
+    actor->sprite = sprite;
+    actor->owner = owner;
+    
+    // Initialize action flags
+    actor->can_move = true;
+    actor->can_act = true;
+    
+    // Initialize level and experience
+    actor->level = 1;
+    actor->next_level_xp = 100;
+    
+    // Initialize stats from default template
+    strcpy(actor->name, DEFAULT_WARG.name);
+    actor->max_health = DEFAULT_WARG.max_health;
+    actor->curr_health = DEFAULT_WARG.max_health;
+    actor->movement = DEFAULT_WARG.movement;
+    actor->phys_attack = DEFAULT_WARG.phys_attack;
+    actor->phys_defense = DEFAULT_WARG.phys_defense;
+    actor->magic_attack = DEFAULT_WARG.magic_attack;
+    actor->magic_defense = DEFAULT_WARG.magic_defense;
+    actor->luck = DEFAULT_WARG.luck;
+    actor->attack_range = DEFAULT_WARG.attack_range;
+    // Initialize skills
+    actor->skill_count = 0;
+    {
+        Skill tmp;
+        action_copy_bite(&tmp);
         action_add_skill_to_actor(actor, &tmp);
     }
 }
 
 void actor_init_from_template(Actor *actor, Faction *owner, 
                               Texture2D sprite, ActorTemplate *template) {
-    actor->sprite = sprite;
-    actor->owner = owner;
-    
-    actor->can_move = true;
-    actor->can_act = true;
-    
-    actor->level = 1;
-    actor->next_level_xp = 100;
-    
-    // Use template stats
-    strcpy(actor->name, template->name);
-    actor->max_health = template->max_health;
-    actor->curr_health = template->max_health;
-    actor->movement = template->movement;
-    actor->phys_attack = template->phys_attack;
-    actor->phys_defense = template->phys_defense;
-    actor->magic_attack = template->magic_attack;
-    actor->magic_defense = template->magic_defense;
-    actor->luck = template->luck;
-    actor->attack_range = template->attack_range;
-    // Initialize skills and assign based on template name
-    actor->skill_count = 0;
     if (strcmp(template->name, "Militia") == 0) {
-        Skill tmp;
-        action_copy_spear_strike(&tmp);
-        action_add_skill_to_actor(actor, &tmp);
+        militia_init(actor, owner, sprite); // Add default militia skills
     } else if (strcmp(template->name, "Warg") == 0) {
-        Skill tmp;
-        action_copy_bite(&tmp);
-        action_add_skill_to_actor(actor, &tmp);
+        warg_init(actor, owner, sprite); // Add default warg skills
+    } else {
+        actor->sprite = sprite;
+        actor->owner = owner;
+        
+        // Initialize action flags
+        actor->can_move = true;
+        actor->can_act = true;
+        
+        // Initialize level and experience
+        actor->level = 1;
+        actor->next_level_xp = 100;
+        
+        // Initialize stats from template
+        strcpy(actor->name, template->name);
+        actor->max_health = template->max_health;
+        actor->curr_health = template->max_health;
+        actor->movement = template->movement;
+        actor->phys_attack = template->phys_attack;
+        actor->phys_defense = template->phys_defense;
+        actor->magic_attack = template->magic_attack;
+        actor->magic_defense = template->magic_defense;
+        actor->luck = template->luck;
+        actor->attack_range = template->attack_range;
+        // Initialize skills
+        actor->skill_count = 0;
     }
 }
 
@@ -188,7 +221,6 @@ void actor_gain_experience(Actor *actor, int xp) {
     if (actor->next_level_xp <= 0) {
         actor->next_level_xp = 0;
         actor->level_up_pending = true;
-        printf("%s has enough experience to level up (manual).\n", actor->name);
     }
 }
 
