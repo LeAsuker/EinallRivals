@@ -19,5 +19,5 @@ void actions_unload_icons(void);
 // based on the Skill and the attacker's stats, grants experience, and updates
 // unit/action state.
 void execute_skill_at_cells(GridConfig *grid_config, Point *map, Point *attacker_cell, Point *defender_cell, Skill *skill);
-
+void execute_loot_at_cells(GridConfig *grid_config, Point *map, Point *looter_cell, Point *lootable, Skill *skill);
 #endif

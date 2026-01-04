@@ -145,7 +145,10 @@ void input_handle_left_click(InputState *state, GridConfig *grid_config, Point *
         Actor *unit = focused->occupant;
 
         // Movement: if clicked tile is in movement range and is empty
-        if (selected->in_range && selected->occupant == NULL && unit->can_move && unit->owner->has_turn) {
+        if (selected->in_range && unit->can_move && unit->owner->has_turn
+        && map_can_unit_enter_cell(selected, unit)) {
+            printf("Moving unit %s from (%d,%d) to (%d,%d)\n", 
+                   unit->name, focused->x, focused->y, selected->x, selected->y);
             selected->occupant = unit;
             focused->occupant = NULL;
             selected->occupant->can_move = false;
@@ -160,8 +163,25 @@ void input_handle_left_click(InputState *state, GridConfig *grid_config, Point *
         // Action: if an action is selected and clicked tile is in range
         if (state->selected_action >= 0 && state->selected_action < unit->skill_count) {
             Skill *s = &unit->skills[state->selected_action];
+            printf("Attempting to use skill %s from (%d,%d) to (%d,%d)\n",
+                   s->name, focused->x, focused->y, selected->x, selected->y);
             // check target exists and is enemy and within skill range
-            if (selected->occupant != NULL && actor_is_enemy(unit, selected->occupant)) {
+            if (s->id == 103) { // Loot skill special case: must target empty cell with structure
+                printf("Using loot skill logic\n");
+                if (selected->occupant == NULL && selected->structure != NULL) {
+                    printf("Executing loot skill on structure %s at (%d,%d)\n",
+                           selected->structure->name, selected->x, selected->y);
+                    execute_loot_at_cells(grid_config, map, focused, selected, s);
+                    state->selected_action = -1; // consume action
+                    state->focused_cell = NULL;
+                    map_clear_range_flags(map, grid_config);
+                    if (selected->occupant != NULL && selected->occupant->can_move && selected->occupant->owner->has_turn) {
+                        map_calculate_movement_range(grid_config, map, focused, selected->occupant->movement, true);
+                    }
+                    return;
+                }
+            }
+            else if (selected->occupant != NULL && actor_is_enemy(unit, selected->occupant)) {
                 int dist = abs(focused->x - selected->x) + abs(focused->y - selected->y);
                 if (dist <= s->range && unit->can_act) {
                     execute_skill_at_cells(grid_config, map, focused, selected, s);

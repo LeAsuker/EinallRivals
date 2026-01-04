@@ -178,4 +178,5 @@ void execute_loot_at_cells(GridConfig *grid_config, Point *map, Point *looter_ce
         actor_level_up(looter);
     }
     looter->can_act = false;
+    lootable->structure->lootable = false; // Mark structure as looted
 }
