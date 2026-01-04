@@ -108,3 +108,31 @@ Actor *structure_generation_spawn_wargs_around_lairs(Point *mapArr, GridConfig *
 
     return gaia_wargs;
 }
+
+int structure_generation_place_abandoned_huts(Point *mapArr, GridConfig *grid_config,
+                                          Terrain *terrains, int terrain_count,
+                                          StructureSprites structure_sprites) {
+    // Placeholder for future structure placements
+    if (mapArr == NULL || grid_config == NULL || terrains == NULL) return 0;
+
+    int num_huts = (rand() % 5) + 6; // 4..6
+    int huts_placed = 0;
+    int attempts = 0;
+
+    while (huts_placed < num_huts && attempts < 1000) {
+        attempts++;
+        Point *candidate = map_get_random_cell(mapArr, grid_config);
+        if (candidate == NULL) continue;
+        if (candidate->terrain.passable != true) continue;
+        if (candidate->occupant != NULL || candidate->structure != NULL) continue;
+
+        // Place abandoned hut structure only
+        Structure *hut = structure_create(structure_sprites.abandoned_hut, "Abandoned Hut", false, true);
+        if (hut == NULL) continue;
+        map_place_structure(mapArr, grid_config, candidate->x, candidate->y, hut);
+
+        huts_placed++;
+    }
+
+    return huts_placed;
+}

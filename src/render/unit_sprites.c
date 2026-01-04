@@ -28,6 +28,7 @@ void unit_sprites_unload(UnitSprites *sprites) {
 StructureSprites structure_sprites_load(int cell_size) {
     StructureSprites sprites;
     sprites.warg_lair = load_unit_texture("../../resources/structures/warg_lair.png", cell_size);
+    sprites.abandoned_hut = load_unit_texture("../../resources/structures/abandoned_hut.png", cell_size);
     return sprites;
 }
 

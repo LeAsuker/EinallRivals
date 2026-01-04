@@ -109,6 +109,8 @@ int main(void) {
     }
   }
 
+  int huts = structure_generation_place_abandoned_huts(mapArr, grid_config, terrains, TERRAIN_COUNT, structure_sprites);
+
   // Initialize game state
   GameState *game_state = game_state_create(factions, num_factions);
 

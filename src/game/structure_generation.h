@@ -18,4 +18,8 @@ Actor *structure_generation_spawn_wargs_around_lairs(Point *mapArr, GridConfig *
                                                      Faction *gaia_faction,
                                                      int *out_warg_count);
 
+// Places several Abandoned Huts on the map. Returns the number of huts placed.
+int structure_generation_place_abandoned_huts(Point *mapArr, GridConfig *grid_config,
+                                          Terrain *terrains, int terrain_count,
+                                          StructureSprites structure_sprites);
 #endif

@@ -5,6 +5,7 @@
 
 typedef struct {
     Texture2D warg_lair;
+    Texture2D abandoned_hut;
 } StructureSprites;
 
 StructureSprites structure_sprites_load(int cell_size);
