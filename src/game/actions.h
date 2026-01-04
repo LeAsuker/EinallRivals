@@ -14,4 +14,9 @@ void action_add_skill_to_actor(Actor *actor, Skill *skill);
 void actions_load_icons(void);
 void actions_unload_icons(void);
 
+// Execute a skill from attacker_cell onto defender_cell. This applies damage
+// based on the Skill and the attacker's stats, grants experience, and updates
+// unit/action state.
+void execute_skill_at_cells(GridConfig *grid_config, Point *map, Point *attacker_cell, Point *defender_cell, Skill *skill);
+
 #endif

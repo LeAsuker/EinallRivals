@@ -136,6 +136,8 @@ int main(void) {
       game_process_ai_turn(game_state, mapArr, grid_config);
       continue; // skip player input/render frame; AI processing and turn advancement handled
     }
+    // Let input subsystem process action clicks (executes skills when applicable)
+    input_handle_action_click(&input_state, grid_config, mapArr);
     // Use the End Turn button's pressed state (updated in input_update)
     button_is_pressed = input_state.end_turn_button.pressed;
     

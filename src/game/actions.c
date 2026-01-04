@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "raylib.h"
+#include "game/combat.h"
+#include <stdio.h>
+#include "game/actor.h"
 
 
 void skill_free(Skill *skill) {
@@ -82,4 +85,51 @@ void action_add_skill_to_actor(Actor *actor, Skill *skill) {
     action_set_damage(skill, actor);
     actor->skills[actor->skill_count] = *skill;
     actor->skill_count++;
+}
+
+void execute_skill_at_cells(GridConfig *grid_config, Point *map, Point *attacker_cell, Point *defender_cell, Skill *skill) {
+    if (attacker_cell == NULL || defender_cell == NULL || skill == NULL) return;
+    if (attacker_cell->occupant == NULL || defender_cell->occupant == NULL) return;
+
+    Actor *attacker = attacker_cell->occupant;
+    Actor *defender = defender_cell->occupant;
+
+    // Attacker must be able to act and target must be enemy
+    if (!attacker->can_act) return;
+    if (!actor_is_enemy(attacker, defender)) return;
+
+    // Check range
+    int dx = abs(attacker_cell->x - defender_cell->x);
+    int dy = abs(attacker_cell->y - defender_cell->y);
+    int dist = dx + dy;
+    if (dist > skill->range) return;
+
+    // Ensure skill damage is set
+    if (skill->damage < 0) action_set_damage(skill, attacker);
+
+    int damage = skill->damage;
+    // Apply damage
+    defender->curr_health -= damage;
+    if (defender->curr_health < 0) defender->curr_health = 0;
+
+    printf("%s uses %s on %s for %d damage! (%s: %d/%d HP)\n",
+           attacker->name, skill->name, defender->name,
+           damage, defender->name, defender->curr_health, defender->max_health);
+
+    // Grant experience
+    bool killed = false;
+    if (defender->curr_health == 0) {
+        killed = true;
+        printf("%s has been defeated!\n", defender->name);
+    }
+    combat_grant_experience(attacker, defender, killed);
+
+    // Update units and map
+    if (killed) {
+        // remove dead unit from map
+        defender_cell->occupant = NULL;
+    }
+
+    // Attacker used their action
+    attacker->can_act = false;
 }

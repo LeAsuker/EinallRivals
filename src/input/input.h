@@ -37,6 +37,9 @@ void input_init(InputState *state);
 // Call once after grid/layout is initialized, and again if the grid
 // or UI layout changes (e.g., window resize).
 void input_layout_buttons(InputState *state, GridConfig *grid_config);
+// Process action clicks and execute skills when applicable. This moves
+// clicked-action handling out of main.c and into the input subsystem.
+void input_handle_action_click(InputState *state, GridConfig *grid_config, Point *map);
 
 // Update input state based on current frame's input
 // Returns the cell currently under the mouse cursor

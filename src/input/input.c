@@ -5,6 +5,7 @@
 #include "game/map.h"
 #include "game/actor.h"
 #include "render/rendering.h"
+#include "game/actions.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -112,6 +113,27 @@ int input_get_clicked_action(InputState *state) {
     return -1;
 }
 
+void input_handle_action_click(InputState *state, GridConfig *grid_config, Point *map) {
+    int clicked_action = input_get_clicked_action(state);
+    if (clicked_action < 0) return;
+
+    Point *focused = state->focused_cell;
+    Point *selected = state->selected_cell;
+    if (focused == NULL || focused->occupant == NULL) return;
+    Actor *user = focused->occupant;
+
+    if (clicked_action < user->skill_count && selected != NULL && selected->occupant != NULL) {
+        Skill *s = &user->skills[clicked_action];
+        if (actor_is_enemy(user, selected->occupant)) {
+            // Execute skill using actions API
+            execute_skill_at_cells(grid_config, map, focused, selected, s);
+            // Mirror existing behavior: clear focus and flags
+            state->focused_cell = NULL;
+            map_clear_range_flags(map, grid_config);
+        }
+    }
+}
+
     // Could add keyboard shortcuts here, e.g.:
     // if (IsKeyPressed(KEY_SPACE)) state->end_turn_requested = true;
 
@@ -126,32 +148,12 @@ void input_handle_selection(InputState *state, GridConfig *grid_config, Point *m
 }
 
 void input_handle_movement(InputState *state, GridConfig *grid_config, Point *map) {
-    if (!state->right_click) return;
+    if (!state->left_click) return;
     if (state->selected_cell == NULL) return;
     if (state->focused_cell == NULL) return;
     
     Point *focused = state->focused_cell;
     Point *selected = state->selected_cell;
-    
-    // Check if right-clicking on an enemy (attack)
-    if (focused->occupant != NULL &&
-        selected->occupant != NULL &&
-        actor_is_enemy(focused->occupant, selected->occupant) &&
-        focused->occupant->owner->has_turn &&
-        focused->occupant->can_act) {
-        
-        // Check if enemy is in attack range
-        if (combat_can_attack(grid_config, map, focused, selected)) {
-            printf("\n=== COMBAT ===\n");
-            CombatResult result = combat_execute_at_cells(grid_config, map, focused, selected);
-            printf("=== END COMBAT ===\n\n");
-            
-            // Clear focus after combat
-            state->focused_cell = NULL;
-            map_clear_range_flags(map, grid_config);
-            return;
-        }
-    }
     
     // Check if movement is valid (existing code)
     if (focused->occupant != NULL &&
@@ -169,7 +171,7 @@ void input_handle_movement(InputState *state, GridConfig *grid_config, Point *ma
         state->focused_cell = NULL;
     }
     
-    // Always flush flags on right click
+    // Always flush flags on left click
     map_clear_range_flags(map, grid_config);
 }
 
