@@ -151,6 +151,9 @@ void input_handle_left_click(InputState *state, GridConfig *grid_config, Point *
             selected->occupant->can_move = false;
             state->focused_cell = selected; // focus moved unit's new cell
             map_clear_range_flags(map, grid_config);
+            if (selected->occupant != NULL && selected->occupant->can_act && selected->occupant->owner->has_turn) {
+                map_calculate_attack_range(grid_config, map, selected, selected->occupant->attack_range, true);
+            }
             return;
         }
 
@@ -165,6 +168,9 @@ void input_handle_left_click(InputState *state, GridConfig *grid_config, Point *
                     state->selected_action = -1; // consume action
                     state->focused_cell = NULL;
                     map_clear_range_flags(map, grid_config);
+                    if (selected->occupant != NULL && selected->occupant->can_move && selected->occupant->owner->has_turn) {
+                        map_calculate_movement_range(grid_config, map, focused, unit->movement, true);
+                    }
                     return;
                 }
             }
@@ -173,6 +179,7 @@ void input_handle_left_click(InputState *state, GridConfig *grid_config, Point *
 
     // Default: focus the clicked cell
     handle_cell_selection(grid_config, map, selected, &state->focused_cell);
+    state->selected_action = -1; // clear selected action on new focus
 }
 
     // Could add keyboard shortcuts here, e.g.:

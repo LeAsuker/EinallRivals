@@ -236,6 +236,21 @@ void map_clear_range_flags(Point *map, GridConfig *grid_config) {
     }
 }
 
+void map_clear_movement_range_flags(Point *map, GridConfig *grid_config) {
+    int total_cells = grid_config->max_grid_cells_x * grid_config->max_grid_cells_y;
+    
+    for (int i = 0; i < total_cells; i++) {
+        map[i].in_range = false;
+    }
+}
+
+void map_clear_attack_range_flags(Point *map, GridConfig *grid_config) {
+    int total_cells = grid_config->max_grid_cells_x * grid_config->max_grid_cells_y;
+    
+    for (int i = 0; i < total_cells; i++) {
+        map[i].in_attack_range = false;
+    }
+}
 // ============================================================================
 // Terrain Generation
 // ============================================================================

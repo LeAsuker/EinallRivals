@@ -24,6 +24,8 @@ void map_calculate_movement_range(GridConfig *grid_config, Point *map,
 void map_calculate_attack_range(GridConfig *grid_config, Point *map, 
                                 Point *start_cell, int range, bool enable);
 void map_clear_range_flags(Point *map, GridConfig *grid_config);
+void map_clear_movement_range_flags(Point *map, GridConfig *grid_config);
+void map_clear_attack_range_flags(Point *map, GridConfig *grid_config);
 
 // Terrain generation
 void map_spread_terrain(GridConfig *grid_config, Point *map, 

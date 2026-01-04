@@ -233,9 +233,6 @@ void render_actions(RenderContext *ctx, Actor *actor, InputState *input_state, B
 
         if (actor != NULL && i < actor->skill_count) {
             Skill *s = &actor->skills[i];
-            if (input_state != NULL && input_state->selected_action == i) {
-                DrawThickRectangleLines(bx, by, box_w, box_h, (Color){255, 255, 100, 255}, 5);
-            }
             if (s->icon.id) {
                 Rectangle src = (Rectangle){0, 0, (float)s->icon.width, (float)s->icon.height};
                 Rectangle dst = (Rectangle){(float)bx, (float)by, (float)box_w, (float)box_h};
@@ -243,6 +240,14 @@ void render_actions(RenderContext *ctx, Actor *actor, InputState *input_state, B
                 DrawTexturePro(s->icon, src, dst, origin, 0.0f, WHITE);
             } else {
                 DrawRectangle(bx + 4, by + 4, box_w - 8, box_h - 8, (Color){150,150,150,200});
+            }
+            // Highlight selected action
+            if (input_state != NULL && input_state->selected_action == i) {
+                DrawThickRectangleLines(bx, by, box_w, box_h, (Color){255, 255, 100, 255}, 5);
+            }
+            if (input_state != NULL && !actor->can_act) {
+                // Dim the icon if actor cannot act
+                DrawRectangle(bx, by, box_w, box_h, (Color){100, 100, 100, 180});
             }
         }
     }
