@@ -41,6 +41,14 @@ typedef struct {
     int attack_range;
 } ActorTemplate;
 
+typedef struct {
+    ActorTemplate CurrentClass;
+    // Max 4 different promotion options
+    ActorTemplate PromotionClasses[4];
+    int PromotionCount;
+    
+} ClassTree;
+
 // Actor arrays and groups
 Actor *actor_array_create_from_template(int count, Faction *owner, Texture2D sprite, ActorTemplate *template);
 void actor_array_free(Actor *actors, int count);

@@ -11,7 +11,7 @@ static const ActorTemplate DEFAULT_MILITIA = {
     .movement = 4,
     .phys_attack = 8,
     .phys_defense = 3,
-    .magic_attack = 2,
+    .magic_attack = 0,
     .magic_defense = 3,
     .luck = 1,
     .attack_range = 1
@@ -27,6 +27,30 @@ static const ActorTemplate DEFAULT_WARG = {
     .magic_attack = 1,
     .magic_defense = 1,
     .luck = 0,
+    .attack_range = 1
+};
+
+static const ActorTemplate DEFAULT_SPEARMAN = {
+    .name = "Spearman",
+    .max_health = 25,
+    .movement = 4,
+    .phys_attack = 10,
+    .phys_defense = 7,
+    .magic_attack = 0,
+    .magic_defense = 6,
+    .luck = 2,
+    .attack_range = 2
+};
+
+static const ActorTemplate DEFAULT_SWORDSMAN = {
+    .name = "Swordsman",
+    .max_health = 22,
+    .movement = 4,
+    .phys_attack = 12,
+    .phys_defense = 5,
+    .magic_attack = 0,
+    .magic_defense = 4,
+    .luck = 3,
     .attack_range = 1
 };
 
