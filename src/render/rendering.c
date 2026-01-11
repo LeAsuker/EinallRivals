@@ -4,6 +4,7 @@
 #include "game/actor.h"
 #include <stddef.h>
 #include "ui/button.h"
+#include "ui/modal.h"
 
 // Helper: map genetics value to display symbol and color
 static const char *genetic_symbol(int g, Color *out_color) {
@@ -83,7 +84,7 @@ void render_init(RenderContext *ctx, GridConfig* grid) {
 
 // New function to render game with full button state
 void render_game(RenderContext *ctx, Point *map, Point *focused_cell, 
-                     Faction *current_faction, InputState *input_state, Button *end_turn_button, Button action_buttons[], int action_count) {
+                     Faction *current_faction, InputState *input_state, Button *end_turn_button, Button action_buttons[], int action_count, Modal *modal) {
     BeginDrawing();
     ClearBackground(RAYWHITE);
     
@@ -93,6 +94,11 @@ void render_game(RenderContext *ctx, Point *map, Point *focused_cell,
     render_cell_info(ctx, focused_cell);
     render_ui(ctx, current_faction->name, current_faction, end_turn_button);
     render_actions(ctx, (focused_cell != NULL) ? focused_cell->occupant : NULL, input_state, action_buttons, action_count);
+    
+    // Render modal last (on top of everything)
+    if (modal) {
+        modal_render(modal);
+    }
     
     EndDrawing();
 }

@@ -24,6 +24,7 @@
 #include "game/structure_generation.h"
 #include "game/spawning.h"
 #include "game/actions.h"
+#include "ui/modal.h"
 
 int main(void) {
   const int screenWidth = 1600;
@@ -32,6 +33,7 @@ int main(void) {
 
   InitWindow(screenWidth, screenHeight, "WaterEmblemProto");
   SetTargetFPS(60);
+  SetExitKey(KEY_NULL);  // Disable default ESC to close, we'll handle it ourselves
 
   // Show title screen
   MenuState menu_state;
@@ -112,6 +114,8 @@ int main(void) {
 
   // Initialize game state
   GameState *game_state = game_state_create(factions, num_factions);
+  // Initialize modal system
+  game_state->modal = modal_create();
 
   // Initialize input
   InputState input_state;
@@ -126,7 +130,51 @@ int main(void) {
     
     if (game_is_over(game_state)) {
       render_game(&render_ctx, mapArr, input_state.focused_cell, 
-                       current_faction, &input_state, &input_state.end_turn_button, input_state.action_buttons, ACTION_BUTTON_COUNT);
+                       current_faction, &input_state, &input_state.end_turn_button, input_state.action_buttons, ACTION_BUTTON_COUNT, game_state->modal);
+      continue;
+    }
+
+    // Handle modal input if modal is active
+    if (game_state->modal && game_state->modal->active) {
+      ModalResult result = modal_update(game_state->modal);
+      
+      switch (result) {
+        case MODAL_RESULT_EXIT_TO_MENU:
+          // TODO: Return to menu (needs menu state management)
+          printf("Exit to menu requested\n");
+          break;
+        case MODAL_RESULT_EXIT_TO_DESKTOP:
+          goto cleanup_and_exit;
+        case MODAL_RESULT_CANCEL:
+          // Resume game - modal already deactivated
+          break;
+        case MODAL_RESULT_NONE:
+          // Still active, skip game input this frame
+          break;
+        default:
+          if (result >= MODAL_RESULT_CLASS_CHOICE_0 && 
+              result <= MODAL_RESULT_CLASS_CHOICE_MAX) {
+            // Handle class promotion
+            int choice = result - MODAL_RESULT_CLASS_CHOICE_0;
+            // TODO: Apply promotion logic
+            printf("Class choice %d selected\n", choice);
+          }
+          break;
+      }
+      
+      // Skip normal game input when modal is active and render
+      render_game(&render_ctx, mapArr, input_state.focused_cell,
+           current_faction, &input_state, &input_state.end_turn_button, input_state.action_buttons, ACTION_BUTTON_COUNT, game_state->modal);
+      continue;
+    }
+
+    // Check for ESC key to open pause menu (only if modal is not already active)
+    if (IsKeyPressed(KEY_ESCAPE) && (!game_state->modal || !game_state->modal->active)) {
+      modal_setup_esc_menu(game_state->modal, screenWidth, screenHeight);
+      printf("ESC pressed - modal activated: %d\n", game_state->modal->active);
+      // Render immediately with modal visible
+      render_game(&render_ctx, mapArr, input_state.focused_cell,
+           current_faction, &input_state, &input_state.end_turn_button, input_state.action_buttons, ACTION_BUTTON_COUNT, game_state->modal);
       continue;
     }
 
@@ -153,14 +201,18 @@ int main(void) {
 
     // renders only after first click to avoid null focused_cell
     render_game(&render_ctx, mapArr, input_state.focused_cell,
-         current_faction, &input_state, &input_state.end_turn_button, input_state.action_buttons, ACTION_BUTTON_COUNT);
+         current_faction, &input_state, &input_state.end_turn_button, input_state.action_buttons, ACTION_BUTTON_COUNT, game_state->modal);
   }
 
+cleanup_and_exit:
   // Cleanup
   map_free(mapArr);
   factions_free_actors(factions, num_factions);
   // Unload any action icons we loaded earlier
   actions_unload_icons();
+  if (game_state->modal) {
+    modal_free(game_state->modal);
+  }
   game_state_free(game_state);
   unit_sprites_unload(&unit_sprites);
   structure_sprites_unload(&structure_sprites);

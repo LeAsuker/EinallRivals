@@ -35,6 +35,7 @@ struct Terrain {
 // Forward declarations for new character system
 struct UnitClass;
 struct Character;
+struct Modal;
 
 typedef struct Faction {
   Color prim_color;

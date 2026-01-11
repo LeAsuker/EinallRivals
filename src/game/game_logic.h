@@ -23,6 +23,7 @@ typedef struct {
     int turn_number;
     bool game_over;
     Faction *winner;
+    struct Modal *modal;  // Pop-up modal system
 } GameState;
 
 // Troops are now stored directly on the Faction as `actors` and `actor_count`.
