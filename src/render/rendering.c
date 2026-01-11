@@ -37,7 +37,14 @@ static int draw_character_stats_with_gen(int x, int y, Character *occupant, Stat
     y += line_h;
     DrawText(TextFormat("LVL: %d", occupant->level), x, y, text_size, BLACK);
     y += line_h;
+
+    /* Draw HP with genetics marker to the right */
     DrawText(TextFormat("HP: %d/%d", occupant->curr_health, stats.max_health), x, y, text_size, BLACK);
+    Color hp_sym_color;
+    const char *hp_sym = genetic_symbol(occupant->genetics.max_health, &hp_sym_color);
+    if (hp_sym[0] != '\0') {
+        DrawText(hp_sym, x + 260, y, text_size, hp_sym_color);
+    }
     y += line_h;
 
     draw_stat_with_gen(x, y, "PATK", stats.phys_attack, occupant->genetics.phys_attack, text_size);
@@ -180,16 +187,6 @@ void render_cell_info(RenderContext *ctx, Point *focused_cell) {
         int x = info_x + 5;
         int y = info_y + 5;
         int text_size = 24;
-        int line_h = text_size + 8;
-
-        DrawText(TextFormat("NAME: %s", occupant->name), x, y, text_size, BLACK);
-        y += line_h;
-        DrawText(TextFormat("FAC: %s", occupant->owner->name), x, y, text_size, BLACK);
-        y += line_h;
-        DrawText(TextFormat("LVL: %d", occupant->level), x, y, text_size, BLACK);
-        y += line_h;
-        DrawText(TextFormat("HP: %d/%d", occupant->curr_health, stats.max_health), x, y, text_size, BLACK);
-        y += line_h;
 
         y = draw_character_stats_with_gen(x, y, occupant, stats, text_size);
         // Advance the outer info_y to avoid overlapping the terrain/structure UI below
