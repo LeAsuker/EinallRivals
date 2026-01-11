@@ -84,37 +84,37 @@ void actions_unload_icons(void) {
     if (bite.icon.id) UnloadTexture(bite.icon);
 }
 
-void action_set_damage(Skill *skill, Actor *owner) {
+void action_set_damage(Skill *skill, Character *owner) {
     if (skill == NULL) return;
     if (owner == NULL) return;
 
+    Stats stats = character_get_stats(owner);
     if (skill->is_magic) {
         // Example: magic damage scales with magic attack
-        int damage = owner->magic_attack;
-        skill->damage = damage;
+        skill->damage = stats.magic_attack;
         return;
     }
-    skill->damage = owner->phys_attack;
+    skill->damage = stats.phys_attack;
 }
 
-void action_add_skill_to_actor(Actor *actor, Skill *skill) {
-    if (actor == NULL || skill == NULL) return;
-    if (actor->skill_count >= 5) return; // Max skills reached
-    action_set_damage(skill, actor);
-    actor->skills[actor->skill_count] = *skill;
-    actor->skill_count++;
+void action_add_skill_to_character(Character *character, Skill *skill) {
+    if (character == NULL || skill == NULL) return;
+    if (character->skill_count >= 5) return; // Max skills reached
+    action_set_damage(skill, character);
+    character->skills[character->skill_count] = *skill;
+    character->skill_count++;
 }
 
 void execute_skill_at_cells(GridConfig *grid_config, Point *map, Point *attacker_cell, Point *defender_cell, Skill *skill) {
     if (attacker_cell == NULL || defender_cell == NULL || skill == NULL) return;
     if (attacker_cell->occupant == NULL || defender_cell->occupant == NULL) return;
 
-    Actor *attacker = attacker_cell->occupant;
-    Actor *defender = defender_cell->occupant;
+    Character *attacker = attacker_cell->occupant;
+    Character *defender = defender_cell->occupant;
 
     // Attacker must be able to act and target must be enemy
     if (!attacker->can_act) return;
-    if (!actor_is_enemy(attacker, defender)) return;
+    if (!character_is_enemy(attacker, defender)) return;
 
     // Check range
     int dx = abs(attacker_cell->x - defender_cell->x);
@@ -130,9 +130,10 @@ void execute_skill_at_cells(GridConfig *grid_config, Point *map, Point *attacker
     defender->curr_health -= damage;
     if (defender->curr_health < 0) defender->curr_health = 0;
 
+    Stats defender_stats = character_get_stats(defender);
     printf("%s uses %s on %s for %d damage! (%s: %d/%d HP)\n",
            attacker->name, skill->name, defender->name,
-           damage, defender->name, defender->curr_health, defender->max_health);
+           damage, defender->name, defender->curr_health, defender_stats.max_health);
 
     // Grant experience
     bool killed = false;
@@ -156,7 +157,7 @@ void execute_loot_at_cells(GridConfig *grid_config, Point *map, Point *looter_ce
     if (looter_cell == NULL || lootable == NULL || skill == NULL) return;
     if (looter_cell->occupant == NULL) return;
 
-    Actor *looter = looter_cell->occupant;
+    Character *looter = looter_cell->occupant;
     // Looter must be able to act
     if (!looter->can_act) return;
     if (lootable->structure == NULL || !lootable->structure->lootable) return; // Must be a lootable structure to loot
@@ -173,9 +174,9 @@ void execute_loot_at_cells(GridConfig *grid_config, Point *map, Point *looter_ce
 
     // Here you could add logic to give resources/items to the looter
     // Looter used their action
-    actor_gain_experience(looter, 100); // Example: gain some XP for looting
+    character_gain_experience(looter, 100); // Example: gain some XP for looting
     if (looter->level_up_pending) {
-        actor_level_up(looter);
+        character_level_up(looter);
     }
     looter->can_act = false;
     lootable->structure->lootable = false; // Mark structure as looted

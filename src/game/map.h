@@ -39,7 +39,7 @@ void map_generate_deep_ter(Point *map, GridConfig * grid);
 // Terrain queries
 bool map_is_terrain_passable(Terrain terrain);
 bool map_is_cell_occupied(Point *cell);
-bool map_can_unit_enter_cell(Point *cell, Actor *unit);
+bool map_can_unit_enter_cell(Point *cell, Character *unit);
 
 // Structure placement and queries
 bool map_place_structure(Point *map, GridConfig *grid_config, int x, int y, Structure *s);

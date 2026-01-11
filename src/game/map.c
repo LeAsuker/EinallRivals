@@ -216,7 +216,7 @@ void map_calculate_movement_range(GridConfig *grid_config, Point *map,
     // The recursive range calculation treats occupied cells as blockers.
     // Temporarily clear the starting cell's occupant so the unit's own tile
     // doesn't block range generation.
-    Actor *saved_occupant = start_cell->occupant;
+    Character *saved_occupant = start_cell->occupant;
     start_cell->occupant = NULL;
     calculate_range_recursive(grid_config, map, start_cell, range, enable, false);
     start_cell->occupant = saved_occupant;
@@ -342,7 +342,7 @@ bool map_is_cell_occupied(Point *cell) {
     return cell->occupant != NULL;
 }
 
-bool map_can_unit_enter_cell(Point *cell, Actor *unit) {
+bool map_can_unit_enter_cell(Point *cell, Character *unit) {
     // Check if cell is already occupied
     if (map_is_cell_occupied(cell)) {
         return false;

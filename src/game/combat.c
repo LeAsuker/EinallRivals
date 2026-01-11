@@ -10,17 +10,17 @@
 #define DAMAGE_EXP_BASE 10
 
 // Forward declarations for internal functions
-static int calculate_hit_chance(Actor *attacker, Actor *defender);
-static int calculate_crit_chance(Actor *attacker, Actor *defender);
+static int calculate_hit_chance(Character *attacker, Character *defender);
+static int calculate_crit_chance(Character *attacker, Character *defender);
 static bool roll_hit(int hit_chance);
 static bool roll_crit(int crit_chance);
-static void apply_combat_damage(Actor *actor, int damage);
+static void apply_combat_damage(Character *character, int damage);
 
 // ============================================================================
 // Combat Execution
 // ============================================================================
 
-CombatResult combat_execute(Actor *attacker, Actor *defender) {
+CombatResult combat_execute(Character *attacker, Character *defender) {
     CombatResult result = {0};
     result.attacker = attacker;
     result.defender = defender;
@@ -31,7 +31,9 @@ CombatResult combat_execute(Actor *attacker, Actor *defender) {
     result.was_critical = false;
     // New rule: battle skills are single-sided actions used during the actor's turn.
     // They hit deterministically and do raw physical attack equal to attacker's phys_attack.
-    result.attacker_damage_dealt = attacker->phys_attack;
+    Stats attacker_stats = character_get_stats(attacker);
+    Stats defender_stats = character_get_stats(defender);
+    result.attacker_damage_dealt = attacker_stats.phys_attack;
     result.defender_damage_dealt = 0;
     result.defender_can_counter = false;
 
@@ -39,10 +41,10 @@ CombatResult combat_execute(Actor *attacker, Actor *defender) {
 
     printf("%s uses a battle skill on %s for %d damage! (%s: %d/%d HP)\n",
            attacker->name, defender->name, result.attacker_damage_dealt,
-           defender->name, defender->curr_health, defender->max_health);
+           defender->name, defender->curr_health, defender_stats.max_health);
 
     // Check if defender died
-    if (!actor_is_alive(defender)) {
+    if (!character_is_alive(defender)) {
         result.defender_died = true;
         printf("%s has been defeated!\n", defender->name);
         combat_grant_experience(attacker, defender, true);
@@ -55,7 +57,7 @@ CombatResult combat_execute(Actor *attacker, Actor *defender) {
     combat_grant_experience(attacker, defender, false);
 
     if (attacker->level_up_pending) {
-        actor_level_up(attacker);
+        character_level_up(attacker);
     }
 
 
@@ -75,8 +77,8 @@ CombatResult combat_execute_at_cells(GridConfig *grid_config, Point *map,
         return result;
     }
     
-    Actor *attacker = attacker_cell->occupant;
-    Actor *defender = defender_cell->occupant;
+    Character *attacker = attacker_cell->occupant;
+    Character *defender = defender_cell->occupant;
     
     // Validate combat is possible
     if (!combat_can_attack(grid_config, map, attacker_cell, defender_cell)) {
@@ -102,10 +104,11 @@ CombatResult combat_execute_at_cells(GridConfig *grid_config, Point *map,
 // Combat Prediction
 // ============================================================================
 
-CombatForecast combat_forecast(Actor *attacker, Actor *defender) {
+CombatForecast combat_forecast(Character *attacker, Character *defender) {
     CombatForecast forecast = {0};
     // Single-sided skill forecast: attacker deals raw phys_attack, no counter.
-    forecast.attacker_damage = attacker->phys_attack;
+    Stats attacker_stats = character_get_stats(attacker);
+    forecast.attacker_damage = attacker_stats.phys_attack;
     forecast.defender_damage = 0;
 
     forecast.attacker_health_after = attacker->curr_health; // unchanged
@@ -130,8 +133,8 @@ bool combat_can_attack(GridConfig *grid_config, Point *map,
         return false;
     }
     
-    Actor *attacker = attacker_cell->occupant;
-    Actor *defender = defender_cell->occupant;
+    Character *attacker = attacker_cell->occupant;
+    Character *defender = defender_cell->occupant;
     
     // Check attacker can act
     if (!attacker->can_act) {
@@ -139,13 +142,14 @@ bool combat_can_attack(GridConfig *grid_config, Point *map,
     }
     
     // Check they are enemies
-    if (!actor_is_enemy(attacker, defender)) {
+    if (!character_is_enemy(attacker, defender)) {
         return false;
     }
     
     // Check if defender is in range
+    Stats attacker_stats = character_get_stats(attacker);
     int distance = combat_get_distance(attacker_cell, defender_cell);
-    if (distance > attacker->attack_range) {
+    if (distance > attacker_stats.attack_range) {
         return false;
     }
     
@@ -156,7 +160,7 @@ bool combat_can_attack(GridConfig *grid_config, Point *map,
 // Damage Calculation
 // ============================================================================
 
-int combat_calculate_damage(Actor *attacker, Actor *defender, bool is_magic) {
+int combat_calculate_damage(Character *attacker, Character *defender, bool is_magic) {
     if (is_magic) {
         return combat_calculate_magical_damage(attacker, defender);
     } else {
@@ -164,8 +168,10 @@ int combat_calculate_damage(Actor *attacker, Actor *defender, bool is_magic) {
     }
 }
 
-int combat_calculate_physical_damage(Actor *attacker, Actor *defender) {
-    int base_damage = attacker->phys_attack - defender->phys_defense;
+int combat_calculate_physical_damage(Character *attacker, Character *defender) {
+    Stats attacker_stats = character_get_stats(attacker);
+    Stats defender_stats = character_get_stats(defender);
+    int base_damage = attacker_stats.phys_attack - defender_stats.phys_defense;
     
     // Minimum damage is 1
     if (base_damage < 1) {
@@ -175,8 +181,10 @@ int combat_calculate_physical_damage(Actor *attacker, Actor *defender) {
     return base_damage;
 }
 
-int combat_calculate_magical_damage(Actor *attacker, Actor *defender) {
-    int base_damage = attacker->magic_attack - defender->magic_defense;
+int combat_calculate_magical_damage(Character *attacker, Character *defender) {
+    Stats attacker_stats = character_get_stats(attacker);
+    Stats defender_stats = character_get_stats(defender);
+    int base_damage = attacker_stats.magic_attack - defender_stats.magic_defense;
     
     // Minimum damage is 1
     if (base_damage < 1) {
@@ -203,16 +211,17 @@ int combat_get_distance(Point *cell1, Point *cell2) {
     return dx + dy;
 }
 
-bool combat_can_counter_attack(Actor *attacker, Actor *defender, int distance) {
+bool combat_can_counter_attack(Character *attacker, Character *defender, int distance) {
     // Defender can counter if their range reaches the attacker
-    return defender->attack_range >= distance;
+    Stats defender_stats = character_get_stats(defender);
+    return defender_stats.attack_range >= distance;
 }
 
 // ============================================================================
 // Experience and Rewards
 // ============================================================================
 
-int combat_calculate_experience(Actor *attacker, Actor *defender, bool killed) {
+int combat_calculate_experience(Character *attacker, Character *defender, bool killed) {
     (void)attacker; // Unused, but kept for future level-based XP calculation
     
     int base_xp = DAMAGE_EXP_BASE;
@@ -228,18 +237,18 @@ int combat_calculate_experience(Actor *attacker, Actor *defender, bool killed) {
     return base_xp;
 }
 
-void combat_grant_experience(Actor *attacker, Actor *defender, bool killed) {
+void combat_grant_experience(Character *attacker, Character *defender, bool killed) {
     int xp = combat_calculate_experience(attacker, defender, killed);
     
     printf("%s gained %d experience!\n", attacker->name, xp);
-    actor_gain_experience(attacker, xp);
+    character_gain_experience(attacker, xp);
 }
 
 // ============================================================================
 // Internal Helper Functions
 // ============================================================================
 
-static int calculate_hit_chance(Actor *attacker, Actor *defender) {
+static int calculate_hit_chance(Character *attacker, Character *defender) {
     (void)attacker;  // Future: Could use attacker->skill stat
     (void)defender;  // Future: Could use defender->speed/luck for evasion
     
@@ -247,7 +256,7 @@ static int calculate_hit_chance(Actor *attacker, Actor *defender) {
     return BASE_HIT_CHANCE;
 }
 
-static int calculate_crit_chance(Actor *attacker, Actor *defender) {
+static int calculate_crit_chance(Character *attacker, Character *defender) {
     (void)attacker;  // Future: Could use attacker->luck/skill
     (void)defender;  // Future: Could use defender->luck to reduce crit chance
     
@@ -265,6 +274,6 @@ static bool roll_crit(int crit_chance) {
     return roll < crit_chance;
 }
 
-static void apply_combat_damage(Actor *actor, int damage) {
-    actor_take_damage(actor, damage);
+static void apply_combat_damage(Character *character, int damage) {
+    character_take_damage(character, damage);
 }

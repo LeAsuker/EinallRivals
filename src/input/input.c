@@ -142,7 +142,8 @@ void input_handle_left_click(InputState *state, GridConfig *grid_config, Point *
 
     // If there is a focused unit, try movement first
     if (focused != NULL && focused->occupant != NULL) {
-        Actor *unit = focused->occupant;
+        Character *unit = focused->occupant;
+        Stats unit_stats = character_get_stats(unit);
 
         // Movement: if clicked tile is in movement range and is empty
         if (selected->in_range && unit->can_move && unit->owner->has_turn
@@ -155,7 +156,8 @@ void input_handle_left_click(InputState *state, GridConfig *grid_config, Point *
             state->focused_cell = selected; // focus moved unit's new cell
             map_clear_range_flags(map, grid_config);
             if (selected->occupant != NULL && selected->occupant->can_act && selected->occupant->owner->has_turn) {
-                map_calculate_attack_range(grid_config, map, selected, selected->occupant->attack_range, true);
+                Stats sel_stats = character_get_stats(selected->occupant);
+                map_calculate_attack_range(grid_config, map, selected, sel_stats.attack_range, true);
             }
             return;
         }
@@ -176,12 +178,13 @@ void input_handle_left_click(InputState *state, GridConfig *grid_config, Point *
                     state->focused_cell = NULL;
                     map_clear_range_flags(map, grid_config);
                     if (selected->occupant != NULL && selected->occupant->can_move && selected->occupant->owner->has_turn) {
-                        map_calculate_movement_range(grid_config, map, focused, selected->occupant->movement, true);
+                        Stats sel_stats = character_get_stats(selected->occupant);
+                        map_calculate_movement_range(grid_config, map, focused, sel_stats.movement, true);
                     }
                     return;
                 }
             }
-            else if (selected->occupant != NULL && actor_is_enemy(unit, selected->occupant)) {
+            else if (selected->occupant != NULL && character_is_enemy(unit, selected->occupant)) {
                 int dist = abs(focused->x - selected->x) + abs(focused->y - selected->y);
                 if (dist <= s->range && unit->can_act) {
                     execute_skill_at_cells(grid_config, map, focused, selected, s);
@@ -189,7 +192,7 @@ void input_handle_left_click(InputState *state, GridConfig *grid_config, Point *
                     state->focused_cell = NULL;
                     map_clear_range_flags(map, grid_config);
                     if (selected->occupant != NULL && selected->occupant->can_move && selected->occupant->owner->has_turn) {
-                        map_calculate_movement_range(grid_config, map, focused, unit->movement, true);
+                        map_calculate_movement_range(grid_config, map, focused, unit_stats.movement, true);
                     }
                     return;
                 }
@@ -302,20 +305,21 @@ static void handle_cell_selection(GridConfig *grid_config, Point *map,
     
     // If there's an occupant, show their ranges
     if (selected_cell->occupant != NULL) {
-        Actor *occupant = selected_cell->occupant;
+        Character *occupant = selected_cell->occupant;
+        Stats occupant_stats = character_get_stats(occupant);
         
         // Only show ranges if it's their turn
         if (occupant->owner->has_turn) {
             // Show movement range if unit can still move
             if (occupant->can_move) {
                 map_calculate_movement_range(grid_config, map,
-                                   selected_cell, occupant->movement, true);
+                                   selected_cell, occupant_stats.movement, true);
             }
             
             // Show attack range if unit can still act
             if (occupant->can_act) {
                 map_calculate_attack_range(grid_config, map,
-                                selected_cell, occupant->attack_range, true);
+                                selected_cell, occupant_stats.attack_range, true);
             }
         }
     }

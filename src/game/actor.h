@@ -5,64 +5,76 @@
 #include "raylib.h"
 #include <stdbool.h>
 
-// Actor creation and initialization
-Actor *militia_create(Faction *owner, Texture2D sprite);
-void militia_init(Actor *actor, Faction *owner, Texture2D sprite);
-void actor_free(Actor *actor);
+// ============================================================================
+// Genetics and Veterancy initialization
+// ============================================================================
 
-// Actor state management
-void actor_reset_turn_flags(Actor *actor);
-void actor_end_turn(Actor *actor);
-bool actor_can_perform_action(Actor *actor);
-bool actor_is_alive(Actor *actor);
+// Initialize genetics with random values (0-5 for each stat)
+void genetics_init(Genetics *genetics);
 
-// Actor stats and leveling
-void actor_take_damage(Actor *actor, int damage);
-void actor_heal(Actor *actor, int amount);
-void actor_gain_experience(Actor *actor, int xp);
-void actor_level_up(Actor *actor);
-bool actor_has_pending_level_up(Actor *actor);
+// Initialize veterancy with all zeros
+void veterancy_init(Veterancy *veterancy);
 
-// Actor queries
-bool actor_belongs_to_faction(Actor *actor, Faction *faction);
-bool actor_is_enemy(Actor *actor1, Actor *actor2);
-int actor_get_health_percentage(Actor *actor);
+// ============================================================================
+// Stats calculation
+// ============================================================================
 
-// Unit template system (for future expansion)
-typedef struct {
-    char name[10];
-    int max_health;
-    int movement;
-    int phys_attack;
-    int phys_defense;
-    int magic_attack;
-    int magic_defense;
-    int luck;
-    int attack_range;
-} ActorTemplate;
+// Calculate total stats by summing class, genetics, and veterancy
+Stats character_get_stats(Character *character);
 
-typedef struct {
-    ActorTemplate CurrentClass;
-    // Max 4 different promotion options
-    ActorTemplate PromotionClasses[4];
-    int PromotionCount;
-    
-} ClassTree;
+// ============================================================================
+// Character creation and initialization
+// ============================================================================
 
-// Actor arrays and groups
-Actor *actor_array_create_from_template(int count, Faction *owner, Texture2D sprite, ActorTemplate *template);
-void actor_array_free(Actor *actors, int count);
-void actor_array_reset_turns(Actor *actors, int count);
-int actor_array_count_alive(Actor *actors, int count);
+Character *militia_create(Faction *owner, Texture2D sprite);
+void militia_init(Character *character, Faction *owner, Texture2D sprite);
+void character_free(Character *character);
 
-void actor_init_from_template(Actor *actor, Faction *owner, 
-                              Texture2D sprite, ActorTemplate *template);
+// Character state management
+void character_reset_turn_flags(Character *character);
+void character_end_turn(Character *character);
+bool character_can_perform_action(Character *character);
+bool character_is_alive(Character *character);
 
-// Allocate and initialize an actor from a template
-Actor *actor_create_from_template(Faction *owner, Texture2D sprite, ActorTemplate *template);
+// Character stats and leveling
+void character_take_damage(Character *character, int damage);
+void character_heal(Character *character, int amount);
+void character_gain_experience(Character *character, int xp);
+void character_level_up(Character *character);
+bool character_has_pending_level_up(Character *character);
 
-// Helpers to expose default templates from actor.c
-void actor_get_default_warg_template(ActorTemplate *out);
-void actor_get_default_militia_template(ActorTemplate *out);
+// Character queries
+bool character_belongs_to_faction(Character *character, Faction *faction);
+bool character_is_enemy(Character *char1, Character *char2);
+int character_get_health_percentage(Character *character);
+
+// ============================================================================
+// Unit class system
+// ============================================================================
+
+// Default unit class templates (statically allocated, shared across characters)
+extern UnitClass CLASS_MILITIA;
+extern UnitClass CLASS_WARG;
+extern UnitClass CLASS_SPEARMAN;
+extern UnitClass CLASS_SWORDSMAN;
+
+// Get pointer to default class templates
+UnitClass *class_get_militia(void);
+UnitClass *class_get_warg(void);
+
+// ============================================================================
+// Character arrays and groups
+// ============================================================================
+
+Character *character_array_create_from_class(int count, Faction *owner, Texture2D sprite, UnitClass *unit_class);
+void character_array_free(Character *characters, int count);
+void character_array_reset_turns(Character *characters, int count);
+int character_array_count_alive(Character *characters, int count);
+
+void character_init_from_class(Character *character, Faction *owner, 
+                               Texture2D sprite, UnitClass *unit_class);
+
+// Allocate and initialize a character from a class
+Character *character_create_from_class(Faction *owner, Texture2D sprite, UnitClass *unit_class);
 
 #endif

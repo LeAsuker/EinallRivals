@@ -4,8 +4,11 @@
 #include <string.h>
 #include <stdio.h>
 
-// Default stats for a basic militia unit
-static const ActorTemplate DEFAULT_MILITIA = {
+// ============================================================================
+// Default Unit Class Definitions
+// ============================================================================
+
+UnitClass CLASS_MILITIA = {
     .name = "Militia",
     .max_health = 20,
     .movement = 4,
@@ -14,11 +17,11 @@ static const ActorTemplate DEFAULT_MILITIA = {
     .magic_attack = 0,
     .magic_defense = 3,
     .luck = 1,
-    .attack_range = 1
+    .attack_range = 1,
+    .class_tree = { .promotions = {NULL, NULL, NULL, NULL}, .promotion_count = 0 }
 };
 
-// Warg: slightly inferior to militia
-static const ActorTemplate DEFAULT_WARG = {
+UnitClass CLASS_WARG = {
     .name = "Warg",
     .max_health = 16,
     .movement = 3,
@@ -27,10 +30,11 @@ static const ActorTemplate DEFAULT_WARG = {
     .magic_attack = 1,
     .magic_defense = 1,
     .luck = 0,
-    .attack_range = 1
+    .attack_range = 1,
+    .class_tree = { .promotions = {NULL, NULL, NULL, NULL}, .promotion_count = 0 }
 };
 
-static const ActorTemplate DEFAULT_SPEARMAN = {
+UnitClass CLASS_SPEARMAN = {
     .name = "Spearman",
     .max_health = 25,
     .movement = 4,
@@ -39,10 +43,11 @@ static const ActorTemplate DEFAULT_SPEARMAN = {
     .magic_attack = 0,
     .magic_defense = 6,
     .luck = 2,
-    .attack_range = 2
+    .attack_range = 2,
+    .class_tree = { .promotions = {NULL, NULL, NULL, NULL}, .promotion_count = 0 }
 };
 
-static const ActorTemplate DEFAULT_SWORDSMAN = {
+UnitClass CLASS_SWORDSMAN = {
     .name = "Swordsman",
     .max_health = 22,
     .movement = 4,
@@ -51,302 +56,375 @@ static const ActorTemplate DEFAULT_SWORDSMAN = {
     .magic_attack = 0,
     .magic_defense = 4,
     .luck = 3,
-    .attack_range = 1
+    .attack_range = 1,
+    .class_tree = { .promotions = {NULL, NULL, NULL, NULL}, .promotion_count = 0 }
 };
 
 // ============================================================================
-// Actor Creation and Initialization
+// Class Getters
 // ============================================================================
 
-Actor *militia_create(Faction *owner, Texture2D sprite) {
-    Actor *actor = malloc(sizeof(Actor));
-    if (actor == NULL) {
-        fprintf(stderr, "Error: Failed to allocate memory for actor\n");
+UnitClass *class_get_militia(void) {
+    return &CLASS_MILITIA;
+}
+
+UnitClass *class_get_warg(void) {
+    return &CLASS_WARG;
+}
+
+// ============================================================================
+// Genetics and Veterancy Initialization
+// ============================================================================
+
+void genetics_init(Genetics *genetics) {
+    if (genetics == NULL) return;
+    genetics->max_health = rand() % 6;    // 0-5
+    genetics->movement = rand() % 6;
+    genetics->phys_attack = rand() % 6;
+    genetics->phys_defense = rand() % 6;
+    genetics->magic_attack = rand() % 6;
+    genetics->magic_defense = rand() % 6;
+    genetics->luck = rand() % 6;
+    genetics->attack_range = 0; // Attack range typically doesn't vary by genetics
+}
+
+void veterancy_init(Veterancy *veterancy) {
+    if (veterancy == NULL) return;
+    veterancy->max_health = 0;
+    veterancy->movement = 0;
+    veterancy->phys_attack = 0;
+    veterancy->phys_defense = 0;
+    veterancy->magic_attack = 0;
+    veterancy->magic_defense = 0;
+    veterancy->luck = 0;
+    veterancy->attack_range = 0;
+}
+
+// ============================================================================
+// Stats Calculation
+// ============================================================================
+
+Stats character_get_stats(Character *character) {
+    Stats stats = {0};
+    if (character == NULL) return stats;
+    
+    UnitClass *cls = character->unit_class;
+    Genetics *gen = &character->genetics;
+    Veterancy *vet = &character->veterancy;
+    
+    if (cls != NULL) {
+        stats.max_health = cls->max_health + gen->max_health + vet->max_health;
+        stats.movement = cls->movement + gen->movement + vet->movement;
+        stats.phys_attack = cls->phys_attack + gen->phys_attack + vet->phys_attack;
+        stats.phys_defense = cls->phys_defense + gen->phys_defense + vet->phys_defense;
+        stats.magic_attack = cls->magic_attack + gen->magic_attack + vet->magic_attack;
+        stats.magic_defense = cls->magic_defense + gen->magic_defense + vet->magic_defense;
+        stats.luck = cls->luck + gen->luck + vet->luck;
+        stats.attack_range = cls->attack_range + gen->attack_range + vet->attack_range;
+    }
+    
+    return stats;
+}
+
+// ============================================================================
+// Character Creation and Initialization
+// ============================================================================
+
+Character *militia_create(Faction *owner, Texture2D sprite) {
+    Character *character = malloc(sizeof(Character));
+    if (character == NULL) {
+        fprintf(stderr, "Error: Failed to allocate memory for character\n");
         return NULL;
     }
     
-    militia_init(actor, owner, sprite);
-    return actor;
+    militia_init(character, owner, sprite);
+    return character;
 }
 
-Actor *actor_create_from_template(Faction *owner, Texture2D sprite, ActorTemplate *template) {
-    Actor *actor = malloc(sizeof(Actor));
-    if (actor == NULL) {
-        fprintf(stderr, "Error: Failed to allocate memory for actor\n");
+Character *character_create_from_class(Faction *owner, Texture2D sprite, UnitClass *unit_class) {
+    Character *character = malloc(sizeof(Character));
+    if (character == NULL) {
+        fprintf(stderr, "Error: Failed to allocate memory for character\n");
         return NULL;
     }
-    actor_init_from_template(actor, owner, sprite, template);
-    return actor;
+    character_init_from_class(character, owner, sprite, unit_class);
+    return character;
 }
 
-void militia_init(Actor *actor, Faction *owner, Texture2D sprite) {
-    actor->sprite = sprite;
-    actor->owner = owner;
+void militia_init(Character *character, Faction *owner, Texture2D sprite) {
+    character->sprite = sprite;
+    character->owner = owner;
     
     // Initialize action flags
-    actor->can_move = true;
-    actor->can_act = true;
+    character->can_move = true;
+    character->can_act = true;
     
     // Initialize level and experience
-    actor->level = 1;
-    actor->next_level_xp = 100;
+    character->level = 1;
+    character->next_level_xp = 100;
+    character->level_up_pending = false;
     
-    // Initialize stats from default template
-    strcpy(actor->name, DEFAULT_MILITIA.name);
-    actor->max_health = DEFAULT_MILITIA.max_health;
-    actor->curr_health = DEFAULT_MILITIA.max_health;
-    actor->movement = DEFAULT_MILITIA.movement;
-    actor->phys_attack = DEFAULT_MILITIA.phys_attack;
-    actor->phys_defense = DEFAULT_MILITIA.phys_defense;
-    actor->magic_attack = DEFAULT_MILITIA.magic_attack;
-    actor->magic_defense = DEFAULT_MILITIA.magic_defense;
-    actor->luck = DEFAULT_MILITIA.luck;
-    actor->attack_range = DEFAULT_MILITIA.attack_range;
+    // Set class reference
+    character->unit_class = &CLASS_MILITIA;
+    
+    // Initialize genetics (random) and veterancy (zero)
+    genetics_init(&character->genetics);
+    veterancy_init(&character->veterancy);
+    
+    // Set current health to max
+    Stats stats = character_get_stats(character);
+    character->curr_health = stats.max_health;
+    
+    // Copy class name as character name
+    strcpy(character->name, CLASS_MILITIA.name);
+    
     // Initialize skills
-    actor->skill_count = 0;
+    character->skill_count = 0;
     {
         Skill tmp;
         action_copy_loot(&tmp);
-        action_add_skill_to_actor(actor, &tmp);
+        action_add_skill_to_character(character, &tmp);
         action_copy_spear_strike(&tmp);
-        action_add_skill_to_actor(actor, &tmp);
+        action_add_skill_to_character(character, &tmp);
     }
 }
 
-void warg_init(Actor *actor, Faction *owner, Texture2D sprite) {
-    actor->sprite = sprite;
-    actor->owner = owner;
+void warg_init(Character *character, Faction *owner, Texture2D sprite) {
+    character->sprite = sprite;
+    character->owner = owner;
     
     // Initialize action flags
-    actor->can_move = true;
-    actor->can_act = true;
+    character->can_move = true;
+    character->can_act = true;
     
     // Initialize level and experience
-    actor->level = 1;
-    actor->next_level_xp = 100;
+    character->level = 1;
+    character->next_level_xp = 100;
+    character->level_up_pending = false;
     
-    // Initialize stats from default template
-    strcpy(actor->name, DEFAULT_WARG.name);
-    actor->max_health = DEFAULT_WARG.max_health;
-    actor->curr_health = DEFAULT_WARG.max_health;
-    actor->movement = DEFAULT_WARG.movement;
-    actor->phys_attack = DEFAULT_WARG.phys_attack;
-    actor->phys_defense = DEFAULT_WARG.phys_defense;
-    actor->magic_attack = DEFAULT_WARG.magic_attack;
-    actor->magic_defense = DEFAULT_WARG.magic_defense;
-    actor->luck = DEFAULT_WARG.luck;
-    actor->attack_range = DEFAULT_WARG.attack_range;
+    // Set class reference
+    character->unit_class = &CLASS_WARG;
+    
+    // Initialize genetics (random) and veterancy (zero)
+    genetics_init(&character->genetics);
+    veterancy_init(&character->veterancy);
+    
+    // Set current health to max
+    Stats stats = character_get_stats(character);
+    character->curr_health = stats.max_health;
+    
+    // Copy class name as character name
+    strcpy(character->name, CLASS_WARG.name);
+    
     // Initialize skills
-    actor->skill_count = 0;
+    character->skill_count = 0;
     {
         Skill tmp;
         action_copy_bite(&tmp);
-        action_add_skill_to_actor(actor, &tmp);
+        action_add_skill_to_character(character, &tmp);
     }
 }
 
-void actor_init_from_template(Actor *actor, Faction *owner, 
-                              Texture2D sprite, ActorTemplate *template) {
-    if (strcmp(template->name, "Militia") == 0) {
-        militia_init(actor, owner, sprite); // Add default militia skills
-    } else if (strcmp(template->name, "Warg") == 0) {
-        warg_init(actor, owner, sprite); // Add default warg skills
+void character_init_from_class(Character *character, Faction *owner, 
+                               Texture2D sprite, UnitClass *unit_class) {
+    if (strcmp(unit_class->name, "Militia") == 0) {
+        militia_init(character, owner, sprite); // Add default militia skills
+    } else if (strcmp(unit_class->name, "Warg") == 0) {
+        warg_init(character, owner, sprite); // Add default warg skills
     } else {
-        actor->sprite = sprite;
-        actor->owner = owner;
+        character->sprite = sprite;
+        character->owner = owner;
         
         // Initialize action flags
-        actor->can_move = true;
-        actor->can_act = true;
+        character->can_move = true;
+        character->can_act = true;
         
         // Initialize level and experience
-        actor->level = 1;
-        actor->next_level_xp = 100;
+        character->level = 1;
+        character->next_level_xp = 100;
+        character->level_up_pending = false;
         
-        // Initialize stats from template
-        strcpy(actor->name, template->name);
-        actor->max_health = template->max_health;
-        actor->curr_health = template->max_health;
-        actor->movement = template->movement;
-        actor->phys_attack = template->phys_attack;
-        actor->phys_defense = template->phys_defense;
-        actor->magic_attack = template->magic_attack;
-        actor->magic_defense = template->magic_defense;
-        actor->luck = template->luck;
-        actor->attack_range = template->attack_range;
-        // Initialize skills
-        actor->skill_count = 0;
+        // Set class reference
+        character->unit_class = unit_class;
+        
+        // Initialize genetics (random) and veterancy (zero)
+        genetics_init(&character->genetics);
+        veterancy_init(&character->veterancy);
+        
+        // Set current health to max
+        Stats stats = character_get_stats(character);
+        character->curr_health = stats.max_health;
+        
+        // Copy class name as character name
+        strcpy(character->name, unit_class->name);
+        
+        // Initialize skills (empty for generic classes)
+        character->skill_count = 0;
     }
 }
 
-void actor_free(Actor *actor) {
-    if (actor != NULL) {
+void character_free(Character *character) {
+    if (character != NULL) {
         // Free any per-skill allocations
-        for (int i = 0; i < actor->skill_count; i++) {
-            skill_free(&actor->skills[i]);
+        for (int i = 0; i < character->skill_count; i++) {
+            skill_free(&character->skills[i]);
         }
-        free(actor);
+        free(character);
     }
 }
 
 // ============================================================================
-// Actor State Management
+// Character State Management
 // ============================================================================
 
-void actor_reset_turn_flags(Actor *actor) {
-    actor->can_move = true;
-    actor->can_act = true;
+void character_reset_turn_flags(Character *character) {
+    character->can_move = true;
+    character->can_act = true;
 }
 
-void actor_end_turn(Actor *actor) {
-    actor->can_move = false;
-    actor->can_act = false;
+void character_end_turn(Character *character) {
+    character->can_move = false;
+    character->can_act = false;
 }
 
-bool actor_can_perform_action(Actor *actor) {
-    return actor->can_move || actor->can_act;
+bool character_can_perform_action(Character *character) {
+    return character->can_move || character->can_act;
 }
 
-bool actor_is_alive(Actor *actor) {
-    return actor->curr_health > 0;
+bool character_is_alive(Character *character) {
+    return character->curr_health > 0;
 }
 
 // ============================================================================
-// Actor Stats and Leveling
+// Character Stats and Leveling
 // ============================================================================
 
-void actor_take_damage(Actor *actor, int damage) {
-    actor->curr_health -= damage;
+void character_take_damage(Character *character, int damage) {
+    character->curr_health -= damage;
     
     // Clamp health to 0 minimum
-    if (actor->curr_health < 0) {
-        actor->curr_health = 0;
+    if (character->curr_health < 0) {
+        character->curr_health = 0;
     }
     
     // Log death
-    if (!actor_is_alive(actor)) {
-        printf("%s has been defeated!\n", actor->name);
+    if (!character_is_alive(character)) {
+        printf("%s has been defeated!\n", character->name);
     }
 }
 
-void actor_heal(Actor *actor, int amount) {
-    actor->curr_health += amount;
+void character_heal(Character *character, int amount) {
+    Stats stats = character_get_stats(character);
+    character->curr_health += amount;
     
     // Clamp health to max
-    if (actor->curr_health > actor->max_health) {
-        actor->curr_health = actor->max_health;
+    if (character->curr_health > stats.max_health) {
+        character->curr_health = stats.max_health;
     }
 }
 
-void actor_gain_experience(Actor *actor, int xp) {
-    actor->next_level_xp -= xp;
+void character_gain_experience(Character *character, int xp) {
+    character->next_level_xp -= xp;
 
     // If we've reached or passed required XP, mark a pending level-up
-    if (actor->next_level_xp <= 0) {
-        actor->next_level_xp = 0;
-        actor->level_up_pending = true;
+    if (character->next_level_xp <= 0) {
+        character->next_level_xp = 0;
+        character->level_up_pending = true;
     }
 }
 
-void actor_level_up(Actor *actor) {
-    actor->level++;
+void character_level_up(Character *character) {
+    character->level++;
     
-    // Stat increases (basic formula, can be expanded)
-    actor->max_health += 3;
-    actor->curr_health = actor->max_health; // Full heal on level up
-    actor->phys_attack += 1;
-    actor->phys_defense += 1;
-    actor->magic_attack += 1;
-    actor->magic_defense += 1;
+    // Increase veterancy stats (permanent bonuses from leveling)
+    character->veterancy.max_health += 3;
+    character->veterancy.phys_attack += 1;
+    character->veterancy.phys_defense += 1;
+    character->veterancy.magic_attack += 1;
+    character->veterancy.magic_defense += 1;
+    
+    // Full heal on level up
+    Stats stats = character_get_stats(character);
+    character->curr_health = stats.max_health;
     
     // Experience needed for next level (exponential growth)
-    actor->next_level_xp = 100 * actor->level;
+    character->next_level_xp = 100 * character->level;
     // Clear pending flag when level-up is performed manually
-    actor->level_up_pending = false;
-    printf("%s leveled up to level %d!\n", actor->name, actor->level);
+    character->level_up_pending = false;
+    printf("%s leveled up to level %d!\n", character->name, character->level);
 }
 
 // ============================================================================
-// Actor Queries
+// Character Queries
 // ============================================================================
 
-bool actor_belongs_to_faction(Actor *actor, Faction *faction) {
-    return actor->owner == faction;
+bool character_belongs_to_faction(Character *character, Faction *faction) {
+    return character->owner == faction;
 }
 
-bool actor_is_enemy(Actor *actor1, Actor *actor2) {
-    return actor1->owner != actor2->owner;
+bool character_is_enemy(Character *char1, Character *char2) {
+    return char1->owner != char2->owner;
 }
 
-int actor_get_health_percentage(Actor *actor) {
-    if (actor->max_health == 0) return 0;
-    return (actor->curr_health * 100) / actor->max_health;
+int character_get_health_percentage(Character *character) {
+    Stats stats = character_get_stats(character);
+    if (stats.max_health == 0) return 0;
+    return (character->curr_health * 100) / stats.max_health;
 }
 
-bool actor_has_pending_level_up(Actor *actor) {
-    return actor->level_up_pending;
+bool character_has_pending_level_up(Character *character) {
+    return character->level_up_pending;
 }
 
 // ============================================================================
-// Actor Arrays and Groups
+// Character Arrays and Groups
 // ============================================================================
 
-Actor *actor_array_create_from_template(int count, Faction *owner,
-                                        Texture2D sprite, ActorTemplate *template) {
-    Actor *actors = malloc(sizeof(Actor) * count);
+Character *character_array_create_from_class(int count, Faction *owner,
+                                              Texture2D sprite, UnitClass *unit_class) {
+    Character *characters = malloc(sizeof(Character) * count);
     
-    if (actors == NULL) {
-        fprintf(stderr, "Error: Failed to allocate memory for actor array\n");
+    if (characters == NULL) {
+        fprintf(stderr, "Error: Failed to allocate memory for character array\n");
         return NULL;
     }
     
-    // Initialize all actors
+    // Initialize all characters
     for (int i = 0; i < count; i++) {
         // Init since we have an array, use init function directly
-        actor_init_from_template(&actors[i], owner, sprite, template);
+        character_init_from_class(&characters[i], owner, sprite, unit_class);
     }
     
-    return actors;
+    return characters;
 }
 
-void actor_array_free(Actor *actors, int count) {
-    if (actors != NULL) {
+void character_array_free(Character *characters, int count) {
+    if (characters != NULL) {
         for (int i = 0; i < count; i++) {
-            for (int s = 0; s < actors[i].skill_count; s++) {
-                skill_free(&actors[i].skills[s]);
+            for (int s = 0; s < characters[i].skill_count; s++) {
+                skill_free(&characters[i].skills[s]);
             }
         }
-        free(actors);
+        free(characters);
     }
 }
 
-void actor_array_reset_turns(Actor *actors, int count) {
+void character_array_reset_turns(Character *characters, int count) {
     for (int i = 0; i < count; i++) {
-        if (actor_is_alive(&actors[i])) {
-            actor_reset_turn_flags(&actors[i]);
+        if (character_is_alive(&characters[i])) {
+            character_reset_turn_flags(&characters[i]);
         }
     }
 }
 
-int actor_array_count_alive(Actor *actors, int count) {
+int character_array_count_alive(Character *characters, int count) {
     int alive_count = 0;
     
     for (int i = 0; i < count; i++) {
-        if (actor_is_alive(&actors[i])) {
+        if (character_is_alive(&characters[i])) {
             alive_count++;
         }
     }
     
     return alive_count;
-}
-
-// Expose the default Warg template to other modules by copying it out.
-void actor_get_default_warg_template(ActorTemplate *out) {
-    if (out == NULL) return;
-    memcpy(out, &DEFAULT_WARG, sizeof(ActorTemplate));
-}
-
-void actor_get_default_militia_template(ActorTemplate *out) {
-    if (out == NULL) return;
-    memcpy(out, &DEFAULT_MILITIA, sizeof(ActorTemplate));
 }

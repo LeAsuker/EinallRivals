@@ -13,8 +13,8 @@ int faction_init_default(Faction *factions, int max_factions) {
     factions[DARKUS].prim_color = PURPLE;
     factions[DARKUS].sec_color = DARKGRAY;
     strcpy(factions[DARKUS].name, "Darkus");
-    factions[DARKUS].actors = NULL;
-    factions[DARKUS].actor_count = 0;
+    factions[DARKUS].characters = NULL;
+    factions[DARKUS].character_count = 0;
     
     // Ventus faction (Player)
     factions[VENTUS].has_turn = false;
@@ -22,8 +22,8 @@ int faction_init_default(Faction *factions, int max_factions) {
     factions[VENTUS].prim_color = GREEN;
     factions[VENTUS].sec_color = WHITE;
     strcpy(factions[VENTUS].name, "Ventus");
-    factions[VENTUS].actors = NULL;
-    factions[VENTUS].actor_count = 0;
+    factions[VENTUS].characters = NULL;
+    factions[VENTUS].character_count = 0;
     
     // Gaia faction (AI)
     factions[GAIA].has_turn = false;
@@ -32,24 +32,24 @@ int faction_init_default(Faction *factions, int max_factions) {
     factions[GAIA].prim_color = BROWN;
     factions[GAIA].sec_color = BLACK;
     strcpy(factions[GAIA].name, "Gaia");
-    factions[GAIA].actors = NULL;
-    factions[GAIA].actor_count = 0;
+    factions[GAIA].characters = NULL;
+    factions[GAIA].character_count = 0;
     
     return 3;
 }
 
-void faction_free_actors(Faction *faction) {
-    if (faction == NULL || faction->actors == NULL) return;
+void faction_free_characters(Faction *faction) {
+    if (faction == NULL || faction->characters == NULL) return;
     
-    free(faction->actors);
-    faction->actors = NULL;
-    faction->actor_count = 0;
+    free(faction->characters);
+    faction->characters = NULL;
+    faction->character_count = 0;
 }
 
 void factions_free_actors(Faction *factions, int faction_count) {
     if (factions == NULL || faction_count <= 0) return;
     
     for (int i = 0; i < faction_count; i++) {
-        faction_free_actors(&factions[i]);
+        faction_free_characters(&factions[i]);
     }
 }

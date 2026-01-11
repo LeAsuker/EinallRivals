@@ -127,30 +127,31 @@ void game_process_ai_turn(GameState *state, Point *map, GridConfig *grid_config)
 
     int total_cells = grid_config->max_grid_cells_x * grid_config->max_grid_cells_y;
 
-    for (int i = 0; i < current->actor_count; i++) {
-        Actor *actor = &current->actors[i];
-        if (!actor_is_alive(actor)) continue;
-        if (!actor_can_perform_action(actor)) continue;
+    for (int i = 0; i < current->character_count; i++) {
+        Character *character = &current->characters[i];
+        if (!character_is_alive(character)) continue;
+        if (!character_can_perform_action(character)) continue;
 
-        // Locate actor's cell
-        Point *actor_cell = NULL;
+        // Locate character's cell
+        Point *character_cell = NULL;
         for (int c = 0; c < total_cells; c++) {
-            if (map[c].occupant == actor) {
-                actor_cell = &map[c];
+            if (map[c].occupant == character) {
+                character_cell = &map[c];
                 break;
             }
         }
-        if (actor_cell == NULL) continue;
+        if (character_cell == NULL) continue;
 
         // Search for enemies in attack range; pick the closest
+        Stats character_stats = character_get_stats(character);
         Point *best_target = NULL;
         int best_dist = 999999;
         for (int c = 0; c < total_cells; c++) {
             if (map[c].occupant == NULL) continue;
-            Actor *other = map[c].occupant;
-            if (!actor_is_enemy(actor, other)) continue;
-            if (combat_is_in_range(grid_config, actor_cell, &map[c], actor->attack_range)) {
-                int d = combat_get_distance(actor_cell, &map[c]);
+            Character *other = map[c].occupant;
+            if (!character_is_enemy(character, other)) continue;
+            if (combat_is_in_range(grid_config, character_cell, &map[c], character_stats.attack_range)) {
+                int d = combat_get_distance(character_cell, &map[c]);
                 if (d < best_dist) {
                     best_dist = d;
                     best_target = &map[c];
@@ -158,23 +159,23 @@ void game_process_ai_turn(GameState *state, Point *map, GridConfig *grid_config)
             }
         }
 
-        if (best_target != NULL && actor->can_act) {
-            combat_execute_at_cells(grid_config, map, actor_cell, best_target);
-            // continue to next actor
+        if (best_target != NULL && character->can_act) {
+            combat_execute_at_cells(grid_config, map, character_cell, best_target);
+            // continue to next character
             continue;
         }
 
         // No enemy in immediate attack range
-        if (!actor->can_move) continue;
+        if (!character->can_move) continue;
 
         // First: try to find a closest enemy that can be reached (move + range)
         Point *closest_enemy = NULL;
         int closest_dist = 999999;
         for (int c = 0; c < total_cells; c++) {
             if (map[c].occupant == NULL) continue;
-            Actor *other = map[c].occupant;
-            if (!actor_is_enemy(actor, other)) continue;
-            int d = combat_get_distance(actor_cell, &map[c]);
+            Character *other = map[c].occupant;
+            if (!character_is_enemy(character, other)) continue;
+            int d = combat_get_distance(character_cell, &map[c]);
             if (d < closest_dist) {
                 closest_dist = d;
                 closest_enemy = &map[c];
@@ -182,10 +183,10 @@ void game_process_ai_turn(GameState *state, Point *map, GridConfig *grid_config)
         }
 
         bool moved = false;
-        if (closest_enemy != NULL && closest_dist <= (actor->movement + actor->attack_range)) {
+        if (closest_enemy != NULL && closest_dist <= (character_stats.movement + character_stats.attack_range)) {
             // Move one step towards the enemy (reduce Manhattan distance)
-            int dx = closest_enemy->x - actor_cell->x;
-            int dy = closest_enemy->y - actor_cell->y;
+            int dx = closest_enemy->x - character_cell->x;
+            int dy = closest_enemy->y - character_cell->y;
             int sx = (dx > 0) ? 1 : (dx < 0) ? -1 : 0;
             int sy = (dy > 0) ? 1 : (dy < 0) ? -1 : 0;
 
@@ -201,19 +202,19 @@ void game_process_ai_turn(GameState *state, Point *map, GridConfig *grid_config)
             }
 
             for (int t = 0; t < 2 && !moved; t++) {
-                int nx = actor_cell->x + try_order[t][0];
-                int ny = actor_cell->y + try_order[t][1];
+                int nx = character_cell->x + try_order[t][0];
+                int ny = character_cell->y + try_order[t][1];
                 if (!map_is_valid_coords(grid_config, nx, ny)) continue;
                 Point *dest = map_get_cell(map, grid_config, nx, ny);
                 if (dest == NULL) continue;
-                if (!map_can_unit_enter_cell(dest, actor)) continue;
-                // Move actor
-                dest->occupant = actor;
-                actor_cell->occupant = NULL;
-                actor->can_move = false;
+                if (!map_can_unit_enter_cell(dest, character)) continue;
+                // Move character
+                dest->occupant = character;
+                character_cell->occupant = NULL;
+                character->can_move = false;
                 moved = true;
-                // update actor_cell to new location so we can attempt an attack after moving
-                actor_cell = dest;
+                // update character_cell to new location so we can attempt an attack after moving
+                character_cell = dest;
                 break;
             }
         }
@@ -239,30 +240,30 @@ void game_process_ai_turn(GameState *state, Point *map, GridConfig *grid_config)
             }
 
             for (int d = 0; d < 4; d++) {
-                int nx = actor_cell->x + dirs[d][0];
-                int ny = actor_cell->y + dirs[d][1];
+                int nx = character_cell->x + dirs[d][0];
+                int ny = character_cell->y + dirs[d][1];
                 if (!map_is_valid_coords(grid_config, nx, ny)) continue;
                 Point *dest = map_get_cell(map, grid_config, nx, ny);
                 if (dest == NULL) continue;
-                if (!map_can_unit_enter_cell(dest, actor)) continue;
-                // Move actor
-                dest->occupant = actor;
-                actor_cell->occupant = NULL;
-                actor->can_move = false;
+                if (!map_can_unit_enter_cell(dest, character)) continue;
+                // Move character
+                dest->occupant = character;
+                character_cell->occupant = NULL;
+                character->can_move = false;
                 break;
             }
         }
         
-        // After moving (either toward enemy or random), if actor can still act, try to attack any enemy now in range
-        if (actor->can_act) {
+        // After moving (either toward enemy or random), if character can still act, try to attack any enemy now in range
+        if (character->can_act) {
             Point *attack_target = NULL;
             int attack_dist = 999999;
             for (int c = 0; c < total_cells; c++) {
                 if (map[c].occupant == NULL) continue;
-                Actor *other = map[c].occupant;
-                if (!actor_is_enemy(actor, other)) continue;
-                if (combat_is_in_range(grid_config, actor_cell, &map[c], actor->attack_range)) {
-                    int d = combat_get_distance(actor_cell, &map[c]);
+                Character *other = map[c].occupant;
+                if (!character_is_enemy(character, other)) continue;
+                if (combat_is_in_range(grid_config, character_cell, &map[c], character_stats.attack_range)) {
+                    int d = combat_get_distance(character_cell, &map[c]);
                     if (d < attack_dist) {
                         attack_dist = d;
                         attack_target = &map[c];
@@ -270,7 +271,7 @@ void game_process_ai_turn(GameState *state, Point *map, GridConfig *grid_config)
                 }
             }
             if (attack_target != NULL) {
-                combat_execute_at_cells(grid_config, map, actor_cell, attack_target);
+                combat_execute_at_cells(grid_config, map, character_cell, attack_target);
             }
         }
     }
@@ -293,24 +294,24 @@ Faction *game_get_current_faction(GameState *state) {
 
 void game_reset_faction_units(Faction *faction) {
     if (faction == NULL) return;
-    actor_array_reset_turns(faction->actors, faction->actor_count);
+    character_array_reset_turns(faction->characters, faction->character_count);
 }
 
 void game_end_all_unit_turns(Faction *faction) {
     if (faction == NULL) return;
-    for (int j = 0; j < faction->actor_count; j++) {
-        Actor *actor = &faction->actors[j];
-        if (actor_is_alive(actor)) {
-            actor_end_turn(actor);
+    for (int j = 0; j < faction->character_count; j++) {
+        Character *character = &faction->characters[j];
+        if (character_is_alive(character)) {
+            character_end_turn(character);
         }
     }
 }
 
 bool game_faction_has_actions_remaining(Faction *faction) {
     if (faction == NULL) return false;
-    for (int j = 0; j < faction->actor_count; j++) {
-        Actor *actor = &faction->actors[j];
-        if (actor_is_alive(actor) && actor_can_perform_action(actor)) {
+    for (int j = 0; j < faction->character_count; j++) {
+        Character *character = &faction->characters[j];
+        if (character_is_alive(character) && character_can_perform_action(character)) {
             return true;
         }
     }
@@ -383,5 +384,5 @@ const char *game_get_phase_name(GamePhase phase) {
 
 int faction_count_alive(Faction *faction) {
     if (faction == NULL) return 0;
-    return actor_array_count_alive(faction->actors, faction->actor_count);
+    return character_array_count_alive(faction->characters, faction->character_count);
 }

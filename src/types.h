@@ -32,18 +32,79 @@ struct Terrain {
   char name[10];
 };
 
+// Forward declarations for new character system
+struct UnitClass;
+struct Character;
+
 typedef struct Faction {
   Color prim_color;
   Color sec_color;
   bool has_turn;
   bool playable;
   char name[10];
-  // Each faction now owns a contiguous array of Actors and its count.
-  struct Actor *actors;
-  int actor_count;
+  // Each faction now owns a contiguous array of Characters and its count.
+  struct Character *characters;
+  int character_count;
 } Faction;
 
-typedef struct Actor {
+// Stats struct - used for calculations, aggregates all stat sources
+typedef struct Stats {
+  int max_health;
+  int movement;
+  int phys_attack;
+  int phys_defense;
+  int magic_attack;
+  int magic_defense;
+  int luck;
+  int attack_range;
+} Stats;
+
+// Genetics struct - random stat bonuses assigned at character creation (0-5 each)
+typedef struct Genetics {
+  int max_health;
+  int movement;
+  int phys_attack;
+  int phys_defense;
+  int magic_attack;
+  int magic_defense;
+  int luck;
+  int attack_range;
+} Genetics;
+
+// Veterancy struct - stat bonuses earned through leveling (starts at 0)
+typedef struct Veterancy {
+  int max_health;
+  int movement;
+  int phys_attack;
+  int phys_defense;
+  int magic_attack;
+  int magic_defense;
+  int luck;
+  int attack_range;
+} Veterancy;
+
+// ClassTree - promotion paths for a class
+typedef struct ClassTree {
+  struct UnitClass *promotions[4]; // Max 4 different promotion options
+  int promotion_count;
+} ClassTree;
+
+// UnitClass - the class template (formerly ActorTemplate + ClassTree)
+typedef struct UnitClass {
+  char name[10];
+  int max_health;
+  int movement;
+  int phys_attack;
+  int phys_defense;
+  int magic_attack;
+  int magic_defense;
+  int luck;
+  int attack_range;
+  ClassTree class_tree;
+} UnitClass;
+
+// Character - the new actor struct combining class, genetics, and veterancy
+typedef struct Character {
   Texture2D sprite;
   Faction *owner;
   bool can_move;
@@ -54,24 +115,17 @@ typedef struct Actor {
   int level;
   int next_level_xp;
 
-  int max_health;
-  int curr_health;
+  int curr_health; // Current health (max derived from stats)
 
-  int movement;
-
-  int phys_attack;
-  int phys_defense;
-
-  int magic_defense;
-  int magic_attack;
-  int luck;
-  int attack_range;
+  UnitClass *unit_class;  // Pointer to the class template
+  Genetics genetics;      // Random bonuses
+  Veterancy veterancy;    // Leveling bonuses
 
   Skill skills[5];
   int skill_count;
 
-  char name[10];
-} Actor;
+  char name[10]; // Individual character name
+} Character;
 
 typedef struct Structure {
   Texture2D sprite;
@@ -83,7 +137,7 @@ typedef struct Structure {
 typedef struct Point {
   int x;
   int y;
-  Actor *occupant;
+  Character *occupant;
   bool in_range;
   bool in_attack_range;
   Structure *structure;

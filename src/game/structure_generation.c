@@ -36,8 +36,8 @@ int structure_generation_place_warg_lairs(Point *mapArr, GridConfig *grid_config
     return lairs_placed;
 }
 
-// Spawn wargs around already placed lairs. Returns allocated actor array and writes count.
-Actor *structure_generation_spawn_wargs_around_lairs(Point *mapArr, GridConfig *grid_config,
+// Spawn wargs around already placed lairs. Returns allocated character array and writes count.
+Character *structure_generation_spawn_wargs_around_lairs(Point *mapArr, GridConfig *grid_config,
                                                      UnitSprites unit_sprites,
                                                      Faction *gaia_faction,
                                                      int *out_warg_count) {
@@ -60,10 +60,10 @@ Actor *structure_generation_spawn_wargs_around_lairs(Point *mapArr, GridConfig *
     }
 
     int max_possible_wargs = lair_count * 3;
-    Actor *gaia_wargs = NULL;
+    Character *gaia_wargs = NULL;
     int gaia_warg_count = 0;
     if (max_possible_wargs > 0) {
-        gaia_wargs = malloc(sizeof(Actor) * max_possible_wargs);
+        gaia_wargs = malloc(sizeof(Character) * max_possible_wargs);
         if (gaia_wargs == NULL) {
             *out_warg_count = 0;
             return NULL;
@@ -77,8 +77,7 @@ Actor *structure_generation_spawn_wargs_around_lairs(Point *mapArr, GridConfig *
             if (p == NULL || p->structure == NULL) continue;
             if (strcmp(p->structure->name, "Warg Lair") != 0) continue;
 
-            ActorTemplate warg_template;
-            actor_get_default_warg_template(&warg_template);
+            UnitClass *warg_class = class_get_warg();
             int to_spawn = (rand() % 2) + 2; // 2..3
             int spawned = 0;
             for (int o = 0; o < 8 && spawned < to_spawn; o++) {
@@ -89,7 +88,7 @@ Actor *structure_generation_spawn_wargs_around_lairs(Point *mapArr, GridConfig *
                 if (dest == NULL) continue;
                 if (!map_can_unit_enter_cell(dest, NULL)) continue;
 
-                actor_init_from_template(&gaia_wargs[gaia_warg_count], gaia_faction, unit_sprites.warg, &warg_template);
+                character_init_from_class(&gaia_wargs[gaia_warg_count], gaia_faction, unit_sprites.warg, warg_class);
                 dest->occupant = &gaia_wargs[gaia_warg_count];
                 gaia_warg_count++;
                 spawned++;

@@ -81,18 +81,17 @@ int main(void) {
   actions_load_icons();
 
   // Create units
-  ActorTemplate DEFAULT_MILITIA_TEMPLATE;
-  actor_get_default_militia_template(&DEFAULT_MILITIA_TEMPLATE);
-  Actor *dark_troops = actor_array_create_from_template(DARK_TROOP_NUM, &factions[DARKUS], 
-                                         unit_sprites.darkus_militia, &DEFAULT_MILITIA_TEMPLATE);
-  Actor *vent_troops = actor_array_create_from_template(VENT_TROOP_NUM, &factions[VENTUS], 
-                                         unit_sprites.ventus_militia, &DEFAULT_MILITIA_TEMPLATE);
-  // Assign actor arrays to their owning factions before placing them
-  factions[DARKUS].actors = dark_troops;
-  factions[DARKUS].actor_count = DARK_TROOP_NUM;
+  UnitClass *militia_class = class_get_militia();
+  Character *dark_troops = character_array_create_from_class(DARK_TROOP_NUM, &factions[DARKUS], 
+                                         unit_sprites.darkus_militia, militia_class);
+  Character *vent_troops = character_array_create_from_class(VENT_TROOP_NUM, &factions[VENTUS], 
+                                         unit_sprites.ventus_militia, militia_class);
+  // Assign character arrays to their owning factions before placing them
+  factions[DARKUS].characters = dark_troops;
+  factions[DARKUS].character_count = DARK_TROOP_NUM;
 
-  factions[VENTUS].actors = vent_troops;
-  factions[VENTUS].actor_count = VENT_TROOP_NUM;
+  factions[VENTUS].characters = vent_troops;
+  factions[VENTUS].character_count = VENT_TROOP_NUM;
   // Place faction troops into their corners
   spawning_place_faction_in_corner(mapArr, grid_config, &factions[DARKUS], 0, 4, 16);
   spawning_place_faction_in_corner(mapArr, grid_config, &factions[VENTUS], 2, 4, 16);
@@ -100,12 +99,12 @@ int main(void) {
   // Place Warg Lairs first, then spawn Gaia wargs around those lairs
   int lairs = structure_generation_place_warg_lairs(mapArr, grid_config, terrains, TERRAIN_COUNT, structure_sprites);
   int gaia_warg_count = 0;
-  Actor *gaia_wargs = NULL;
+  Character *gaia_wargs = NULL;
   if (lairs > 0) {
     gaia_wargs = structure_generation_spawn_wargs_around_lairs(mapArr, grid_config, unit_sprites, &factions[GAIA], &gaia_warg_count);
     if (gaia_wargs != NULL && gaia_warg_count > 0) {
-      factions[GAIA].actors = gaia_wargs;
-      factions[GAIA].actor_count = gaia_warg_count;
+      factions[GAIA].characters = gaia_wargs;
+      factions[GAIA].character_count = gaia_warg_count;
     }
   }
 

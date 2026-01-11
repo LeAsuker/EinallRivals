@@ -1,6 +1,7 @@
 #include "render/rendering.h"
 #include "input/input.h"
 #include "types.h"
+#include "game/actor.h"
 #include <stddef.h>
 #include "ui/button.h"
 
@@ -126,13 +127,14 @@ void render_cell_info(RenderContext *ctx, Point *focused_cell) {
     int info_y = ctx->grid_offset_y;
     
     if (focused_cell->occupant != NULL) {
-        Actor *occupant = focused_cell->occupant;
+        Character *occupant = focused_cell->occupant;
+        Stats stats = character_get_stats(occupant);
         DrawText(TextFormat("NAME: %s\nFAC: %s\nLVL: %d\nHP: %d/%d\nPATK: %d\nPDEF: %d\nMATK: %d\nMDEF: %d\nLCK: %d\nRNG: %d",
                            occupant->name, occupant->owner->name, 
-                           occupant->level, occupant->curr_health, occupant->max_health,
-                           occupant->phys_attack, occupant->phys_defense,
-                           occupant->magic_attack, occupant->magic_defense,
-                           occupant->luck, occupant->attack_range),
+                           occupant->level, occupant->curr_health, stats.max_health,
+                           stats.phys_attack, stats.phys_defense,
+                           stats.magic_attack, stats.magic_defense,
+                           stats.luck, stats.attack_range),
                 info_x + 5, info_y + 5, 26, BLACK);
     } else {
         DrawText(TextFormat("OCC: None"),
@@ -217,7 +219,7 @@ static void render_ui(RenderContext *ctx, const char *faction_name,
     button_draw(&tmp_btn);
 }
 
-void render_actions(RenderContext *ctx, Actor *actor, InputState *input_state, Button action_buttons[], int action_count) {
+void render_actions(RenderContext *ctx, Character *character, InputState *input_state, Button action_buttons[], int action_count) {
     // Render action panels to the bottom of the map (aligned with UI panel)
     
     int box_w = ctx->grid_cell_size * 2;
@@ -231,8 +233,8 @@ void render_actions(RenderContext *ctx, Actor *actor, InputState *input_state, B
         int bx = b->x;
         int by = b->y;
 
-        if (actor != NULL && i < actor->skill_count) {
-            Skill *s = &actor->skills[i];
+        if (character != NULL && i < character->skill_count) {
+            Skill *s = &character->skills[i];
             if (s->icon.id) {
                 Rectangle src = (Rectangle){0, 0, (float)s->icon.width, (float)s->icon.height};
                 Rectangle dst = (Rectangle){(float)bx, (float)by, (float)box_w, (float)box_h};
@@ -245,8 +247,8 @@ void render_actions(RenderContext *ctx, Actor *actor, InputState *input_state, B
             if (input_state != NULL && input_state->selected_action == i) {
                 DrawThickRectangleLines(bx, by, box_w, box_h, (Color){255, 255, 100, 255}, 5);
             }
-            if (input_state != NULL && (!actor->can_act || !actor->owner->has_turn)) {
-                // Dim the icon if actor cannot act
+            if (input_state != NULL && (!character->can_act || !character->owner->has_turn)) {
+                // Dim the icon if character cannot act
                 DrawRectangle(bx, by, box_w, box_h, (Color){100, 100, 100, 180});
             }
         }

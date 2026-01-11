@@ -25,7 +25,7 @@ void render_cell_info(RenderContext *ctx, Point *focused_cell);
 void render_combat_forecast(Point *attacker_cell, Point *defender_cell);
 void render_game(RenderContext *ctx, Point *map, Point *focused_cell, 
                      Faction *current_faction, InputState *input_state, Button *end_turn_button, Button action_buttons[], int action_count);
-void render_actions(RenderContext *ctx, Actor *actor, InputState *input_state, Button action_buttons[], int action_count);
+void render_actions(RenderContext *ctx, Character *character, InputState *input_state, Button action_buttons[], int action_count);
 #
 // Drawing helpers: draw thicker lines/rect outlines by repeating DrawLine/DrawRectangleLines
 static inline void DrawThickLine(int startPosX, int startPosY, int endPosX, int endPosY, Color color, int thickness) {
