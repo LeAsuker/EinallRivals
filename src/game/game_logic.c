@@ -144,13 +144,14 @@ void game_process_ai_turn(GameState *state, Point *map, GridConfig *grid_config)
 
         // Search for enemies in attack range; pick the closest
         Stats character_stats = character_get_stats(character);
+        int max_range = character_get_max_skill_range(character);
         Point *best_target = NULL;
         int best_dist = 999999;
         for (int c = 0; c < total_cells; c++) {
             if (map[c].occupant == NULL) continue;
             Character *other = map[c].occupant;
             if (!character_is_enemy(character, other)) continue;
-            if (combat_is_in_range(grid_config, character_cell, &map[c], character_stats.attack_range)) {
+            if (combat_is_in_range(grid_config, character_cell, &map[c], max_range)) {
                 int d = combat_get_distance(character_cell, &map[c]);
                 if (d < best_dist) {
                     best_dist = d;
@@ -183,7 +184,7 @@ void game_process_ai_turn(GameState *state, Point *map, GridConfig *grid_config)
         }
 
         bool moved = false;
-        if (closest_enemy != NULL && closest_dist <= (character_stats.movement + character_stats.attack_range)) {
+        if (closest_enemy != NULL && closest_dist <= (character_stats.movement + max_range)) {
             // Move one step towards the enemy (reduce Manhattan distance)
             int dx = closest_enemy->x - character_cell->x;
             int dy = closest_enemy->y - character_cell->y;
@@ -262,7 +263,7 @@ void game_process_ai_turn(GameState *state, Point *map, GridConfig *grid_config)
                 if (map[c].occupant == NULL) continue;
                 Character *other = map[c].occupant;
                 if (!character_is_enemy(character, other)) continue;
-                if (combat_is_in_range(grid_config, character_cell, &map[c], character_stats.attack_range)) {
+                if (combat_is_in_range(grid_config, character_cell, &map[c], max_range)) {
                     int d = combat_get_distance(character_cell, &map[c]);
                     if (d < attack_dist) {
                         attack_dist = d;

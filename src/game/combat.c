@@ -146,10 +146,10 @@ bool combat_can_attack(GridConfig *grid_config, Point *map,
         return false;
     }
     
-    // Check if defender is in range
-    Stats attacker_stats = character_get_stats(attacker);
+    // Check if defender is in range using attacker's maximum skill range
+    int max_range = character_get_max_skill_range(attacker);
     int distance = combat_get_distance(attacker_cell, defender_cell);
-    if (distance > attacker_stats.attack_range) {
+    if (distance > max_range) {
         return false;
     }
     
@@ -212,9 +212,9 @@ int combat_get_distance(Point *cell1, Point *cell2) {
 }
 
 bool combat_can_counter_attack(Character *attacker, Character *defender, int distance) {
-    // Defender can counter if their range reaches the attacker
-    Stats defender_stats = character_get_stats(defender);
-    return defender_stats.attack_range >= distance;
+    // Defender can counter if their maximum skill range reaches the attacker
+    int max_range = character_get_max_skill_range(defender);
+    return max_range >= distance;
 }
 
 // ============================================================================

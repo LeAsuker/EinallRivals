@@ -47,6 +47,7 @@ bool character_has_pending_level_up(Character *character);
 bool character_belongs_to_faction(Character *character, Faction *faction);
 bool character_is_enemy(Character *char1, Character *char2);
 int character_get_health_percentage(Character *character);
+int character_get_max_skill_range(Character *character);
 
 // ============================================================================
 // Unit class system

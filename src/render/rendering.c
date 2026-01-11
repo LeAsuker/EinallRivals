@@ -5,6 +5,54 @@
 #include <stddef.h>
 #include "ui/button.h"
 
+// Helper: map genetics value to display symbol and color
+static const char *genetic_symbol(int g, Color *out_color) {
+    if (out_color) *out_color = BLACK;
+    switch (g) {
+        case 0: if (out_color) *out_color = RED; return "--";
+        case 1: if (out_color) *out_color = RED; return "-";
+        case 4: if (out_color) *out_color = GREEN; return "+";
+        case 5: if (out_color) *out_color = GREEN; return "++";
+        default: return "";
+    }
+}
+
+static void draw_stat_with_gen(int x, int y, const char *label, int val, int gen_val, int text_size) {
+    DrawText(TextFormat("%s: %d", label, val), x, y, text_size, BLACK);
+    Color sym_color;
+    const char *sym = genetic_symbol(gen_val, &sym_color);
+    if (sym[0] != '\0') {
+        DrawText(sym, x + 260, y, text_size, sym_color);
+    }
+}
+
+// Draw all character stats and genetics markers in one call
+// Draw all character stats and genetics markers in one call
+// Returns the y position after the last drawn line
+static int draw_character_stats_with_gen(int x, int y, Character *occupant, Stats stats, int text_size) {
+    int line_h = text_size + 8;
+    DrawText(TextFormat("NAME: %s", occupant->name), x, y, text_size, BLACK);
+    y += line_h;
+    DrawText(TextFormat("FAC: %s", occupant->owner->name), x, y, text_size, BLACK);
+    y += line_h;
+    DrawText(TextFormat("LVL: %d", occupant->level), x, y, text_size, BLACK);
+    y += line_h;
+    DrawText(TextFormat("HP: %d/%d", occupant->curr_health, stats.max_health), x, y, text_size, BLACK);
+    y += line_h;
+
+    draw_stat_with_gen(x, y, "PATK", stats.phys_attack, occupant->genetics.phys_attack, text_size);
+    y += line_h;
+    draw_stat_with_gen(x, y, "PDEF", stats.phys_defense, occupant->genetics.phys_defense, text_size);
+    y += line_h;
+    draw_stat_with_gen(x, y, "MATK", stats.magic_attack, occupant->genetics.magic_attack, text_size);
+    y += line_h;
+    draw_stat_with_gen(x, y, "MDEF", stats.magic_defense, occupant->genetics.magic_defense, text_size);
+    y += line_h;
+    draw_stat_with_gen(x, y, "LCK", stats.luck, occupant->genetics.luck, text_size);
+    y += line_h;
+    return y;
+}
+
 static void render_map(RenderContext *ctx, Point *map, Point *focused_cell);
 static bool cell_is_focused(Point *cell, Point *focused_cell);
 
@@ -129,13 +177,23 @@ void render_cell_info(RenderContext *ctx, Point *focused_cell) {
     if (focused_cell->occupant != NULL) {
         Character *occupant = focused_cell->occupant;
         Stats stats = character_get_stats(occupant);
-        DrawText(TextFormat("NAME: %s\nFAC: %s\nLVL: %d\nHP: %d/%d\nPATK: %d\nPDEF: %d\nMATK: %d\nMDEF: %d\nLCK: %d\nRNG: %d",
-                           occupant->name, occupant->owner->name, 
-                           occupant->level, occupant->curr_health, stats.max_health,
-                           stats.phys_attack, stats.phys_defense,
-                           stats.magic_attack, stats.magic_defense,
-                           stats.luck, stats.attack_range),
-                info_x + 5, info_y + 5, 26, BLACK);
+        int x = info_x + 5;
+        int y = info_y + 5;
+        int text_size = 24;
+        int line_h = text_size + 8;
+
+        DrawText(TextFormat("NAME: %s", occupant->name), x, y, text_size, BLACK);
+        y += line_h;
+        DrawText(TextFormat("FAC: %s", occupant->owner->name), x, y, text_size, BLACK);
+        y += line_h;
+        DrawText(TextFormat("LVL: %d", occupant->level), x, y, text_size, BLACK);
+        y += line_h;
+        DrawText(TextFormat("HP: %d/%d", occupant->curr_health, stats.max_health), x, y, text_size, BLACK);
+        y += line_h;
+
+        y = draw_character_stats_with_gen(x, y, occupant, stats, text_size);
+        // Advance the outer info_y to avoid overlapping the terrain/structure UI below
+        info_y = y + 20;
     } else {
         DrawText(TextFormat("OCC: None"),
                 info_x + 5, info_y + 5, 26, BLACK);
@@ -246,6 +304,8 @@ void render_actions(RenderContext *ctx, Character *character, InputState *input_
             // Highlight selected action
             if (input_state != NULL && input_state->selected_action == i) {
                 DrawThickRectangleLines(bx, by, box_w, box_h, (Color){255, 255, 100, 255}, 5);
+                // Draw skill range below the button
+                DrawText(TextFormat("RNG: %d", s->range), bx, by + box_h + 5, 16, BLACK);
             }
             if (input_state != NULL && (!character->can_act || !character->owner->has_turn)) {
                 // Dim the icon if character cannot act

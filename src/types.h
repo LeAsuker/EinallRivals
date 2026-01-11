@@ -56,7 +56,6 @@ typedef struct Stats {
   int magic_attack;
   int magic_defense;
   int luck;
-  int attack_range;
 } Stats;
 
 // Genetics struct - random stat bonuses assigned at character creation (0-5 each)
@@ -68,7 +67,6 @@ typedef struct Genetics {
   int magic_attack;
   int magic_defense;
   int luck;
-  int attack_range;
 } Genetics;
 
 // Veterancy struct - stat bonuses earned through leveling (starts at 0)
@@ -80,7 +78,6 @@ typedef struct Veterancy {
   int magic_attack;
   int magic_defense;
   int luck;
-  int attack_range;
 } Veterancy;
 
 // ClassTree - promotion paths for a class
@@ -99,7 +96,6 @@ typedef struct UnitClass {
   int magic_attack;
   int magic_defense;
   int luck;
-  int attack_range;
   ClassTree class_tree;
 } UnitClass;
 

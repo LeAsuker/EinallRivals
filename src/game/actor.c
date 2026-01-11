@@ -17,7 +17,6 @@ UnitClass CLASS_MILITIA = {
     .magic_attack = 0,
     .magic_defense = 3,
     .luck = 1,
-    .attack_range = 1,
     .class_tree = { .promotions = {NULL, NULL, NULL, NULL}, .promotion_count = 0 }
 };
 
@@ -30,7 +29,6 @@ UnitClass CLASS_WARG = {
     .magic_attack = 1,
     .magic_defense = 1,
     .luck = 0,
-    .attack_range = 1,
     .class_tree = { .promotions = {NULL, NULL, NULL, NULL}, .promotion_count = 0 }
 };
 
@@ -43,7 +41,6 @@ UnitClass CLASS_SPEARMAN = {
     .magic_attack = 0,
     .magic_defense = 6,
     .luck = 2,
-    .attack_range = 2,
     .class_tree = { .promotions = {NULL, NULL, NULL, NULL}, .promotion_count = 0 }
 };
 
@@ -56,7 +53,6 @@ UnitClass CLASS_SWORDSMAN = {
     .magic_attack = 0,
     .magic_defense = 4,
     .luck = 3,
-    .attack_range = 1,
     .class_tree = { .promotions = {NULL, NULL, NULL, NULL}, .promotion_count = 0 }
 };
 
@@ -85,7 +81,6 @@ void genetics_init(Genetics *genetics) {
     genetics->magic_attack = rand() % 6;
     genetics->magic_defense = rand() % 6;
     genetics->luck = rand() % 6;
-    genetics->attack_range = 0; // Attack range typically doesn't vary by genetics
 }
 
 void veterancy_init(Veterancy *veterancy) {
@@ -97,7 +92,6 @@ void veterancy_init(Veterancy *veterancy) {
     veterancy->magic_attack = 0;
     veterancy->magic_defense = 0;
     veterancy->luck = 0;
-    veterancy->attack_range = 0;
 }
 
 // ============================================================================
@@ -120,7 +114,6 @@ Stats character_get_stats(Character *character) {
         stats.magic_attack = cls->magic_attack + gen->magic_attack + vet->magic_attack;
         stats.magic_defense = cls->magic_defense + gen->magic_defense + vet->magic_defense;
         stats.luck = cls->luck + gen->luck + vet->luck;
-        stats.attack_range = cls->attack_range + gen->attack_range + vet->attack_range;
     }
     
     return stats;
@@ -370,6 +363,17 @@ int character_get_health_percentage(Character *character) {
     Stats stats = character_get_stats(character);
     if (stats.max_health == 0) return 0;
     return (character->curr_health * 100) / stats.max_health;
+}
+
+int character_get_max_skill_range(Character *character) {
+    if (character == NULL) return 0;
+    int max_range = 0;
+    for (int i = 0; i < character->skill_count; i++) {
+        if (character->skills[i].range > max_range) {
+            max_range = character->skills[i].range;
+        }
+    }
+    return max_range;
 }
 
 bool character_has_pending_level_up(Character *character) {

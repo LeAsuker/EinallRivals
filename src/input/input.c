@@ -12,7 +12,7 @@
 // Forward declarations for internal helper functions
 static Point *mouse_to_cell(GridConfig *grid_config, Point *map);
 static void handle_cell_selection(GridConfig *grid_config, Point *map, 
-                                   Point *selected_cell, Point **focused_cell);
+                                   Point *selected_cell, Point **focused_cell, InputState *input_state);
 
 void input_init(InputState *state) {
     state->selected_cell = NULL;
@@ -124,6 +124,11 @@ void input_handle_action_click(InputState *state, GridConfig *grid_config, Point
     } else {
         state->selected_action = clicked_action;
     }
+    
+    // Update range display when skill selection changes
+    if (state->focused_cell != NULL) {
+        handle_cell_selection(grid_config, map, state->focused_cell, &state->focused_cell, state);
+    }
 }
 
 void input_handle_left_click(InputState *state, GridConfig *grid_config, Point *map) {
@@ -155,10 +160,6 @@ void input_handle_left_click(InputState *state, GridConfig *grid_config, Point *
             selected->occupant->can_move = false;
             state->focused_cell = selected; // focus moved unit's new cell
             map_clear_range_flags(map, grid_config);
-            if (selected->occupant != NULL && selected->occupant->can_act && selected->occupant->owner->has_turn) {
-                Stats sel_stats = character_get_stats(selected->occupant);
-                map_calculate_attack_range(grid_config, map, selected, sel_stats.attack_range, true);
-            }
             return;
         }
 
@@ -201,7 +202,7 @@ void input_handle_left_click(InputState *state, GridConfig *grid_config, Point *
     }
 
     // Default: focus the clicked cell
-    handle_cell_selection(grid_config, map, selected, &state->focused_cell);
+    handle_cell_selection(grid_config, map, selected, &state->focused_cell, state);
     state->selected_action = -1; // clear selected action on new focus
 }
 
@@ -215,7 +216,7 @@ void input_handle_selection(InputState *state, GridConfig *grid_config, Point *m
     // Don't process selection if clicking on UI elements
     if (state->end_turn_requested) return;
     
-    handle_cell_selection(grid_config, map, state->selected_cell, &state->focused_cell);
+    handle_cell_selection(grid_config, map, state->selected_cell, &state->focused_cell, state);
 }
 
 void input_handle_movement(InputState *state, GridConfig *grid_config, Point *map) {
@@ -296,7 +297,7 @@ static Point *mouse_to_cell(GridConfig *grid_config, Point *map) {
 }
 
 static void handle_cell_selection(GridConfig *grid_config, Point *map, 
-                                   Point *selected_cell, Point **focused_cell) {
+                                   Point *selected_cell, Point **focused_cell, InputState *input_state) {
     // Flush previous range indicators
     cell_flag_flush(map, grid_config);
     
@@ -316,10 +317,12 @@ static void handle_cell_selection(GridConfig *grid_config, Point *map,
                                    selected_cell, occupant_stats.movement, true);
             }
             
-            // Show attack range if unit can still act
-            if (occupant->can_act) {
+            // Only show attack range if a specific skill is selected
+            if (input_state != NULL && input_state->selected_action >= 0 && 
+                input_state->selected_action < occupant->skill_count && occupant->can_act) {
+                Skill *selected_skill = &occupant->skills[input_state->selected_action];
                 map_calculate_attack_range(grid_config, map,
-                                selected_cell, occupant_stats.attack_range, true);
+                                selected_cell, selected_skill->range, true);
             }
         }
     }
