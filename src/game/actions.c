@@ -7,6 +7,14 @@
 #include "game/actor.h"
 
 
+/**
+ * @brief Free any dynamic memory held by a Skill instance.
+ *
+ * This will free the area_of_effect array if present and reset related
+ * fields to safe defaults. Passing NULL is a no-op.
+ *
+ * @param skill Skill instance to cleanup (may be NULL).
+ */
 void skill_free(Skill *skill) {
     if (skill == NULL) return;
     if (skill->area_of_effect) {
@@ -28,6 +36,11 @@ Skill spear_strike = {
     .icon = {0}
 };
 
+/**
+ * @brief Copy the predefined Spear Strike skill into `dest_skill`.
+ *
+ * @param dest_skill Destination Skill struct pointer (must be non-NULL).
+ */
 void action_copy_spear_strike(Skill *dest_skill) {
     if (dest_skill == NULL) return;
     memcpy(dest_skill, &spear_strike, sizeof(Skill));
@@ -58,19 +71,32 @@ Skill Loot = {
     .icon = {0}
 };
 
+/**
+ * @brief Copy the predefined Loot skill into `dest_skill`.
+ *
+ * @param dest_skill Destination Skill struct pointer (must be non-NULL).
+ */
 void action_copy_loot(Skill *dest_skill) {
     if (dest_skill == NULL) return;
     memcpy(dest_skill, &Loot, sizeof(Skill));
     return;
 }
 
+/**
+ * @brief Copy the predefined Bite skill into `dest_skill`.
+ *
+ * @param dest_skill Destination Skill struct pointer (must be non-NULL).
+ */
 void action_copy_bite(Skill *dest_skill) {
     if (dest_skill == NULL) return;
     memcpy(dest_skill, &bite, sizeof(Skill));
     return;
 }
 
-// Load action-related icons/resources. Call after InitWindow.
+/**
+ * @brief Load action-related icon textures. Must be called after the
+ * window/renderer has been initialized.
+ */
 void actions_load_icons(void) {
     // Load spear strike icon
     spear_strike.icon = LoadTexture("../../resources/actions/spear_strike_icon.png");
@@ -78,12 +104,25 @@ void actions_load_icons(void) {
     // bite.icon = LoadTexture("../../resources/actions/bite_icon.png");
 }
 
-// Unload action-related icons/resources. Call during cleanup after actors freed.
+/**
+ * @brief Unload any textures loaded by actions_load_icons.
+ *
+ * Safe to call multiple times; checks texture ids before unloading.
+ */
 void actions_unload_icons(void) {
     if (spear_strike.icon.id) UnloadTexture(spear_strike.icon);
     if (bite.icon.id) UnloadTexture(bite.icon);
 }
 
+/**
+ * @brief Set the effective damage on `skill` based on `owner` stats.
+ *
+ * If `skill->is_magic` is true, magic attack stat is used; otherwise
+ * physical attack stat is used. Passing NULL is a no-op.
+ *
+ * @param skill Skill to adjust (must be non-NULL).
+ * @param owner Character whose stats determine the damage.
+ */
 void action_set_damage(Skill *skill, Character *owner) {
     if (skill == NULL) return;
     if (owner == NULL) return;
@@ -97,6 +136,15 @@ void action_set_damage(Skill *skill, Character *owner) {
     skill->damage = stats.phys_attack;
 }
 
+/**
+ * @brief Add a copy of `skill` to a character's skill slots.
+ *
+ * Adjusts the skill damage based on the character's stats before adding.
+ * No-op if `character` or `skill` is NULL or if the skill slots are full.
+ *
+ * @param character Character to receive the skill.
+ * @param skill Skill prototype to add.
+ */
 void action_add_skill_to_character(Character *character, Skill *skill) {
     if (character == NULL || skill == NULL) return;
     if (character->skill_count >= 5) return; // Max skills reached
@@ -105,6 +153,21 @@ void action_add_skill_to_character(Character *character, Skill *skill) {
     character->skill_count++;
 }
 
+
+/**
+ * @brief Execute an offensive skill from an attacker cell onto a defender cell.
+ *
+ * Performs range checks, damage application, logs the action, grants
+ * experience, and clears the defender from the map if killed. Preconditions
+ * such as non-NULL pointers and occupant presence are verified; otherwise
+ * the function returns without effect.
+ *
+ * @param grid_config Grid configuration (unused but kept for future checks).
+ * @param map Pointer to map array (unused in current implementation).
+ * @param attacker_cell Cell containing the attacker Character.
+ * @param defender_cell Cell containing the defender Character.
+ * @param skill Skill to execute (damage may be adjusted by action_set_damage).
+ */
 void execute_skill_at_cells(GridConfig *grid_config, Point *map, Point *attacker_cell, Point *defender_cell, Skill *skill) {
     if (attacker_cell == NULL || defender_cell == NULL || skill == NULL) return;
     if (attacker_cell->occupant == NULL || defender_cell->occupant == NULL) return;
@@ -153,6 +216,20 @@ void execute_skill_at_cells(GridConfig *grid_config, Point *map, Point *attacker
     attacker->can_act = false;
 }
 
+/**
+ * @brief Execute a loot action from `looter_cell` against a lootable structure cell.
+ *
+ * Validates input parameters and ensures the looter can act and the target
+ * structure is lootable and within range. Grants example XP and marks the
+ * structure as already looted. This function currently performs no item
+ * transfer logic; extend as needed.
+ *
+ * @param grid_config Grid configuration (currently unused).
+ * @param map Map array (currently unused).
+ * @param looter_cell Cell containing the looter Character.
+ * @param lootable Cell containing a lootable structure.
+ * @param skill Skill used for looting (used for range and logging).
+ */
 void execute_loot_at_cells(GridConfig *grid_config, Point *map, Point *looter_cell, Point *lootable, Skill *skill) {
     if (looter_cell == NULL || lootable == NULL || skill == NULL) return;
     if (looter_cell->occupant == NULL) return;

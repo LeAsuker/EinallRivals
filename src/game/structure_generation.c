@@ -8,7 +8,11 @@
 #include "game/map.h"
 #include "game/terrain.h"
 
-// Place lair structures only. Returns number of lairs placed.
+/**
+ * @brief Place several Warg Lairs on the map and return how many were placed.
+ *
+ * Scans for plains tiles and attempts to place 4..6 lairs at valid locations.
+ */
 int structure_generation_place_warg_lairs(Point *mapArr, GridConfig *grid_config,
                                           Terrain *terrains, int terrain_count,
                                           StructureSprites structure_sprites) {
@@ -37,6 +41,12 @@ int structure_generation_place_warg_lairs(Point *mapArr, GridConfig *grid_config
 }
 
 // Spawn wargs around already placed lairs. Returns allocated character array and writes count.
+/**
+ * @brief Spawn creatures (wargs) around previously placed Warg Lairs.
+ *
+ * Allocates and returns an array of Characters that were spawned, writing
+ * the count into `out_warg_count`. Caller must free the returned array.
+ */
 Character *structure_generation_spawn_wargs_around_lairs(Point *mapArr, GridConfig *grid_config,
                                                      UnitSprites unit_sprites,
                                                      Faction *gaia_faction,
@@ -108,6 +118,11 @@ Character *structure_generation_spawn_wargs_around_lairs(Point *mapArr, GridConf
     return gaia_wargs;
 }
 
+/**
+ * @brief Place abandoned huts at passable, unoccupied locations on the map.
+ *
+ * Returns the number of huts successfully placed.
+ */
 int structure_generation_place_abandoned_huts(Point *mapArr, GridConfig *grid_config,
                                           Terrain *terrains, int terrain_count,
                                           StructureSprites structure_sprites) {

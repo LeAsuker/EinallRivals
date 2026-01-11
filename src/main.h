@@ -11,6 +11,11 @@
 
 #include "types.h"
 
+/**
+ * @file main.h
+ * @brief Global configuration macros used by the `main` entry point and
+ * other modules for grid sizing and offsets.
+ */
 // Historical/legacy prototypes were removed — individual modules publish
 // their own APIs. This header now only contains configuration macros used
 // by `main.c` and simple consumers.

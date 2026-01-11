@@ -3,6 +3,11 @@
 #include "types.h"
 #include <string.h>
 
+/**
+ * @brief Test if the mouse cursor currently lies inside the button rectangle.
+ * @param b Button to test (must be non-NULL).
+ * @return true if the mouse is over the button.
+ */
 bool button_is_mouse_over(const Button *b) {
     NULL_CHECK_RET(b, false);
     int mx = GetMouseX();
@@ -11,6 +16,11 @@ bool button_is_mouse_over(const Button *b) {
             my >= b->y && my < b->y + b->height);
 }
 
+/**
+ * @brief Update the button pressed state based on mouse position and button-down state.
+ * @param b Button to update (must be non-NULL).
+ * @param mouse_down true if the mouse button is currently held down.
+ */
 void button_update(Button *b, bool mouse_down) {
     NULL_CHECK_VOID(b);
     // Pressed when mouse is down while over the button
@@ -21,6 +31,10 @@ void button_update(Button *b, bool mouse_down) {
     }
 }
 
+/**
+ * @brief Draw the button background, border, and centered label (if any).
+ * @param b Button to draw (must be non-NULL).
+ */
 void button_draw(const Button *b) {
     NULL_CHECK_VOID(b);
     // Draw background

@@ -42,6 +42,10 @@ static void cleanup_game_resources(Point *mapArr, Faction *factions, int num_fac
                                    Terrain *terrains, int terrain_count,
                                    GridConfig *grid_config);
 
+/**
+ * @brief Program entry point: initialize window, run main menu and game loops.
+ * @return Exit code (0 on normal termination).
+ */
 int main(void) {
   const int screenWidth = 1600;
   const int screenHeight = 1000;
@@ -264,7 +268,18 @@ int main(void) {
   return 0;
 }
 
-// Cleanup function for game resources
+/**
+ * @brief Free all game resources allocated while entering PLAYING mode.
+ * @param mapArr Map cell array previously returned by map_create.
+ * @param factions Array of factions to free actors for.
+ * @param num_factions Number of factions in the array.
+ * @param game_state Pointer to the current GameState to free.
+ * @param unit_sprites Loaded unit sprite resources to unload.
+ * @param structure_sprites Loaded structure sprite resources to unload.
+ * @param terrains Array of terrains to unload.
+ * @param terrain_count Count of terrains in the array.
+ * @param grid_config GridConfig pointer allocated via grid_init to free.
+ */
 static void cleanup_game_resources(Point *mapArr, Faction *factions, int num_factions,
                                    GameState *game_state, UnitSprites *unit_sprites,
                                    StructureSprites *structure_sprites, 

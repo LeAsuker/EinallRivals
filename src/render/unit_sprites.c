@@ -1,7 +1,12 @@
 #include "render/unit_sprites.h"
 #include "render/structure_sprites.h"
 
-// Helper to load and resize unit textures
+/**
+ * @brief Load an image from disk, resize it to cell_size, and convert to a Texture2D.
+ * @param path Filesystem path to the image file.
+ * @param cell_size Size in pixels to resize the image to (square).
+ * @return Loaded Texture2D (caller is responsible for unloading with UnloadTexture).
+ */
 static Texture2D load_unit_texture(const char *path, int cell_size) {
     Image img = LoadImage(path);
     ImageResize(&img, cell_size, cell_size);
@@ -10,6 +15,11 @@ static Texture2D load_unit_texture(const char *path, int cell_size) {
     return texture;
 }
 
+/**
+ * @brief Load all unit textures scaled to the given cell size.
+ * @param cell_size Target pixel size for each unit texture.
+ * @return UnitSprites struct containing loaded textures (caller should call unit_sprites_unload).
+ */
 UnitSprites unit_sprites_load(int cell_size) {
     UnitSprites sprites;
     sprites.darkus_militia = load_unit_texture("../../resources/units/darkus_militia.png", cell_size);
@@ -18,6 +28,10 @@ UnitSprites unit_sprites_load(int cell_size) {
     return sprites;
 }
 
+/**
+ * @brief Unload textures contained in a UnitSprites struct.
+ * @param sprites Pointer to UnitSprites whose textures will be unloaded (NULL-safe behavior not required).
+ */
 void unit_sprites_unload(UnitSprites *sprites) {
     UnloadTexture(sprites->darkus_militia);
     UnloadTexture(sprites->ventus_militia);
@@ -25,6 +39,11 @@ void unit_sprites_unload(UnitSprites *sprites) {
 }
 
 // Structure sprite helpers (kept in this compilation unit to include in build)
+/**
+ * @brief Load structure sprites scaled to the provided cell size.
+ * @param cell_size Pixel size to scale structure textures to.
+ * @return StructureSprites container with loaded textures.
+ */
 StructureSprites structure_sprites_load(int cell_size) {
     StructureSprites sprites;
     sprites.warg_lair = load_unit_texture("../../resources/structures/warg_lair.png", cell_size);
@@ -32,6 +51,10 @@ StructureSprites structure_sprites_load(int cell_size) {
     return sprites;
 }
 
+/**
+ * @brief Unload textures contained in a StructureSprites struct.
+ * @param sprites Pointer to StructureSprites whose textures will be unloaded.
+ */
 void structure_sprites_unload(StructureSprites *sprites) {
     UnloadTexture(sprites->warg_lair);
 }

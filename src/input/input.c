@@ -13,6 +13,10 @@ static Point *mouse_to_cell(GridConfig *grid_config, Point *map);
 static void handle_cell_selection(GridConfig *grid_config, Point *map, 
                                    Point *selected_cell, Point **focused_cell, InputState *input_state);
 
+/**
+ * @brief Initialize the InputState struct to sensible defaults and initialize buttons.
+ * @param state Pointer to InputState to initialize (NULL-safe check performed).
+ */
 void input_init(InputState *state) {
     NULL_CHECK_VOID(state);
     state->selected_cell = NULL;
@@ -37,6 +41,12 @@ void input_init(InputState *state) {
     state->selected_action = -1;
 }
 
+/**
+ * @brief Update input state for the current frame: mouse, clicks, and button states.
+ * @param state Input state to update (must be valid).
+ * @param grid_config Grid configuration to compute button/layout positions.
+ * @param map Map array used for mapping mouse coordinates to a cell.
+ */
 void input_update(InputState *state, GridConfig *grid_config, Point *map) {
     NULL_CHECK_VOID(state);
     NULL_CHECK_VOID(grid_config);
@@ -77,6 +87,11 @@ void input_update(InputState *state, GridConfig *grid_config, Point *map) {
     }
 }
 
+/**
+ * @brief Position the end-turn and action buttons based on the grid layout.
+ * @param state Input state owning the buttons to layout.
+ * @param grid_config Grid configuration describing offsets and cell sizes.
+ */
 void input_layout_buttons(InputState *state, GridConfig *grid_config) {
     NULL_CHECK_VOID(state);
     NULL_CHECK_VOID(grid_config);
@@ -120,6 +135,12 @@ int input_get_clicked_action(InputState *state) {
     return -1;
 }
 
+/**
+ * @brief Handle clicks on action buttons: toggle selection and update range display.
+ * @param state Current input state.
+ * @param grid_config Grid configuration for range/target calculations.
+ * @param map Map array used for executing skills or movement logic.
+ */
 void input_handle_action_click(InputState *state, GridConfig *grid_config, Point *map) {
     NULL_CHECK_VOID(state);
     NULL_CHECK_VOID(grid_config);
@@ -140,6 +161,12 @@ void input_handle_action_click(InputState *state, GridConfig *grid_config, Point
     }
 }
 
+/**
+ * @brief Handle a left-click on the map: movement, skill use, or focus change.
+ * @param state Input state containing selection and click flags.
+ * @param grid_config Grid configuration for range/movement checks.
+ * @param map Map array for cell/occupant lookup and updates.
+ */
 void input_handle_left_click(InputState *state, GridConfig *grid_config, Point *map) {
     NULL_CHECK_VOID(state);
     NULL_CHECK_VOID(grid_config);
@@ -265,6 +292,11 @@ void input_handle_movement(InputState *state, GridConfig *grid_config, Point *ma
     map_clear_range_flags(map, grid_config);
 }
 
+/**
+ * @brief Check whether the mouse is currently over the End Turn button region.
+ * @param ctx Render context used to compute the button's rectangle.
+ * @return true if the mouse is over the end-turn button.
+ */
 bool input_is_mouse_over_end_turn_button(RenderContext *ctx) {
     NULL_CHECK_RET(ctx, false);
     // Create a temporary button using the same layout rules and query it.
@@ -282,6 +314,11 @@ bool input_is_mouse_over_end_turn_button(RenderContext *ctx) {
 // Internal helper functions
 // ============================================================================
 
+/**
+ * @brief Determine whether the mouse cursor is within the map grid bounds.
+ * @param grid_config Grid configuration describing the grid rectangle.
+ * @return true if cursor is within grid bounds.
+ */
 bool input_is_mouse_over_map(GridConfig *grid_config) {
     NULL_CHECK_RET(grid_config, false);
     int mouse_x = GetMouseX();
@@ -296,6 +333,12 @@ bool input_is_mouse_over_map(GridConfig *grid_config) {
             mouse_y >= top && mouse_y < bottom);
 }
 
+/**
+ * @brief Convert current mouse position to a pointer to the corresponding cell in the map.
+ * @param grid_config Grid configuration used to map screen coordinates to cell indices.
+ * @param map Pointer to the map array.
+ * @return Pointer to the cell under the mouse, or NULL if out of bounds or mouse not over map.
+ */
 static Point *mouse_to_cell(GridConfig *grid_config, Point *map) {
     NULL_CHECK_RET(grid_config, NULL);
     // If the mouse is outside the map area, don't compute a cell index.
@@ -317,6 +360,14 @@ static Point *mouse_to_cell(GridConfig *grid_config, Point *map) {
     return map + grid_config->max_grid_cells_x * y + x;
 }
 
+/**
+ * @brief Handle focusing a cell: set focused pointer, flush previous flags, and show ranges as appropriate.
+ * @param grid_config Grid configuration used for range calculation.
+ * @param map Map array pointer.
+ * @param selected_cell Cell that was selected (becomes focused).
+ * @param focused_cell Output pointer to current focused cell pointer to update.
+ * @param input_state InputSource to determine selected action for attack ranges (may be NULL).
+ */
 static void handle_cell_selection(GridConfig *grid_config, Point *map, 
                                    Point *selected_cell, Point **focused_cell, InputState *input_state) {
     NULL_CHECK_VOID(grid_config);

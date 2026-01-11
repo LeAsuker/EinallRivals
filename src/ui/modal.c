@@ -5,6 +5,10 @@
 #include <stdio.h>
 #include <raylib.h>
 
+/**
+ * @brief Allocate and initialize a Modal instance with defaults.
+ * @return Pointer to newly allocated Modal, or NULL on allocation failure.
+ */
 Modal *modal_create(void) {
     Modal *modal = (Modal *)calloc(1, sizeof(Modal));
     modal->type = MODAL_TYPE_NONE;
@@ -16,6 +20,10 @@ Modal *modal_create(void) {
     return modal;
 }
 
+/**
+ * @brief Free a Modal and any owned resources such as dynamic buttons.
+ * @param modal Modal to free (NULL-safe).
+ */
 void modal_free(Modal *modal) {
     if (!modal) return;
     if (modal->buttons) {
@@ -24,6 +32,10 @@ void modal_free(Modal *modal) {
     free(modal);
 }
 
+/**
+ * @brief Clear modal state, free buttons, and deactivate the modal.
+ * @param modal Modal to clear (NULL-safe).
+ */
 void modal_clear(Modal *modal) {
     if (!modal) return;
     modal->active = false;
@@ -37,6 +49,12 @@ void modal_clear(Modal *modal) {
     modal->data = NULL;
 }
 
+/**
+ * @brief Configure a simple pause/ESC modal with Resume/Exit options.
+ * @param modal Modal to configure (must be valid).
+ * @param screen_width Screen width for centering computations.
+ * @param screen_height Screen height for centering computations.
+ */
 void modal_setup_esc_menu(Modal *modal, int screen_width, int screen_height) {
     NULL_CHECK_VOID(modal);
     modal_clear(modal);
@@ -84,6 +102,15 @@ void modal_setup_esc_menu(Modal *modal, int screen_width, int screen_height) {
     button_set_colors(&modal->buttons[2], LIGHTGRAY, DARKGRAY);
 }
 
+/**
+ * @brief Setup a level-up modal populated with class choice buttons.
+ * @param modal Modal to configure (must be valid).
+ * @param screen_width Screen width for centering layout.
+ * @param screen_height Screen height for centering layout.
+ * @param character Character being leveled up (displayed in the title).
+ * @param class_options Array of option strings to use as button labels.
+ * @param class_count Number of class options.
+ */
 void modal_setup_level_up(Modal *modal, int screen_width, int screen_height,
                           Character *character, const char **class_options, int class_count) {
     NULL_CHECK_VOID(modal);
@@ -130,6 +157,11 @@ void modal_setup_level_up(Modal *modal, int screen_width, int screen_height,
     }
 }
 
+/**
+ * @brief Update modal input and button state, returning any result produced.
+ * @param modal Modal to update.
+ * @return A ModalResult value indicating a selection or MODAL_RESULT_NONE.
+ */
 ModalResult modal_update(Modal *modal) {
     if (!modal || !modal->active) {
         return MODAL_RESULT_NONE;
@@ -177,6 +209,10 @@ ModalResult modal_update(Modal *modal) {
     return modal->result;
 }
 
+/**
+ * @brief Render an active modal dialog including overlay, background, text, and buttons.
+ * @param modal Modal to render (must be non-NULL and active to draw anything).
+ */
 void modal_render(const Modal *modal) {
     if (!modal || !modal->active) return;
     

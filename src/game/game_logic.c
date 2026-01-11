@@ -10,6 +10,13 @@
 // Game State Initialization
 // ============================================================================
 
+/**
+ * @brief Allocate and initialize a new GameState for the provided factions.
+ *
+ * @param factions Array of faction prototypes to use in the new state.
+ * @param num_factions Number of factions.
+ * @return Allocated GameState or NULL on allocation failure.
+ */
 GameState *game_state_create(Faction *factions, int num_factions) {
     GameState *state = malloc(sizeof(GameState));
     if (state == NULL) {
@@ -21,12 +28,27 @@ GameState *game_state_create(Faction *factions, int num_factions) {
     return state;
 }
 
+/**
+ * @brief Free a GameState previously allocated by game_state_create.
+ *
+ * Does not free the factions array passed into the state; caller retains
+ * ownership of those resources.
+ */
 void game_state_free(GameState *state) {
     if (state != NULL) {
         free(state);
     }
 }
 
+/**
+ * @brief Initialize an existing GameState structure with factions.
+ *
+ * Sets initial phase, turn counters and ensures the first faction has the turn.
+ *
+ * @param state GameState to initialize (must be preallocated).
+ * @param factions Array of factions to reference.
+ * @param num_factions Number of factions in the array.
+ */
 void game_state_init(GameState *state, Faction *factions, int num_factions) {
     state->current_phase = PHASE_PLAYER_TURN;
     state->factions = factions;
@@ -57,6 +79,12 @@ void game_state_init(GameState *state, Faction *factions, int num_factions) {
 // Turn Management
 // ============================================================================
 
+/**
+ * @brief Advance the game to the next faction's turn and handle transitions.
+ *
+ * Updates turn counters, toggles has_turn flags, starts the new faction's
+ * turn, and checks victory conditions.
+ */
 void game_next_turn(GameState *state) {
     // Move to next faction in order
     state->current_faction_index++;
@@ -91,6 +119,9 @@ void game_next_turn(GameState *state) {
     }
 }
 
+/**
+ * @brief End the current faction's turn and advance to the next.
+ */
 void game_end_current_turn(GameState *state) {
     Faction *current_faction = game_get_current_faction(state);
     printf("Ending turn for %s\n", current_faction->name);
@@ -102,6 +133,9 @@ void game_end_current_turn(GameState *state) {
     game_next_turn(state);
 }
 
+/**
+ * @brief Start the current faction's turn by resetting units and updating phase.
+ */
 void game_start_faction_turn(GameState *state) {
     Faction *current_faction = game_get_current_faction(state);
     
@@ -121,6 +155,42 @@ void game_start_faction_turn(GameState *state) {
 // AI Processing
 // ============================================================================
 
+
+
+/**
+ * @brief Return the Faction currently active in the GameState or NULL.
+ */
+Faction *game_get_current_faction(GameState *state) {
+    if (state->current_faction_index >= 0 && 
+        state->current_faction_index < state->num_factions) {
+        return &state->factions[state->current_faction_index];
+    }
+    return NULL;
+}
+
+// ============================================================================
+// Unit Turn Management
+// ============================================================================
+
+
+/**
+ * @brief Very simple AI turn processor for the current faction.
+ *
+ * For each alive unit that can perform an action, attempts to attack any
+ * reachable enemy, otherwise moves toward the nearest enemy or moves
+ * randomly with some probability.
+ *
+ * On completion the faction's turn is ended.
+ */
+/**
+ * @brief Very simple AI turn processor for the current faction.
+ *
+ * For each alive unit that can perform an action, attempts to attack any
+ * reachable enemy, otherwise moves toward the nearest enemy or moves
+ * randomly with some probability.
+ *
+ * On completion the faction's turn is ended.
+ */
 void game_process_ai_turn(GameState *state, Point *map, GridConfig *grid_config) {
     Faction *current = game_get_current_faction(state);
     if (current == NULL) return;
@@ -280,24 +350,21 @@ void game_process_ai_turn(GameState *state, Point *map, GridConfig *grid_config)
     // After AI processes, end the faction's turn
     game_end_current_turn(state);
 }
-
-Faction *game_get_current_faction(GameState *state) {
-    if (state->current_faction_index >= 0 && 
-        state->current_faction_index < state->num_factions) {
-        return &state->factions[state->current_faction_index];
-    }
-    return NULL;
-}
-
 // ============================================================================
 // Unit Turn Management
 // ============================================================================
 
+/**
+ * @brief Reset action flags for all characters in a faction.
+ */
 void game_reset_faction_units(Faction *faction) {
     if (faction == NULL) return;
     character_array_reset_turns(faction->characters, faction->character_count);
 }
 
+/**
+ * @brief End the turn for every alive unit in the faction.
+ */
 void game_end_all_unit_turns(Faction *faction) {
     if (faction == NULL) return;
     for (int j = 0; j < faction->character_count; j++) {
@@ -308,6 +375,9 @@ void game_end_all_unit_turns(Faction *faction) {
     }
 }
 
+/**
+ * @brief Return whether a faction has any actions remaining this turn.
+ */
 bool game_faction_has_actions_remaining(Faction *faction) {
     if (faction == NULL) return false;
     for (int j = 0; j < faction->character_count; j++) {
@@ -323,6 +393,9 @@ bool game_faction_has_actions_remaining(Faction *faction) {
 // Victory Condition Checking
 // ============================================================================
 
+/**
+ * @brief Evaluate victory conditions and update game state accordingly.
+ */
 bool game_check_victory_conditions(GameState *state) {
     int factions_alive = 0;
 
@@ -336,11 +409,19 @@ bool game_check_victory_conditions(GameState *state) {
     // Victory if only one faction remains
     return factions_alive <= 1;
 }
+
+/**
+ * @brief Check whether a faction has been defeated (no alive units).
+ */
 bool game_is_faction_defeated(Faction *faction) {
     if (faction == NULL) return true;
     int alive_count = faction_count_alive(faction);
     return alive_count == 0;
 }
+
+/**
+ * @brief Get the faction that has won (if any).
+ */
 Faction *game_get_winner(GameState *state) {
     // Find the faction that still has units alive
     for (int i = 0; i < state->num_factions; i++) {
@@ -355,18 +436,30 @@ Faction *game_get_winner(GameState *state) {
 // Game State Queries
 // ============================================================================
 
+/**
+ * @brief Whether the current phase is the player's turn.
+ */
 bool game_is_player_turn(GameState *state) {
     return state->current_phase == PHASE_PLAYER_TURN;
 }
 
+/**
+ * @brief Whether the current phase is an AI/enemy turn.
+ */
 bool game_is_ai_turn(GameState *state) {
     return state->current_phase == PHASE_ENEMY_TURN;
 }
 
+/**
+ * @brief Whether the game is marked as over.
+ */
 bool game_is_over(GameState *state) {
     return state->game_over;
 }
 
+/**
+ * @brief Human-readable name for a GamePhase value.
+ */
 const char *game_get_phase_name(GamePhase phase) {
     switch (phase) {
         case PHASE_PLAYER_TURN: return "Player Turn";
@@ -383,6 +476,9 @@ const char *game_get_phase_name(GamePhase phase) {
 // Faction / troop utilities
 // ============================================================================
 
+/**
+ * @brief Count how many characters in a faction are alive.
+ */
 int faction_count_alive(Faction *faction) {
     if (faction == NULL) return 0;
     return character_array_count_alive(faction->characters, faction->character_count);

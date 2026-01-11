@@ -1,6 +1,11 @@
 #include "core/utils.h"
 #include <stdlib.h>
 
+/**
+ * @brief Clamp mouse X coordinate to remain inside the grid bounds.
+ * @param grid_config Grid configuration used to compute bounds.
+ * @return Clamped X coordinate (screen pixels).
+ */
 int safe_mouse_x(GridConfig * grid_config) {
   NULL_CHECK_RET(grid_config, 0);
   int mouse_pos = GetMouseX();
@@ -12,6 +17,11 @@ int safe_mouse_x(GridConfig * grid_config) {
   return mouse_pos;
 }
 
+/**
+ * @brief Clamp mouse Y coordinate to remain inside the grid bounds.
+ * @param grid_config Grid configuration used to compute bounds.
+ * @return Clamped Y coordinate (screen pixels).
+ */
 int safe_mouse_y(GridConfig * grid_config) {
   NULL_CHECK_RET(grid_config, 0);
   int mouse_pos = GetMouseY();
@@ -23,7 +33,11 @@ int safe_mouse_y(GridConfig * grid_config) {
   return mouse_pos;
 }
 
-// Helper function moved from main.c — used elsewhere (e.g., input.c)
+/**
+ * @brief Clear all movement/attack range flags on a map cell array.
+ * @param cell_arr Pointer to the first cell in the map array (width-major ordering).
+ * @param grid Grid configuration used to iterate bounds.
+ */
 void cell_flag_flush(Point *cell_arr, GridConfig *grid) {
   NULL_CHECK_VOID(cell_arr);
   NULL_CHECK_VOID(grid);
@@ -35,6 +49,15 @@ void cell_flag_flush(Point *cell_arr, GridConfig *grid) {
   }
 }
 
+/**
+ * @brief Allocate and initialize a GridConfig structure.
+ * @param g_off_x Grid pixel X offset for top-left of the grid.
+ * @param g_off_y Grid pixel Y offset for top-left of the grid.
+ * @param g_cell_size Size of one grid cell in pixels.
+ * @param max_cell_x Number of cells horizontally.
+ * @param max_cell_y Number of cells vertically.
+ * @return Newly allocated GridConfig (caller should free when done).
+ */
 GridConfig *grid_init(int g_off_x, int g_off_y, int g_cell_size,
                       int max_cell_x, int max_cell_y) {
   GridConfig *grid = malloc(sizeof(GridConfig));

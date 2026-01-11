@@ -182,6 +182,11 @@ static void render_map(RenderContext *ctx, Point *map, Point *focused_cell) {
     }
 }
 
+/**
+ * @brief Draw debug overlays such as mouse position and simple runtime information.
+ * @param ctx Rendering context (reserved for future use).
+ * @param map Optional map pointer for debug inspection (currently unused).
+ */
 void render_debug_info(RenderContext *ctx, Point *map) {
     int mouse_x = GetMouseX();
     int mouse_y = GetMouseY();
@@ -189,6 +194,11 @@ void render_debug_info(RenderContext *ctx, Point *map) {
     DrawText(TextFormat("MOUSE: %d %d", mouse_x, mouse_y), 40, 20, 20, DARKGRAY);
 }
 
+/**
+ * @brief Render a detailed info panel about the focused cell: occupant, terrain, and structure.
+ * @param ctx Rendering context used to compute panel position.
+ * @param focused_cell Cell to describe (NULL-safe; returns early if NULL).
+ */
 void render_cell_info(RenderContext *ctx, Point *focused_cell) {
     if (focused_cell == NULL) return;
     
@@ -235,6 +245,13 @@ void render_cell_info(RenderContext *ctx, Point *focused_cell) {
     // Selection highlight is now rendered as a transparent background tint
 }
 
+/**
+ * @brief Render the right-hand UI panel including the end-turn button and decorative border.
+ * @param ctx Rendering context used to compute UI placement and sizing.
+ * @param faction_name Name string used for the end-turn button label.
+ * @param current_faction Faction providing UI colors (may be NULL for fallback colors).
+ * @param end_turn_button Pointer to the End Turn button state. The rect is copied and styled.
+ */
 static void render_ui(RenderContext *ctx, const char *faction_name,
                         Faction *current_faction, Button *end_turn_button) {
 
@@ -288,6 +305,14 @@ static void render_ui(RenderContext *ctx, const char *faction_name,
     button_draw(&tmp_btn);
 }
 
+/**
+ * @brief Render the array of action buttons and draw skill icons/overlays where applicable.
+ * @param ctx Rendering context for placement calculation.
+ * @param character Character providing skill icons (may be NULL).
+ * @param input_state Input state used to show selected/dim states.
+ * @param action_buttons Array of action buttons to render.
+ * @param action_count Number of action buttons.
+ */
 void render_actions(RenderContext *ctx, Character *character, InputState *input_state, Button action_buttons[], int action_count) {
     NULL_CHECK_VOID(ctx);
     NULL_CHECK_VOID(action_buttons);

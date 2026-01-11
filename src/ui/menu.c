@@ -6,6 +6,10 @@
 #define MENU_BUTTON_HEIGHT 50
 #define MENU_BUTTON_SPACING 20
 
+/**
+ * @brief Initialize the menu state to defaults and activate the menu.
+ * @param state MenuState to initialize (must be valid).
+ */
 void menu_init(MenuState *state) {
     NULL_CHECK_VOID(state);
     state->selected_option = MENU_NONE;
@@ -13,6 +17,10 @@ void menu_init(MenuState *state) {
     state->is_active = true;
 }
 
+/**
+ * @brief Update menu hover and selection state based on mouse input.
+ * @param state MenuState to update.
+ */
 void menu_update(MenuState *state) {
     NULL_CHECK_VOID(state);
     int mouse_x = GetMouseX();
@@ -54,6 +62,12 @@ void menu_update(MenuState *state) {
     }
 }
 
+/**
+ * @brief Render the main menu UI and its buttons.
+ * @param state MenuState to render (must be valid and active).
+ * @param screen_width Screen width used for centering elements.
+ * @param screen_height Screen height used for layout.
+ */
 void menu_render(MenuState *state, int screen_width, int screen_height) {
     NULL_CHECK_VOID(state);
     BeginDrawing();
@@ -114,6 +128,11 @@ void menu_render(MenuState *state, int screen_width, int screen_height) {
     EndDrawing();
 }
 
+/**
+ * @brief Return the currently selected menu option.
+ * @param state Menu state to query.
+ * @return Selected MenuOption, or MENU_NONE if state is NULL.
+ */
 MenuOption menu_get_selected(MenuState *state) {
     NULL_CHECK_RET(state, MENU_NONE);
     return state->selected_option;

@@ -35,40 +35,81 @@ typedef struct InputState {
     int selected_action;
 } InputState;
 
-// Initialize input state
+/**
+ * @brief Initialize input state fields to sensible defaults.
+ * @param state Pointer to an InputState to initialize (must be valid).
+ */
 void input_init(InputState *state);
 
-// Layout input-owned buttons based on the provided grid configuration.
-// Call once after grid/layout is initialized, and again if the grid
-// or UI layout changes (e.g., window resize).
+/**
+ * @brief Position input-owned buttons according to the grid layout.
+ *        Call after grid initialization or when the window/grid is resized.
+ * @param state InputState owning the buttons to layout.
+ * @param grid_config Grid configuration describing offsets and cell sizes.
+ */
 void input_layout_buttons(InputState *state, GridConfig *grid_config);
-// Process action clicks and execute skills when applicable. This moves
-// clicked-action handling out of main.c and into the input subsystem.
+
+/**
+ * @brief Process clicks on action buttons and execute skills when applicable.
+ * @param state Current input state.
+ * @param grid_config Grid configuration for validation and targeting.
+ * @param map Map array used for targeting and movement checks.
+ */
 void input_handle_action_click(InputState *state, GridConfig *grid_config, Point *map);
 
-// Update input state based on current frame's input
-// Returns the cell currently under the mouse cursor
+/**
+ * @brief Update input state for the current frame (mouse, clicks, button states).
+ * @param state Input state to update.
+ * @param grid_config Grid configuration for mapping screen-to-cell coordinates.
+ * @param map Map array to query cells under mouse.
+ */
 void input_update(InputState *state, GridConfig *grid_config, Point *map);
 
-// Return index of the first action button that was clicked this frame,
-// or -1 if none. This consumes the click state (clears the flag).
+/**
+ * @brief Return index of first action button clicked this frame, or -1 if none.
+ *        This call consumes the click state (clears the per-button flag).
+ * @param state InputState to query.
+ * @return Index of clicked action, or -1 if no click.
+ */
 int input_get_clicked_action(InputState *state);
 
-// Handle left click selection logic
+/**
+ * @brief Handle left-click selection logic (select units, focus cells, toggle).
+ * @param state Input state containing the click/focus information.
+ * @param grid_config Grid configuration for coordinate mapping.
+ * @param map Map array to operate on.
+ */
 void input_handle_selection(InputState *state, GridConfig *grid_config, Point *map);
 
-// Handle right click movement logic
+/**
+ * @brief Handle right-click movement logic (attempt to move selected unit).
+ * @param state Input state containing selection and click info.
+ * @param grid_config Grid configuration for path/range checks.
+ * @param map Map array for validating destination and occupancy.
+ */
 void input_handle_movement(InputState *state, GridConfig *grid_config, Point *map);
 
-// Handle a left-click on the map according to game rules (movement, action,
-// focus toggle). Should be called when `state->left_click` is true.
+/**
+ * @brief Handle a left-click on the map according to game rules:
+ *        movement, skill targeting, or focus toggles.
+ * @param state Input state with click flags (should have left_click true).
+ * @param grid_config Grid data for mapping coordinates.
+ * @param map Map array to read and update selection/targets.
+ */
 void input_handle_left_click(InputState *state, GridConfig *grid_config, Point *map);
 
-// Check if mouse is over the end turn button
+/**
+ * @brief Query whether the mouse is currently hovering the end-turn button.
+ * @param ctx Render context used to compute button coordinates.
+ * @return true if mouse is over the end-turn button.
+ */
 bool input_is_mouse_over_end_turn_button(RenderContext *ctx);
 
-// Check if the mouse is over the map area (returns true if the cursor
-// is inside the grid bounds, false otherwise)
+/**
+ * @brief Check whether the mouse cursor is inside the map grid area.
+ * @param grid_config Grid configuration used to map screen-to-cell coordinates.
+ * @return true if the cursor is within grid bounds.
+ */
 bool input_is_mouse_over_map(GridConfig *grid_config);
 
 #endif

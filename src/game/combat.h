@@ -5,7 +5,9 @@
 #include "game/map.h"
 #include <stdbool.h>
 
-// Combat result structure - stores the outcome of a battle
+/**
+ * @brief Outcome details for a single combat engagement.
+ */
 typedef struct {
     Character *attacker;
     Character *defender;
@@ -17,7 +19,9 @@ typedef struct {
     bool defender_can_counter;
 } CombatResult;
 
-// Combat prediction - shows what would happen without executing
+/**
+ * @brief Deterministic forecast of a combat engagement used for UI display.
+ */
 typedef struct {
     int attacker_damage;
     int defender_damage;

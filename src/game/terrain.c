@@ -1,7 +1,11 @@
 #include "game/terrain.h"
 #include <string.h>
 
-// Helper to load and resize textures
+/**
+ * @brief Load an image at `path`, resize it to `cell_size`, and return a texture.
+ *
+ * This helper wraps raylib Image load/resize and texture creation.
+ */
 static Texture2D load_terrain_texture(const char *path, int cell_size) {
     Image img = LoadImage(path);
     ImageResize(&img, cell_size, cell_size);
@@ -10,6 +14,15 @@ static Texture2D load_terrain_texture(const char *path, int cell_size) {
     return texture;
 }
 
+/**
+ * @brief Initialize the Terrain array with predefined terrain types and textures.
+ *
+ * Populates the `terrains` array using the provided `cell_size` for texture scaling.
+ * Assumes `terrains` has at least enough slots for known terrain enums.
+ *
+ * @param terrains Destination array of Terrain entries.
+ * @param cell_size Size in pixels for each terrain sprite.
+ */
 void terrain_init_all(Terrain *terrains, int cell_size) {
     // Initialize None terrain (no texture)
     terrains[TERRAIN_NONE].id = -1;
