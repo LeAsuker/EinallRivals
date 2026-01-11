@@ -3,11 +3,7 @@
 
 #include "types.h"
 
-typedef enum {
-    DARKUS,
-    VENTUS,
-    GAIA
-} Factions;
+typedef enum { DARKUS, VENTUS, GAIA } Factions;
 
 /**
  * @brief Populate a default set of factions (DARKUS, VENTUS, GAIA).

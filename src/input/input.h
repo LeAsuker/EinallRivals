@@ -1,38 +1,38 @@
 #ifndef INPUT_H_
 #define INPUT_H_
 
-#include "types.h"
+#include "game/actions.h"
 #include "game/combat.h"
+#include "types.h"
 #include "ui/button.h"
 #include <stdbool.h>
-#include "game/actions.h"
 
 #define ACTION_BUTTON_COUNT 10
-
 
 // Number of action buttons shown under the map
 typedef struct RenderContext RenderContext;
 
 // Input state structure - tracks what actions the player wants to take
 typedef struct InputState {
-    Point *selected_cell;      // Cell currently under mouse
-    Point *focused_cell;       // Cell that has been clicked/selected
-    bool left_click;           // True if left mouse button was just pressed
-    bool right_click;          // True if right mouse button was just pressed
-    bool end_turn_requested;   // True if player wants to end turn
+  Point *selected_cell;    // Cell currently under mouse
+  Point *focused_cell;     // Cell that has been clicked/selected
+  bool left_click;         // True if left mouse button was just pressed
+  bool right_click;        // True if right mouse button was just pressed
+  bool end_turn_requested; // True if player wants to end turn
 
-    // End-turn button instance (refactored to use Button API)
-    Button end_turn_button;
-    
-    // Action buttons (10 slots drawn below the map). These are clickable
-    // and tracked by the input system.
-    Button action_buttons[ACTION_BUTTON_COUNT];
-    bool action_clicked[ACTION_BUTTON_COUNT];
-    // Track last known screen size to detect window resizes and re-layout
-    int last_screen_width;
-    int last_screen_height;
-    // Currently selected action index (-1 = none). Set when clicking action button.
-    int selected_action;
+  // End-turn button instance (refactored to use Button API)
+  Button end_turn_button;
+
+  // Action buttons (10 slots drawn below the map). These are clickable
+  // and tracked by the input system.
+  Button action_buttons[ACTION_BUTTON_COUNT];
+  bool action_clicked[ACTION_BUTTON_COUNT];
+  // Track last known screen size to detect window resizes and re-layout
+  int last_screen_width;
+  int last_screen_height;
+  // Currently selected action index (-1 = none). Set when clicking action
+  // button.
+  int selected_action;
 } InputState;
 
 /**
@@ -55,10 +55,12 @@ void input_layout_buttons(InputState *state, GridConfig *grid_config);
  * @param grid_config Grid configuration for validation and targeting.
  * @param map Map array used for targeting and movement checks.
  */
-void input_handle_action_click(InputState *state, GridConfig *grid_config, Point *map);
+void input_handle_action_click(InputState *state, GridConfig *grid_config,
+                               Point *map);
 
 /**
- * @brief Update input state for the current frame (mouse, clicks, button states).
+ * @brief Update input state for the current frame (mouse, clicks, button
+ * states).
  * @param state Input state to update.
  * @param grid_config Grid configuration for mapping screen-to-cell coordinates.
  * @param map Map array to query cells under mouse.
@@ -79,7 +81,8 @@ int input_get_clicked_action(InputState *state);
  * @param grid_config Grid configuration for coordinate mapping.
  * @param map Map array to operate on.
  */
-void input_handle_selection(InputState *state, GridConfig *grid_config, Point *map);
+void input_handle_selection(InputState *state, GridConfig *grid_config,
+                            Point *map);
 
 /**
  * @brief Handle right-click movement logic (attempt to move selected unit).
@@ -87,7 +90,8 @@ void input_handle_selection(InputState *state, GridConfig *grid_config, Point *m
  * @param grid_config Grid configuration for path/range checks.
  * @param map Map array for validating destination and occupancy.
  */
-void input_handle_movement(InputState *state, GridConfig *grid_config, Point *map);
+void input_handle_movement(InputState *state, GridConfig *grid_config,
+                           Point *map);
 
 /**
  * @brief Handle a left-click on the map according to game rules:
@@ -96,7 +100,8 @@ void input_handle_movement(InputState *state, GridConfig *grid_config, Point *ma
  * @param grid_config Grid data for mapping coordinates.
  * @param map Map array to read and update selection/targets.
  */
-void input_handle_left_click(InputState *state, GridConfig *grid_config, Point *map);
+void input_handle_left_click(InputState *state, GridConfig *grid_config,
+                             Point *map);
 
 /**
  * @brief Query whether the mouse is currently hovering the end-turn button.

@@ -6,11 +6,14 @@
  * @param grid_config Grid configuration used to compute bounds.
  * @return Clamped X coordinate (screen pixels).
  */
-int safe_mouse_x(GridConfig * grid_config) {
+int safe_mouse_x(GridConfig *grid_config) {
   NULL_CHECK_RET(grid_config, 0);
   int mouse_pos = GetMouseX();
-  if (mouse_pos >= grid_config->grid_offset_x + grid_config->max_grid_cells_x* grid_config->grid_cell_size) {
-    return grid_config->grid_offset_x + grid_config->max_grid_cells_x * grid_config->grid_cell_size - 1;
+  if (mouse_pos >=
+      grid_config->grid_offset_x +
+          grid_config->max_grid_cells_x * grid_config->grid_cell_size) {
+    return grid_config->grid_offset_x +
+           grid_config->max_grid_cells_x * grid_config->grid_cell_size - 1;
   } else if (mouse_pos <= grid_config->grid_offset_x) {
     return grid_config->grid_offset_x + 1;
   }
@@ -22,11 +25,14 @@ int safe_mouse_x(GridConfig * grid_config) {
  * @param grid_config Grid configuration used to compute bounds.
  * @return Clamped Y coordinate (screen pixels).
  */
-int safe_mouse_y(GridConfig * grid_config) {
+int safe_mouse_y(GridConfig *grid_config) {
   NULL_CHECK_RET(grid_config, 0);
   int mouse_pos = GetMouseY();
-  if (mouse_pos >= grid_config->grid_offset_y + grid_config->max_grid_cells_y * grid_config->grid_cell_size) {
-    return grid_config->grid_offset_y + grid_config->max_grid_cells_y * grid_config->grid_cell_size - 1;
+  if (mouse_pos >=
+      grid_config->grid_offset_y +
+          grid_config->max_grid_cells_y * grid_config->grid_cell_size) {
+    return grid_config->grid_offset_y +
+           grid_config->max_grid_cells_y * grid_config->grid_cell_size - 1;
   } else if (mouse_pos <= grid_config->grid_offset_y) {
     return grid_config->grid_offset_y + 1;
   }
@@ -35,7 +41,8 @@ int safe_mouse_y(GridConfig * grid_config) {
 
 /**
  * @brief Clear all movement/attack range flags on a map cell array.
- * @param cell_arr Pointer to the first cell in the map array (width-major ordering).
+ * @param cell_arr Pointer to the first cell in the map array (width-major
+ * ordering).
  * @param grid Grid configuration used to iterate bounds.
  */
 void cell_flag_flush(Point *cell_arr, GridConfig *grid) {
@@ -58,8 +65,8 @@ void cell_flag_flush(Point *cell_arr, GridConfig *grid) {
  * @param max_cell_y Number of cells vertically.
  * @return Newly allocated GridConfig (caller should free when done).
  */
-GridConfig *grid_init(int g_off_x, int g_off_y, int g_cell_size,
-                      int max_cell_x, int max_cell_y) {
+GridConfig *grid_init(int g_off_x, int g_off_y, int g_cell_size, int max_cell_x,
+                      int max_cell_y) {
   GridConfig *grid = malloc(sizeof(GridConfig));
   grid->grid_offset_x = g_off_x;
   grid->grid_offset_y = g_off_y;

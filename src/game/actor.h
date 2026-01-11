@@ -1,8 +1,8 @@
 #ifndef ACTOR_H_
 #define ACTOR_H_
 
-#include "types.h"
 #include "raylib.h"
+#include "types.h"
 #include <stdbool.h>
 
 // ============================================================================
@@ -41,7 +41,8 @@ Stats character_get_stats(Character *character);
  * @brief Allocate and initialize a default militia character.
  * @param owner The owning faction for the character.
  * @param sprite Sprite texture for the character.
- * @return Pointer to a newly allocated Character, or NULL on allocation failure.
+ * @return Pointer to a newly allocated Character, or NULL on allocation
+ * failure.
  */
 Character *militia_create(Faction *owner, Texture2D sprite);
 
@@ -104,14 +105,16 @@ void character_take_damage(Character *character, int damage);
 void character_heal(Character *character, int amount);
 
 /**
- * @brief Reduce the XP-to-next-level by xp and mark level-up if threshold reached.
+ * @brief Reduce the XP-to-next-level by xp and mark level-up if threshold
+ * reached.
  * @param character The character gaining experience.
  * @param xp Amount of experience gained.
  */
 void character_gain_experience(Character *character, int xp);
 
 /**
- * @brief Perform a level-up: increase veterancy bonuses, heal, and set next-level XP.
+ * @brief Perform a level-up: increase veterancy bonuses, heal, and set
+ * next-level XP.
  * @param character The character leveling up.
  */
 void character_level_up(Character *character);
@@ -134,7 +137,8 @@ bool character_has_pending_level_up(Character *character);
 bool character_belongs_to_faction(Character *character, Faction *faction);
 
 /**
- * @brief Check whether two characters are enemies (belong to different factions).
+ * @brief Check whether two characters are enemies (belong to different
+ * factions).
  * @param char1 First character.
  * @param char2 Second character.
  * @return true if the characters belong to different factions.
@@ -189,7 +193,9 @@ UnitClass *class_get_warg(void);
  * @param unit_class UnitClass template to base characters on.
  * @return Pointer to an allocated Character array or NULL on failure.
  */
-Character *character_array_create_from_class(int count, Faction *owner, Texture2D sprite, UnitClass *unit_class);
+Character *character_array_create_from_class(int count, Faction *owner,
+                                             Texture2D sprite,
+                                             UnitClass *unit_class);
 
 /**
  * @brief Free an array of characters and their per-skill resources.
@@ -220,7 +226,7 @@ int character_array_count_alive(Character *characters, int count);
  * @param sprite Sprite to use.
  * @param unit_class The class template to initialize from.
  */
-void character_init_from_class(Character *character, Faction *owner, 
+void character_init_from_class(Character *character, Faction *owner,
                                Texture2D sprite, UnitClass *unit_class);
 
 /**
@@ -230,6 +236,7 @@ void character_init_from_class(Character *character, Faction *owner,
  * @param unit_class Unit class to base the character on.
  * @return Newly allocated Character or NULL on allocation failure.
  */
-Character *character_create_from_class(Faction *owner, Texture2D sprite, UnitClass *unit_class);
+Character *character_create_from_class(Faction *owner, Texture2D sprite,
+                                       UnitClass *unit_class);
 
 #endif

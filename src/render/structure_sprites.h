@@ -7,8 +7,8 @@
  * @brief Container of preloaded structure textures.
  */
 typedef struct {
-    Texture2D warg_lair;      /**< Texture for a warg lair. */
-    Texture2D abandoned_hut;  /**< Texture for an abandoned hut. */
+  Texture2D warg_lair;     /**< Texture for a warg lair. */
+  Texture2D abandoned_hut; /**< Texture for an abandoned hut. */
 } StructureSprites;
 
 /**

@@ -25,7 +25,8 @@ void map_free(Point *map);
  * @param grid_config Grid configuration describing array dimensions.
  * @param default_terrain Terrain to assign to each cell.
  */
-void map_init_cells(Point *map, GridConfig *grid_config, Terrain default_terrain);
+void map_init_cells(Point *map, GridConfig *grid_config,
+                    Terrain default_terrain);
 
 // Cell access and utilities
 /**
@@ -39,7 +40,8 @@ Point *map_get_cell(Point *map, GridConfig *grid_config, int x, int y);
 Point *map_get_random_cell(Point *map, GridConfig *grid_config);
 
 /**
- * @brief Return a random spawnable cell from the map (suitable for unit placement).
+ * @brief Return a random spawnable cell from the map (suitable for unit
+ * placement).
  */
 Point *map_get_random_spawn_cell(Point *map, GridConfig *grid_config);
 
@@ -51,29 +53,34 @@ bool map_is_valid_coords(GridConfig *grid_config, int x, int y);
 /**
  * @brief Get a random cell inside a corner area selection.
  */
-Point * map_get_random_corner_cell(Point * mapArr, GridConfig * grid_config, int corner, int area_size);
+Point *map_get_random_corner_cell(Point *mapArr, GridConfig *grid_config,
+                                  int corner, int area_size);
 
 /**
  * @brief Get a random spawn cell in a corner with a retry limit.
  */
-Point * map_get_random_corner_spawn_cell(Point* mapArr, GridConfig* grid_config, int corner, int area_size, int max_attempts);
+Point *map_get_random_corner_spawn_cell(Point *mapArr, GridConfig *grid_config,
+                                        int corner, int area_size,
+                                        int max_attempts);
 
 /**
- * @brief Return whether all 8 neighboring cells around `cell` are of a given terrain.
+ * @brief Return whether all 8 neighboring cells around `cell` are of a given
+ * terrain.
  */
-bool map_all_8_neighs_terrain(Point * mapArr, GridConfig* grid, Point * cell, Terrain terrain);
+bool map_all_8_neighs_terrain(Point *mapArr, GridConfig *grid, Point *cell,
+                              Terrain terrain);
 
 // Range and pathfinding calculations
 /**
  * @brief Calculate or clear movement range flags from a starting cell.
  */
-void map_calculate_movement_range(GridConfig *grid_config, Point *map, 
-                                   Point *start_cell, int range, bool enable);
+void map_calculate_movement_range(GridConfig *grid_config, Point *map,
+                                  Point *start_cell, int range, bool enable);
 
 /**
  * @brief Calculate or clear attack range flags from a starting cell.
  */
-void map_calculate_attack_range(GridConfig *grid_config, Point *map, 
+void map_calculate_attack_range(GridConfig *grid_config, Point *map,
                                 Point *start_cell, int range, bool enable);
 
 /**
@@ -95,25 +102,26 @@ void map_clear_attack_range_flags(Point *map, GridConfig *grid_config);
 /**
  * @brief Spread a terrain type outwards from a start cell over a given range.
  */
-void map_spread_terrain(GridConfig *grid_config, Point *map, 
-                       Point *start_cell, int range, Terrain terrain);
+void map_spread_terrain(GridConfig *grid_config, Point *map, Point *start_cell,
+                        int range, Terrain terrain);
 
 /**
  * @brief Generate several biome cores used as seeds for biome spreading.
  */
-void map_generate_biome_cores(GridConfig *grid_config, Point *map, 
+void map_generate_biome_cores(GridConfig *grid_config, Point *map,
                               BiomeConfig config);
 
 /**
  * @brief Generate all biomes using supplied BiomeConfig array.
  */
-void map_generate_all_biomes(GridConfig *grid_config, Point *map, 
-                             BiomeConfig *biome_configs, int num_biomes, int layers);
+void map_generate_all_biomes(GridConfig *grid_config, Point *map,
+                             BiomeConfig *biome_configs, int num_biomes,
+                             int layers);
 
 /**
  * @brief Generate deeper terrain variants (e.g., convert to deep sea, caves).
  */
-void map_generate_deep_ter(Point *map, GridConfig * grid);
+void map_generate_deep_ter(Point *map, GridConfig *grid);
 
 // Terrain queries
 /**
@@ -127,7 +135,8 @@ bool map_is_terrain_passable(Terrain terrain);
 bool map_is_cell_occupied(Point *cell);
 
 /**
- * @brief Check whether a unit may enter a specific cell (terrain+structure checks).
+ * @brief Check whether a unit may enter a specific cell (terrain+structure
+ * checks).
  */
 bool map_can_unit_enter_cell(Point *cell, Character *unit);
 
@@ -135,15 +144,18 @@ bool map_can_unit_enter_cell(Point *cell, Character *unit);
 /**
  * @brief Place a structure at (x,y) if possible.
  */
-bool map_place_structure(Point *map, GridConfig *grid_config, int x, int y, Structure *s);
+bool map_place_structure(Point *map, GridConfig *grid_config, int x, int y,
+                         Structure *s);
 
 /**
  * @brief Remove and return a structure from (x,y), or NULL if none.
  */
-Structure *map_remove_structure(Point *map, GridConfig *grid_config, int x, int y);
+Structure *map_remove_structure(Point *map, GridConfig *grid_config, int x,
+                                int y);
 
 /**
  * @brief Return pointer to a structure at (x,y) or NULL if none.
  */
-Structure *map_get_structure_at(Point *map, GridConfig *grid_config, int x, int y);
+Structure *map_get_structure_at(Point *map, GridConfig *grid_config, int x,
+                                int y);
 #endif

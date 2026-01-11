@@ -13,7 +13,8 @@
  * @param lootable Whether the structure can be looted.
  * @return Allocated Structure pointer, or NULL on allocation failure.
  */
-Structure *structure_create(Texture2D sprite, const char *name, bool passable, bool lootable);
+Structure *structure_create(Texture2D sprite, const char *name, bool passable,
+                            bool lootable);
 
 /**
  * @brief Free a Structure previously created with structure_create.

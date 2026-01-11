@@ -4,7 +4,8 @@
 #include "types.h"
 
 /**
- * @brief Place all actors from a faction into random spawn cells in a map corner.
+ * @brief Place all actors from a faction into random spawn cells in a map
+ * corner.
  *
  * Uses map_get_random_corner_spawn_cell to find suitable spawn points within
  * the specified corner and area. Each actor in the faction's contiguous

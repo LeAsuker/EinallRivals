@@ -15,6 +15,7 @@
  * @param terrains Array of Terrain entries indexed by Terrain enum.
  * @return Number of biome configs written to `configs`.
  */
-int biome_config_get_default(BiomeConfig *configs, int max_configs, Terrain *terrains);
+int biome_config_get_default(BiomeConfig *configs, int max_configs,
+                             Terrain *terrains);
 
 #endif

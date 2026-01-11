@@ -4,16 +4,13 @@
 #include "raylib.h"
 #include <stdbool.h>
 
-typedef enum {
-    MENU_NONE,
-    MENU_START,
-    MENU_QUIT
-} MenuOption;
+typedef enum { MENU_NONE, MENU_START, MENU_QUIT } MenuOption;
 
 typedef struct {
-    MenuOption selected_option;  /**< Option that was chosen (after confirm) */
-    MenuOption hovered_option;   /**< Option currently hovered by mouse */
-    bool is_active;              /**< Whether the menu is currently active and accepting input */
+  MenuOption selected_option; /**< Option that was chosen (after confirm) */
+  MenuOption hovered_option;  /**< Option currently hovered by mouse */
+  bool is_active; /**< Whether the menu is currently active and accepting input
+                   */
 } MenuState;
 
 /**
@@ -23,7 +20,8 @@ typedef struct {
 void menu_init(MenuState *state);
 
 /**
- * @brief Update menu input and hovered/selected states; call each frame while menu active.
+ * @brief Update menu input and hovered/selected states; call each frame while
+ * menu active.
  * @param state Menu state to update.
  */
 void menu_update(MenuState *state);

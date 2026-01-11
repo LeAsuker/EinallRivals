@@ -8,14 +8,14 @@
  * @param grid_config Grid configuration to use for bounds.
  * @return Clamped X coordinate in pixels.
  */
-int safe_mouse_x(GridConfig * grid_config);
+int safe_mouse_x(GridConfig *grid_config);
 
 /**
  * @brief Clamp mouse Y coordinate to stay inside the grid bounds.
  * @param grid_config Grid configuration to use for bounds.
  * @return Clamped Y coordinate in pixels.
  */
-int safe_mouse_y(GridConfig * grid_config);
+int safe_mouse_y(GridConfig *grid_config);
 
 /**
  * @brief Clear movement/attack range flags for all cells in the map.
@@ -33,7 +33,7 @@ void cell_flag_flush(Point *cell_arr, GridConfig *grid);
  * @param max_cell_y Number of cells vertically.
  * @return Newly allocated GridConfig pointer.
  */
-GridConfig *grid_init(int g_off_x, int g_off_y, int g_cell_size,
-                      int max_cell_x, int max_cell_y);
+GridConfig *grid_init(int g_off_x, int g_off_y, int g_cell_size, int max_cell_x,
+                      int max_cell_y);
 
 #endif

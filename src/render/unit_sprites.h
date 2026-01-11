@@ -7,13 +7,14 @@
  * @brief Container holding textures for different unit types.
  */
 typedef struct {
-    Texture2D darkus_militia;
-    Texture2D ventus_militia;
-    Texture2D warg;
+  Texture2D darkus_militia;
+  Texture2D ventus_militia;
+  Texture2D warg;
 } UnitSprites;
 
 /**
- * @brief Load unit textures scaled to `cell_size` and return a populated UnitSprites.
+ * @brief Load unit textures scaled to `cell_size` and return a populated
+ * UnitSprites.
  */
 UnitSprites unit_sprites_load(int cell_size);
 

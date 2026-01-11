@@ -62,7 +62,9 @@ void actions_unload_icons(void);
  * @param defender_cell Target cell for the skill.
  * @param skill Skill being used.
  */
-void execute_skill_at_cells(GridConfig *grid_config, Point *map, Point *attacker_cell, Point *defender_cell, Skill *skill);
+void execute_skill_at_cells(GridConfig *grid_config, Point *map,
+                            Point *attacker_cell, Point *defender_cell,
+                            Skill *skill);
 
 /**
  * @brief Execute a loot skill: attempt to loot a structure on the target cell.
@@ -72,5 +74,6 @@ void execute_skill_at_cells(GridConfig *grid_config, Point *map, Point *attacker
  * @param lootable Target cell that may contain a lootable structure.
  * @param skill Loot skill being used.
  */
-void execute_loot_at_cells(GridConfig *grid_config, Point *map, Point *looter_cell, Point *lootable, Skill *skill);
+void execute_loot_at_cells(GridConfig *grid_config, Point *map,
+                           Point *looter_cell, Point *lootable, Skill *skill);
 #endif

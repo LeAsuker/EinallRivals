@@ -17,15 +17,15 @@ typedef struct Coord {
  * @brief Skill definition describing an action a Character can perform.
  */
 typedef struct Skill {
-  char name[20];       /**< Human-readable name */
-  int id;              /**< Internal skill identifier */
-  int damage;          /**< Base damage value */
-  bool is_magic;       /**< Flag indicating magic vs physical */
-  int cooldown;        /**< Cooldown in turns (0 = usable every turn) */
-  int range;           /**< Targeting range in tiles */
+  char name[20];         /**< Human-readable name */
+  int id;                /**< Internal skill identifier */
+  int damage;            /**< Base damage value */
+  bool is_magic;         /**< Flag indicating magic vs physical */
+  int cooldown;          /**< Cooldown in turns (0 = usable every turn) */
+  int range;             /**< Targeting range in tiles */
   Coord *area_of_effect; /**< Array of relative coordinates defining the AoE */
-  int aoe_size;        /**< Number of coordinates in the AoE array */
-  Texture2D icon;      /**< Icon texture used in UI */
+  int aoe_size;          /**< Number of coordinates in the AoE array */
+  Texture2D icon;        /**< Icon texture used in UI */
 } Skill;
 
 struct Terrain;
@@ -35,12 +35,13 @@ typedef struct Terrain Terrain;
  * @brief Terrain data for a map cell.
  */
 struct Terrain {
-  int id;              /**< Terrain identifier */
-  Color color;         /**< Fallback color used when no sprite present */
-  Texture2D sprite;    /**< Visual sprite for the terrain */
-  bool passable;       /**< Whether units can enter this terrain tile */
-  Terrain * deep_version; /**< Pointer to an alternate terrain variant (e.g., dug/deep) */
-  char name[10];       /**< Short terrain name */
+  int id;                /**< Terrain identifier */
+  Color color;           /**< Fallback color used when no sprite present */
+  Texture2D sprite;      /**< Visual sprite for the terrain */
+  bool passable;         /**< Whether units can enter this terrain tile */
+  Terrain *deep_version; /**< Pointer to an alternate terrain variant (e.g.,
+                            dug/deep) */
+  char name[10];         /**< Short terrain name */
 };
 
 // Forward declarations for character/class types
@@ -52,17 +53,18 @@ struct Modal;
  * @brief Faction owning characters and providing color theming.
  */
 typedef struct Faction {
-  Color prim_color;    /**< Primary faction color */
-  Color sec_color;     /**< Secondary faction color */
-  bool has_turn;       /**< Whether the faction currently has control */
-  bool playable;       /**< Whether this faction is player-controlled */
-  char name[10];       /**< Short faction name */
+  Color prim_color; /**< Primary faction color */
+  Color sec_color;  /**< Secondary faction color */
+  bool has_turn;    /**< Whether the faction currently has control */
+  bool playable;    /**< Whether this faction is player-controlled */
+  char name[10];    /**< Short faction name */
   struct Character *characters; /**< Contiguous array of characters owned */
-  int character_count; /**< Number of characters in the array */
+  int character_count;          /**< Number of characters in the array */
 } Faction;
 
 /**
- * @brief Aggregated stats used for computations (derived from class/genetics/veterancy).
+ * @brief Aggregated stats used for computations (derived from
+ * class/genetics/veterancy).
  */
 typedef struct Stats {
   int max_health;
@@ -124,29 +126,30 @@ typedef struct UnitClass {
 } UnitClass;
 
 /**
- * @brief Character instance combining a UnitClass template with genetics and veterancy.
+ * @brief Character instance combining a UnitClass template with genetics and
+ * veterancy.
  */
 typedef struct Character {
-  Texture2D sprite;    /**< Visual sprite */
-  Faction *owner;      /**< Owning faction */
-  bool can_move;       /**< Movement available this turn */
-  bool can_act;        /**< Action available this turn */
+  Texture2D sprite; /**< Visual sprite */
+  Faction *owner;   /**< Owning faction */
+  bool can_move;    /**< Movement available this turn */
+  bool can_act;     /**< Action available this turn */
 
   bool level_up_pending; /**< Flag for deferred manual level-up */
 
-  int level;           /**< Current level */
-  int next_level_xp;   /**< XP required for next level */
+  int level;         /**< Current level */
+  int next_level_xp; /**< XP required for next level */
 
-  int curr_health;     /**< Current HP (max derived from stats) */
+  int curr_health; /**< Current HP (max derived from stats) */
 
-  UnitClass *unit_class;/**< Pointer to class template */
-  Genetics genetics;   /**< Random stat modifiers */
-  Veterancy veterancy; /**< Permanent level bonuses */
+  UnitClass *unit_class; /**< Pointer to class template */
+  Genetics genetics;     /**< Random stat modifiers */
+  Veterancy veterancy;   /**< Permanent level bonuses */
 
-  Skill skills[5];     /**< Skill slots */
-  int skill_count;     /**< Number of skills in use */
+  Skill skills[5]; /**< Skill slots */
+  int skill_count; /**< Number of skills in use */
 
-  char name[10];       /**< Character name */
+  char name[10]; /**< Character name */
 } Character;
 
 /**
@@ -199,7 +202,21 @@ extern bool DEBUG_LOG;
  * @brief Null-check helper macros. Use NULL_CHECK_VOID(ptr) in void functions,
  *        and NULL_CHECK_RET(ptr, retval) for functions that return a value.
  */
-#define NULL_CHECK_VOID(p) do { if ((p) == NULL) { if (DEBUG_LOG) fprintf(stderr, "[ERR] Null pointer '%s' in %s\n", #p, __func__); return; } } while(0)
-#define NULL_CHECK_RET(p, r) do { if ((p) == NULL) { if (DEBUG_LOG) fprintf(stderr, "[ERR] Null pointer '%s' in %s\n", #p, __func__); return (r); } } while(0)
+#define NULL_CHECK_VOID(p)                                                     \
+  do {                                                                         \
+    if ((p) == NULL) {                                                         \
+      if (DEBUG_LOG)                                                           \
+        fprintf(stderr, "[ERR] Null pointer '%s' in %s\n", #p, __func__);      \
+      return;                                                                  \
+    }                                                                          \
+  } while (0)
+#define NULL_CHECK_RET(p, r)                                                   \
+  do {                                                                         \
+    if ((p) == NULL) {                                                         \
+      if (DEBUG_LOG)                                                           \
+        fprintf(stderr, "[ERR] Null pointer '%s' in %s\n", #p, __func__);      \
+      return (r);                                                              \
+    }                                                                          \
+  } while (0)
 
 #endif

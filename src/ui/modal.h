@@ -3,56 +3,58 @@
 
 #include "types.h"
 #include "ui/button.h"
-#include <stdbool.h>
 #include <raylib.h>
+#include <stdbool.h>
 
 typedef enum {
-    MODAL_TYPE_NONE,
-    MODAL_TYPE_ESC_MENU,
-    MODAL_TYPE_LEVEL_UP,
-    // Add more types as needed
+  MODAL_TYPE_NONE,
+  MODAL_TYPE_ESC_MENU,
+  MODAL_TYPE_LEVEL_UP,
+  // Add more types as needed
 } ModalType;
 
 typedef enum {
-    MODAL_RESULT_NONE,
-    MODAL_RESULT_EXIT_TO_MENU,
-    MODAL_RESULT_EXIT_TO_DESKTOP,
-    MODAL_RESULT_CANCEL,
-    MODAL_RESULT_CLASS_CHOICE_0,
-    MODAL_RESULT_CLASS_CHOICE_1,
-    MODAL_RESULT_CLASS_CHOICE_MAX = MODAL_RESULT_CLASS_CHOICE_1 + 10,
+  MODAL_RESULT_NONE,
+  MODAL_RESULT_EXIT_TO_MENU,
+  MODAL_RESULT_EXIT_TO_DESKTOP,
+  MODAL_RESULT_CANCEL,
+  MODAL_RESULT_CLASS_CHOICE_0,
+  MODAL_RESULT_CLASS_CHOICE_1,
+  MODAL_RESULT_CLASS_CHOICE_MAX = MODAL_RESULT_CLASS_CHOICE_1 + 10,
 } ModalResult;
 
 /**
- * @brief Modal dialog container used for various in-game overlays (pause menu, level up, etc.).
+ * @brief Modal dialog container used for various in-game overlays (pause menu,
+ * level up, etc.).
  */
 typedef struct Modal {
-    ModalType type;         /**< Type of modal content being displayed. */
-    bool active;            /**< Whether modal is active and should be rendered/processed. */
-    
-    /* Generic data pointer for modal-specific context */
-    void *data;
-    
-    /* Layout */
-    Rectangle bounds;       /**< Background rectangle for the modal dialog. */
-    Color bg_color;         /**< Background color for the modal. */
-    Color overlay_color;    /**< Dimming overlay color drawn behind the modal. */
-    
-    /* Buttons (dynamic array) */
-    Button *buttons;        /**< Dynamically allocated buttons for the modal. */
-    int button_count;       /**< Number of buttons in the array. */
-    
-    /* Title and text */
-    char title[128];        /**< Modal title string. */
-    char description[256];  /**< Descriptive text or instructions. */
-    
-    /* Result */
-    ModalResult result;     /**< Last result produced by modal_update.
-                               Set when a button is activated or modal is closed. */
+  ModalType type; /**< Type of modal content being displayed. */
+  bool active; /**< Whether modal is active and should be rendered/processed. */
+
+  /* Generic data pointer for modal-specific context */
+  void *data;
+
+  /* Layout */
+  Rectangle bounds;    /**< Background rectangle for the modal dialog. */
+  Color bg_color;      /**< Background color for the modal. */
+  Color overlay_color; /**< Dimming overlay color drawn behind the modal. */
+
+  /* Buttons (dynamic array) */
+  Button *buttons;  /**< Dynamically allocated buttons for the modal. */
+  int button_count; /**< Number of buttons in the array. */
+
+  /* Title and text */
+  char title[128];       /**< Modal title string. */
+  char description[256]; /**< Descriptive text or instructions. */
+
+  /* Result */
+  ModalResult result; /**< Last result produced by modal_update.
+                         Set when a button is activated or modal is closed. */
 } Modal;
 
 /**
- * @brief Allocate and initialize an empty Modal (caller should free with modal_free).
+ * @brief Allocate and initialize an empty Modal (caller should free with
+ * modal_free).
  * @return A newly allocated Modal pointer, or NULL on allocation failure.
  */
 Modal *modal_create(void);
@@ -86,13 +88,15 @@ void modal_setup_esc_menu(Modal *modal, int screen_width, int screen_height);
  * @param class_options Array of option strings to show as buttons.
  * @param class_count Number of class options.
  */
-void modal_setup_level_up(Modal *modal, int screen_width, int screen_height, 
-                          Character *character, const char **class_options, int class_count);
+void modal_setup_level_up(Modal *modal, int screen_width, int screen_height,
+                          Character *character, const char **class_options,
+                          int class_count);
 
 /**
  * @brief Update the modal state, processing input and returning any result.
  * @param modal Modal to update.
- * @return ModalResult indicating button activation or MODAL_RESULT_NONE if none.
+ * @return ModalResult indicating button activation or MODAL_RESULT_NONE if
+ * none.
  */
 ModalResult modal_update(Modal *modal);
 

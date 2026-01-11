@@ -1,8 +1,8 @@
 #ifndef GAME_LOGIC_H_
 #define GAME_LOGIC_H_
 
-#include "types.h"
 #include "game/map.h"
+#include "types.h"
 #include <stdbool.h>
 
 // Game phase enum - tracks what phase the game is in
@@ -10,26 +10,27 @@
  * @brief High-level game phase states used by the turn system.
  */
 typedef enum {
-    PHASE_PLAYER_TURN,
-    PHASE_ENEMY_TURN,
-    PHASE_TURN_TRANSITION,
-    PHASE_GAME_OVER,
-    PHASE_VICTORY
+  PHASE_PLAYER_TURN,
+  PHASE_ENEMY_TURN,
+  PHASE_TURN_TRANSITION,
+  PHASE_GAME_OVER,
+  PHASE_VICTORY
 } GamePhase;
 
 // Game state structure - holds all game state information
 /**
- * @brief Central game state container tracking factions, turn order and modal state.
+ * @brief Central game state container tracking factions, turn order and modal
+ * state.
  */
 typedef struct {
-    GamePhase current_phase;
-    Faction *factions;
-    int num_factions;
-    int current_faction_index;
-    int turn_number;
-    bool game_over;
-    Faction *winner;
-    struct Modal *modal;  // Pop-up modal system
+  GamePhase current_phase;
+  Faction *factions;
+  int num_factions;
+  int current_faction_index;
+  int turn_number;
+  bool game_over;
+  Faction *winner;
+  struct Modal *modal; // Pop-up modal system
 } GameState;
 
 // Troops are now stored directly on the Faction as `actors` and `actor_count`.
@@ -56,7 +57,8 @@ void game_state_init(GameState *state, Faction *factions, int num_factions);
 
 // Turn management
 /**
- * @brief Advance the game to the next turn (handles turn order and victory checks).
+ * @brief Advance the game to the next turn (handles turn order and victory
+ * checks).
  */
 void game_next_turn(GameState *state);
 
@@ -79,7 +81,8 @@ Faction *game_get_current_faction(GameState *state);
 /**
  * @brief Perform AI actions for the current faction.
  */
-void game_process_ai_turn(GameState *state, Point *map, GridConfig *grid_config);
+void game_process_ai_turn(GameState *state, Point *map,
+                          GridConfig *grid_config);
 
 // Unit turn management
 /**
