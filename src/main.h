@@ -11,24 +11,7 @@
 
 #include "types.h"
 
-int safe_mouse_x(GridConfig * grid_config);
-int safe_mouse_y(GridConfig * grid_config);
-Point *mouseToCell(GridConfig * grid_config, Point *point_arr);
-bool mouseInCell(GridConfig * grid_config, Point cell);
-// bool = True or False
-void cell_selection(GridConfig* grid, Point *cell_arr, Point *cell, Point **focused_cell);
-void range_calc(GridConfig * grid, Point *cell_arr, Point *start_cell, int range, bool selection);
-void spread_terrain(GridConfig * grid, Point *cell_arr, Point *start_cell, int range,
-                    Terrain terrain);
-Point *get_random_cell(GridConfig * grid, Point *cell_arr);
-void generate_biome_cores(GridConfig * grid, Point *cell_arr, BiomeConfig config);
-void generate_all_biomes(GridConfig * grid, Point *cell_arr, BiomeConfig *biome_configs,
-                         int num_biomes, int layers);
-void focused_cell_info(Point *selected_cell, GridConfig * grid_config);
-void attack_range_calc(GridConfig * grid, Point *cell_arr, Point *start_cell, int range,
-                       bool selection);
-void cell_flag_flush(Point *cell_arr, GridConfig * grid);
-Point *get_random_spawn_cell(GridConfig * grid, Point *cell_arr);
-GridConfig * grid_init( int g_off_x, int g_off_y, int g_cell_size,
-                  int max_cell_x, int max_cell_y);
+// Historical/legacy prototypes were removed — individual modules publish
+// their own APIs. This header now only contains configuration macros used
+// by `main.c` and simple consumers.
 #endif

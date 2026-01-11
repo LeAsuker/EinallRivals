@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 int safe_mouse_x(GridConfig * grid_config) {
+  NULL_CHECK_RET(grid_config, 0);
   int mouse_pos = GetMouseX();
   if (mouse_pos >= grid_config->grid_offset_x + grid_config->max_grid_cells_x* grid_config->grid_cell_size) {
     return grid_config->grid_offset_x + grid_config->max_grid_cells_x * grid_config->grid_cell_size - 1;
@@ -12,6 +13,7 @@ int safe_mouse_x(GridConfig * grid_config) {
 }
 
 int safe_mouse_y(GridConfig * grid_config) {
+  NULL_CHECK_RET(grid_config, 0);
   int mouse_pos = GetMouseY();
   if (mouse_pos >= grid_config->grid_offset_y + grid_config->max_grid_cells_y * grid_config->grid_cell_size) {
     return grid_config->grid_offset_y + grid_config->max_grid_cells_y * grid_config->grid_cell_size - 1;
@@ -23,6 +25,8 @@ int safe_mouse_y(GridConfig * grid_config) {
 
 // Helper function moved from main.c — used elsewhere (e.g., input.c)
 void cell_flag_flush(Point *cell_arr, GridConfig *grid) {
+  NULL_CHECK_VOID(cell_arr);
+  NULL_CHECK_VOID(grid);
   for (int y = 0; y < grid->max_grid_cells_y; y++) {
     for (int x = 0; x < grid->max_grid_cells_x; x++) {
       cell_arr[x + y * grid->max_grid_cells_x].in_range = false;

@@ -1,4 +1,5 @@
 #include "ui/menu.h"
+#include "types.h"
 #include "raylib.h"
 
 #define MENU_BUTTON_WIDTH 200
@@ -6,12 +7,14 @@
 #define MENU_BUTTON_SPACING 20
 
 void menu_init(MenuState *state) {
+    NULL_CHECK_VOID(state);
     state->selected_option = MENU_NONE;
     state->hovered_option = MENU_NONE;
     state->is_active = true;
 }
 
 void menu_update(MenuState *state) {
+    NULL_CHECK_VOID(state);
     int mouse_x = GetMouseX();
     int mouse_y = GetMouseY();
     
@@ -52,6 +55,7 @@ void menu_update(MenuState *state) {
 }
 
 void menu_render(MenuState *state, int screen_width, int screen_height) {
+    NULL_CHECK_VOID(state);
     BeginDrawing();
     ClearBackground(RAYWHITE);
     
@@ -111,5 +115,6 @@ void menu_render(MenuState *state, int screen_width, int screen_height) {
 }
 
 MenuOption menu_get_selected(MenuState *state) {
+    NULL_CHECK_RET(state, MENU_NONE);
     return state->selected_option;
 }

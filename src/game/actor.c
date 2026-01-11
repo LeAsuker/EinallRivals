@@ -145,6 +145,8 @@ Character *character_create_from_class(Faction *owner, Texture2D sprite, UnitCla
 }
 
 void militia_init(Character *character, Faction *owner, Texture2D sprite) {
+    NULL_CHECK_VOID(character);
+    NULL_CHECK_VOID(owner);
     character->sprite = sprite;
     character->owner = owner;
     
@@ -183,6 +185,8 @@ void militia_init(Character *character, Faction *owner, Texture2D sprite) {
 }
 
 void warg_init(Character *character, Faction *owner, Texture2D sprite) {
+    NULL_CHECK_VOID(character);
+    NULL_CHECK_VOID(owner);
     character->sprite = sprite;
     character->owner = owner;
     
@@ -220,6 +224,9 @@ void warg_init(Character *character, Faction *owner, Texture2D sprite) {
 
 void character_init_from_class(Character *character, Faction *owner, 
                                Texture2D sprite, UnitClass *unit_class) {
+    NULL_CHECK_VOID(character);
+    NULL_CHECK_VOID(owner);
+    NULL_CHECK_VOID(unit_class);
     if (strcmp(unit_class->name, "Militia") == 0) {
         militia_init(character, owner, sprite); // Add default militia skills
     } else if (strcmp(unit_class->name, "Warg") == 0) {
@@ -271,11 +278,13 @@ void character_free(Character *character) {
 // ============================================================================
 
 void character_reset_turn_flags(Character *character) {
+    NULL_CHECK_VOID(character);
     character->can_move = true;
     character->can_act = true;
 }
 
 void character_end_turn(Character *character) {
+    NULL_CHECK_VOID(character);
     character->can_move = false;
     character->can_act = false;
 }
@@ -293,6 +302,7 @@ bool character_is_alive(Character *character) {
 // ============================================================================
 
 void character_take_damage(Character *character, int damage) {
+    NULL_CHECK_VOID(character);
     character->curr_health -= damage;
     
     // Clamp health to 0 minimum
@@ -307,6 +317,7 @@ void character_take_damage(Character *character, int damage) {
 }
 
 void character_heal(Character *character, int amount) {
+    NULL_CHECK_VOID(character);
     Stats stats = character_get_stats(character);
     character->curr_health += amount;
     
@@ -317,6 +328,7 @@ void character_heal(Character *character, int amount) {
 }
 
 void character_gain_experience(Character *character, int xp) {
+    NULL_CHECK_VOID(character);
     character->next_level_xp -= xp;
 
     // If we've reached or passed required XP, mark a pending level-up
@@ -327,6 +339,7 @@ void character_gain_experience(Character *character, int xp) {
 }
 
 void character_level_up(Character *character) {
+    NULL_CHECK_VOID(character);
     character->level++;
     
     // Increase veterancy stats (permanent bonuses from leveling)
@@ -352,14 +365,19 @@ void character_level_up(Character *character) {
 // ============================================================================
 
 bool character_belongs_to_faction(Character *character, Faction *faction) {
+    NULL_CHECK_RET(character, false);
+    NULL_CHECK_RET(faction, false);
     return character->owner == faction;
 }
 
 bool character_is_enemy(Character *char1, Character *char2) {
+    NULL_CHECK_RET(char1, false);
+    NULL_CHECK_RET(char2, false);
     return char1->owner != char2->owner;
 }
 
 int character_get_health_percentage(Character *character) {
+    NULL_CHECK_RET(character, 0);
     Stats stats = character_get_stats(character);
     if (stats.max_health == 0) return 0;
     return (character->curr_health * 100) / stats.max_health;
@@ -386,6 +404,8 @@ bool character_has_pending_level_up(Character *character) {
 
 Character *character_array_create_from_class(int count, Faction *owner,
                                               Texture2D sprite, UnitClass *unit_class) {
+    NULL_CHECK_RET(owner, NULL);
+    NULL_CHECK_RET(unit_class, NULL);
     Character *characters = malloc(sizeof(Character) * count);
     
     if (characters == NULL) {

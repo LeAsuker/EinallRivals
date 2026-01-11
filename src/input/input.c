@@ -1,7 +1,6 @@
 #include "input/input.h"
 #include "raylib.h"
 #include "core/utils.h"
-#include "main.h"
 #include "game/map.h"
 #include "game/actor.h"
 #include "render/rendering.h"
@@ -15,6 +14,7 @@ static void handle_cell_selection(GridConfig *grid_config, Point *map,
                                    Point *selected_cell, Point **focused_cell, InputState *input_state);
 
 void input_init(InputState *state) {
+    NULL_CHECK_VOID(state);
     state->selected_cell = NULL;
     state->focused_cell = NULL;
     state->left_click = false;
@@ -38,6 +38,9 @@ void input_init(InputState *state) {
 }
 
 void input_update(InputState *state, GridConfig *grid_config, Point *map) {
+    NULL_CHECK_VOID(state);
+    NULL_CHECK_VOID(grid_config);
+    NULL_CHECK_VOID(map);
     // Get cell under mouse
     state->selected_cell = mouse_to_cell(grid_config, map);
     
@@ -75,6 +78,8 @@ void input_update(InputState *state, GridConfig *grid_config, Point *map) {
 }
 
 void input_layout_buttons(InputState *state, GridConfig *grid_config) {
+    NULL_CHECK_VOID(state);
+    NULL_CHECK_VOID(grid_config);
     // Position end-turn button
     int button_x = grid_config->max_grid_cells_x * grid_config->grid_cell_size +
                    grid_config->grid_offset_x + 20;
@@ -104,6 +109,7 @@ void input_layout_buttons(InputState *state, GridConfig *grid_config) {
 }
 
 int input_get_clicked_action(InputState *state) {
+    NULL_CHECK_RET(state, -1);
     for (int i = 0; i < ACTION_BUTTON_COUNT; i++) {
         if (state->action_clicked[i]) {
             // Consume click
@@ -115,6 +121,9 @@ int input_get_clicked_action(InputState *state) {
 }
 
 void input_handle_action_click(InputState *state, GridConfig *grid_config, Point *map) {
+    NULL_CHECK_VOID(state);
+    NULL_CHECK_VOID(grid_config);
+    NULL_CHECK_VOID(map);
     int clicked_action = input_get_clicked_action(state);
     if (clicked_action < 0) return;
 
@@ -132,6 +141,9 @@ void input_handle_action_click(InputState *state, GridConfig *grid_config, Point
 }
 
 void input_handle_left_click(InputState *state, GridConfig *grid_config, Point *map) {
+    NULL_CHECK_VOID(state);
+    NULL_CHECK_VOID(grid_config);
+    NULL_CHECK_VOID(map);
     // Must have a cell under mouse to do map interactions
     Point *selected = state->selected_cell;
     if (selected == NULL) return;
@@ -210,16 +222,22 @@ void input_handle_left_click(InputState *state, GridConfig *grid_config, Point *
     // if (IsKeyPressed(KEY_SPACE)) state->end_turn_requested = true;
 
 void input_handle_selection(InputState *state, GridConfig *grid_config, Point *map) {
+    NULL_CHECK_VOID(state);
+    NULL_CHECK_VOID(grid_config);
+    NULL_CHECK_VOID(map);
     if (!state->left_click) return;
     if (state->selected_cell == NULL) return;
-    
+
     // Don't process selection if clicking on UI elements
     if (state->end_turn_requested) return;
-    
+
     handle_cell_selection(grid_config, map, state->selected_cell, &state->focused_cell, state);
 }
 
 void input_handle_movement(InputState *state, GridConfig *grid_config, Point *map) {
+    NULL_CHECK_VOID(state);
+    NULL_CHECK_VOID(grid_config);
+    NULL_CHECK_VOID(map);
     if (!state->left_click) return;
     if (state->selected_cell == NULL) return;
     if (state->focused_cell == NULL) return;
@@ -248,6 +266,7 @@ void input_handle_movement(InputState *state, GridConfig *grid_config, Point *ma
 }
 
 bool input_is_mouse_over_end_turn_button(RenderContext *ctx) {
+    NULL_CHECK_RET(ctx, false);
     // Create a temporary button using the same layout rules and query it.
     Button tmp;
     button_init(&tmp,
@@ -264,6 +283,7 @@ bool input_is_mouse_over_end_turn_button(RenderContext *ctx) {
 // ============================================================================
 
 bool input_is_mouse_over_map(GridConfig *grid_config) {
+    NULL_CHECK_RET(grid_config, false);
     int mouse_x = GetMouseX();
     int mouse_y = GetMouseY();
 
@@ -277,6 +297,7 @@ bool input_is_mouse_over_map(GridConfig *grid_config) {
 }
 
 static Point *mouse_to_cell(GridConfig *grid_config, Point *map) {
+    NULL_CHECK_RET(grid_config, NULL);
     // If the mouse is outside the map area, don't compute a cell index.
     // This prevents accidental selection/focus changes when interacting
     // with UI elements outside the grid (including the end turn button
@@ -298,9 +319,13 @@ static Point *mouse_to_cell(GridConfig *grid_config, Point *map) {
 
 static void handle_cell_selection(GridConfig *grid_config, Point *map, 
                                    Point *selected_cell, Point **focused_cell, InputState *input_state) {
+    NULL_CHECK_VOID(grid_config);
+    NULL_CHECK_VOID(map);
+    NULL_CHECK_VOID(selected_cell);
+    NULL_CHECK_VOID(focused_cell);
     // Flush previous range indicators
     cell_flag_flush(map, grid_config);
-    
+
     // Update focused cell
     *focused_cell = selected_cell;
     

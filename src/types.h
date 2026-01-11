@@ -3,6 +3,7 @@
 
 #include "raylib.h"
 #include <stdbool.h>
+#include <stdio.h>
 
 typedef struct Coord {
   int x;
@@ -154,5 +155,13 @@ typedef struct {
   int max_grid_cells_x;
   int max_grid_cells_y;
 } GridConfig;
+
+// Global debug flag (defined in main.c)
+extern bool DEBUG_LOG;
+
+// Null-check helper macros. Use NULL_CHECK_VOID(ptr) in void functions,
+// and NULL_CHECK_RET(ptr, retval) for functions that return a value.
+#define NULL_CHECK_VOID(p) do { if ((p) == NULL) { if (DEBUG_LOG) fprintf(stderr, "[ERR] Null pointer '%s' in %s\n", #p, __func__); return; } } while(0)
+#define NULL_CHECK_RET(p, r) do { if ((p) == NULL) { if (DEBUG_LOG) fprintf(stderr, "[ERR] Null pointer '%s' in %s\n", #p, __func__); return (r); } } while(0)
 
 #endif

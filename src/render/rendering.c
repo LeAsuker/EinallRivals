@@ -74,6 +74,8 @@ static void render_ui(RenderContext *ctx, const char *faction_name, Faction *cur
 static void render_map_border(RenderContext *ctx);
 
 void render_init(RenderContext *ctx, GridConfig* grid) {
+    NULL_CHECK_VOID(ctx);
+    NULL_CHECK_VOID(grid);
     ctx->grid_offset_x = grid->grid_offset_x;
     ctx->grid_offset_y = grid->grid_offset_y;
     ctx->grid_cell_size = grid->grid_cell_size;
@@ -85,6 +87,8 @@ void render_init(RenderContext *ctx, GridConfig* grid) {
 // New function to render game with full button state
 void render_game(RenderContext *ctx, Point *map, Point *focused_cell, 
                      Faction *current_faction, InputState *input_state, Button *end_turn_button, Button action_buttons[], int action_count, Modal *modal) {
+    NULL_CHECK_VOID(ctx);
+    NULL_CHECK_VOID(map);
     BeginDrawing();
     ClearBackground(RAYWHITE);
     
@@ -92,6 +96,10 @@ void render_game(RenderContext *ctx, Point *map, Point *focused_cell,
     render_map(ctx, map, focused_cell);
     render_map_border(ctx);
     render_cell_info(ctx, focused_cell);
+    if (current_faction == NULL) {
+        Faction _dummy = { .name = "None", .characters = NULL, .character_count = 0 };
+        current_faction = &_dummy;
+    }
     render_ui(ctx, current_faction->name, current_faction, end_turn_button);
     render_actions(ctx, (focused_cell != NULL) ? focused_cell->occupant : NULL, input_state, action_buttons, action_count);
     
@@ -281,6 +289,8 @@ static void render_ui(RenderContext *ctx, const char *faction_name,
 }
 
 void render_actions(RenderContext *ctx, Character *character, InputState *input_state, Button action_buttons[], int action_count) {
+    NULL_CHECK_VOID(ctx);
+    NULL_CHECK_VOID(action_buttons);
     // Render action panels to the bottom of the map (aligned with UI panel)
     
     int box_w = ctx->grid_cell_size * 2;

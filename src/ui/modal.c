@@ -38,6 +38,7 @@ void modal_clear(Modal *modal) {
 }
 
 void modal_setup_esc_menu(Modal *modal, int screen_width, int screen_height) {
+    NULL_CHECK_VOID(modal);
     modal_clear(modal);
     
     modal->type = MODAL_TYPE_ESC_MENU;
@@ -85,6 +86,9 @@ void modal_setup_esc_menu(Modal *modal, int screen_width, int screen_height) {
 
 void modal_setup_level_up(Modal *modal, int screen_width, int screen_height,
                           Character *character, const char **class_options, int class_count) {
+    NULL_CHECK_VOID(modal);
+    NULL_CHECK_VOID(character);
+    NULL_CHECK_VOID(class_options);
     modal_clear(modal);
     
     modal->type = MODAL_TYPE_LEVEL_UP;

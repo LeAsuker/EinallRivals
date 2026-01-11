@@ -26,6 +26,9 @@
 #include "game/actions.h"
 #include "ui/modal.h"
 
+// Global debug flag for runtime null-check printing
+bool DEBUG_LOG = true;
+
 typedef enum {
   GAME_MODE_MENU,
   GAME_MODE_PLAYING,

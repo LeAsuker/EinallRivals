@@ -1,8 +1,10 @@
 #include "ui/button.h"
 #include "raylib.h"
+#include "types.h"
 #include <string.h>
 
 bool button_is_mouse_over(const Button *b) {
+    NULL_CHECK_RET(b, false);
     int mx = GetMouseX();
     int my = GetMouseY();
     return (mx >= b->x && mx < b->x + b->width &&
@@ -10,6 +12,7 @@ bool button_is_mouse_over(const Button *b) {
 }
 
 void button_update(Button *b, bool mouse_down) {
+    NULL_CHECK_VOID(b);
     // Pressed when mouse is down while over the button
     if (button_is_mouse_over(b) && mouse_down) {
         b->pressed = true;
@@ -19,6 +22,7 @@ void button_update(Button *b, bool mouse_down) {
 }
 
 void button_draw(const Button *b) {
+    NULL_CHECK_VOID(b);
     // Draw background
     DrawRectangle(b->x, b->y, b->width, b->height, b->bg_color);
 
