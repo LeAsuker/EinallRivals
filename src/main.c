@@ -29,6 +29,22 @@
 // Global debug flag for runtime null-check printing
 bool DEBUG_LOG = true;
 
+// Runtime globals that allow a fatal cleanup path to free active game
+// resources. These are set when entering PLAYING mode and cleared when
+// resources are freed.
+Point *g_mapArr = NULL;
+Faction *g_factions = NULL;
+int g_num_factions = 0;
+GameState *g_game_state = NULL;
+UnitSprites *g_unit_sprites = NULL;
+StructureSprites *g_structure_sprites = NULL;
+Terrain *g_terrains = NULL;
+int g_terrain_count = 0;
+GridConfig *g_grid_config = NULL;
+int g_game_resources_initialized = 0;
+
+#include "game/cleanup.h"
+
 typedef enum { GAME_MODE_MENU, GAME_MODE_PLAYING, GAME_MODE_QUIT } GameMode;
 
 // Forward declaration for cleanup function
@@ -169,6 +185,17 @@ int main(void) {
       input_init(&input_state);
       // Layout persistent UI buttons now that grid_config is available
       input_layout_buttons(&input_state, grid_config);
+      /* Register current resources for potential global/fatal cleanup. */
+      g_mapArr = mapArr;
+      g_factions = factions;
+      g_num_factions = num_factions;
+      g_game_state = game_state;
+      g_unit_sprites = &unit_sprites;
+      g_structure_sprites = &structure_sprites;
+      g_terrains = terrains;
+      g_terrain_count = TERRAIN_COUNT;
+      g_grid_config = grid_config;
+      g_game_resources_initialized = 1;
       bool button_is_pressed = false;
 
       // Main game loop
@@ -191,9 +218,20 @@ int main(void) {
           case MODAL_RESULT_EXIT_TO_MENU:
             // Cleanup and return to menu - must break immediately to avoid
             // accessing freed memory
-            cleanup_game_resources(mapArr, factions, num_factions, game_state,
-                                   &unit_sprites, &structure_sprites, terrains,
-                                   TERRAIN_COUNT, grid_config);
+               cleanup_game_resources(mapArr, factions, num_factions, game_state,
+                  &unit_sprites, &structure_sprites, terrains,
+                  TERRAIN_COUNT, grid_config);
+               /* Mark resources as cleaned and clear globals. */
+               g_game_resources_initialized = 0;
+               g_mapArr = NULL;
+               g_factions = NULL;
+               g_num_factions = 0;
+               g_game_state = NULL;
+               g_unit_sprites = NULL;
+               g_structure_sprites = NULL;
+               g_terrains = NULL;
+               g_terrain_count = 0;
+               g_grid_config = NULL;
             mode = GAME_MODE_MENU;
             break; // This exits the switch, but we need to exit the while loop
                    // too
@@ -284,6 +322,17 @@ int main(void) {
         cleanup_game_resources(mapArr, factions, num_factions, game_state,
                                &unit_sprites, &structure_sprites, terrains,
                                TERRAIN_COUNT, grid_config);
+        /* Mark resources as cleaned and clear globals. */
+        g_game_resources_initialized = 0;
+        g_mapArr = NULL;
+        g_factions = NULL;
+        g_num_factions = 0;
+        g_game_state = NULL;
+        g_unit_sprites = NULL;
+        g_structure_sprites = NULL;
+        g_terrains = NULL;
+        g_terrain_count = 0;
+        g_grid_config = NULL;
       }
       // If mode == GAME_MODE_MENU, cleanup already happened in modal handler
     }
@@ -323,4 +372,27 @@ static void cleanup_game_resources(Point *mapArr, Faction *factions,
   structure_sprites_unload(structure_sprites);
   terrain_unload_all(terrains, terrain_count);
   free(grid_config);
+}
+
+/* Provide a global non-static cleanup function that can be called from
+ * other translation units (e.g., raylib fatal handler). This will call
+ * the static cleanup helper above when resources are currently
+ * initialized. */
+void game_global_cleanup_on_fatal(void) {
+  if (!g_game_resources_initialized) {
+    return;
+  }
+  cleanup_game_resources(g_mapArr, g_factions, g_num_factions, g_game_state,
+                         g_unit_sprites, g_structure_sprites, g_terrains,
+                         g_terrain_count, g_grid_config);
+  g_game_resources_initialized = 0;
+  g_mapArr = NULL;
+  g_factions = NULL;
+  g_num_factions = 0;
+  g_game_state = NULL;
+  g_unit_sprites = NULL;
+  g_structure_sprites = NULL;
+  g_terrains = NULL;
+  g_terrain_count = 0;
+  g_grid_config = NULL;
 }

@@ -1,4 +1,5 @@
 #include "game/terrain.h"
+#include "game/raylib_check.h"
 #include <string.h>
 
 /**
@@ -9,8 +10,10 @@
  */
 static Texture2D load_terrain_texture(const char *path, int cell_size) {
   Image img = LoadImage(path);
+  RAYLIB_CHECK_HAS_DATA(img);
   ImageResize(&img, cell_size, cell_size);
   Texture2D texture = LoadTextureFromImage(img);
+  RAYLIB_CHECK_TEXTURE(texture);
   UnloadImage(img);
   return texture;
 }

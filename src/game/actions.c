@@ -2,6 +2,7 @@
 #include "game/actor.h"
 #include "game/combat.h"
 #include "raylib.h"
+#include "game/raylib_check.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -98,8 +99,10 @@ void actions_load_icons(void) {
   // Load spear strike icon
   spear_strike.icon =
       LoadTexture("../../resources/actions/spear_strike_icon.png");
+  RAYLIB_CHECK_TEXTURE(spear_strike.icon);
   // If there were other action icons, load them similarly, e.g.:
   // bite.icon = LoadTexture("../../resources/actions/bite_icon.png");
+  // RAYLIB_CHECK_TEXTURE(bite.icon);
 }
 
 /**

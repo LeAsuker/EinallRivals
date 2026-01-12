@@ -1,5 +1,6 @@
 #include "render/unit_sprites.h"
 #include "render/structure_sprites.h"
+#include "game/raylib_check.h"
 
 /**
  * @brief Load an image from disk, resize it to cell_size, and convert to a
@@ -11,8 +12,10 @@
  */
 static Texture2D load_unit_texture(const char *path, int cell_size) {
   Image img = LoadImage(path);
+  RAYLIB_CHECK_HAS_DATA(img);
   ImageResize(&img, cell_size, cell_size);
   Texture2D texture = LoadTextureFromImage(img);
+  RAYLIB_CHECK_TEXTURE(texture);
   UnloadImage(img);
   return texture;
 }
