@@ -98,10 +98,10 @@ void action_copy_bite(Skill *dest_skill) {
 void actions_load_icons(void) {
   // Load spear strike icon
   spear_strike.icon =
-      LoadTexture("../../resources/actions/spear_strike_icon.png");
+      LoadTexture("actions/spear_strike_icon.png");
   RAYLIB_CHECK_TEXTURE(spear_strike.icon);
   // If there were other action icons, load them similarly, e.g.:
-  // bite.icon = LoadTexture("../../resources/actions/bite_icon.png");
+  // bite.icon = LoadTexture("actions/bite_icon.png");
   // RAYLIB_CHECK_TEXTURE(bite.icon);
 }
 

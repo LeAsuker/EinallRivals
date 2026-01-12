@@ -29,10 +29,10 @@ static Texture2D load_unit_texture(const char *path, int cell_size) {
 UnitSprites unit_sprites_load(int cell_size) {
   UnitSprites sprites;
   sprites.darkus_militia =
-      load_unit_texture("../../resources/units/darkus_militia.png", cell_size);
+      load_unit_texture("units/darkus_militia.png", cell_size);
   sprites.ventus_militia =
-      load_unit_texture("../../resources/units/ventus_militia.png", cell_size);
-  sprites.warg = load_unit_texture("../../resources/units/warg.png", cell_size);
+      load_unit_texture("units/ventus_militia.png", cell_size);
+  sprites.warg = load_unit_texture("units/warg.png", cell_size);
   return sprites;
 }
 
@@ -56,9 +56,9 @@ void unit_sprites_unload(UnitSprites *sprites) {
 StructureSprites structure_sprites_load(int cell_size) {
   StructureSprites sprites;
   sprites.warg_lair =
-      load_unit_texture("../../resources/structures/warg_lair.png", cell_size);
+      load_unit_texture("structures/warg_lair.png", cell_size);
   sprites.abandoned_hut = load_unit_texture(
-      "../../resources/structures/abandoned_hut.png", cell_size);
+      "structures/abandoned_hut.png", cell_size);
   return sprites;
 }
 

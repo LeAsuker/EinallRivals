@@ -1,4 +1,5 @@
 #include "raylib.h"
+#include "resource_dir.h"
 
 #include <stdio.h>
 #include <stdlib.h> // Required for: calloc(), free()
@@ -68,6 +69,11 @@ int main(void) {
   SetTargetFPS(60);
   SetExitKey(
       KEY_NULL); // Disable default ESC to close, we'll handle it ourselves
+
+  // Find and set the resources directory
+  if (!SearchAndSetResourceDir("resources")) {
+    TraceLog(LOG_WARNING, "Could not find resources directory, using current working directory");
+  }
 
   GameMode mode = GAME_MODE_MENU;
 
