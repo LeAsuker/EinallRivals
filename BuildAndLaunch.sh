@@ -9,7 +9,7 @@ if [ "$1" = "linux" ]; then
     cd ..
     make
     cd ./bin/Debug
-    ./EinallRivals
+    ./Grand-Grid-Dynasty
     exit 0
 fi
 
