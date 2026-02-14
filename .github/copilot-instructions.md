@@ -1,10 +1,10 @@
-# Copilot / AI agent instructions for EinallRivals
+# Copilot / AI agent instructions for Grand-Grid-Dynasty
 
 This file contains focused, actionable guidance to help an AI coding agent be productive in this repository.
 
 Quick summary
 - Language: C (C17), small single-binary game using raylib.
-- Build: premake -> GNU make. Binary lives in `bin/<Config>/EinallRivals` (debug default: `bin/Debug/EinallRivals`).
+- Build: premake -> GNU make. Binary lives in `bin/<Config>/Grand-Grid-Dynasty` (debug default: `bin/Debug/Grand-Grid-Dynasty`).
 
 How to build & run (developer workflows)
 - Regenerate makefiles: `cd build && ./premake5 gmake` (or `./premake5.osx gmake` on macOS).
@@ -13,11 +13,12 @@ How to build & run (developer workflows)
 - The build fetches and compiles `raylib` into `external/raylib-master` when needed (see `build/premake5.lua`).
 
 Project architecture (big picture)
-- Single executable game structured as C modules under `src/` with headers alongside. Key entry: `src/main.c`.
-- Rendering and presentation: `src/rendering.c` and `src/rendering.h` wrap calls to raylib; prefer using the `RenderContext` API defined there.
-- Game model and logic: `src/game_logic.c`, `src/actor.c`, `src/map.c`, `src/terrain.c` implement state and rules. `GameState` and `TroopGroup` are central data flows.
-- Input and UI: `src/input.c` handles mouse clicks and selection; UI draw code lives in `src/rendering.c` (e.g., `render_game_full`).
-- Resource loading: `unit_sprites.c`, `terrain.c` and `biome_config.c` manage sprite/terrain assets and configuration.
+- Single executable game structured as C modules organized into subdirectories under `src/`: `core/`, `game/`, `input/`, `render/`, and `ui/`. Key entry: `src/main.c`.
+- **Core utilities** (`src/core/`): Common helper functions and utilities (`utils.c/h`).
+- **Game logic** (`src/game/`): Core game systems including actors (`actor.c/h`), map generation (`map.c/h`), terrain (`terrain.c/h`), game state (`game_logic.c/h`), combat (`combat.c/h`), structures (`structure.c/h`, `structure_generation.c/h`), and configuration (`biome_config.c/h`, `faction_init.c/h`).
+- **Rendering** (`src/render/`): Presentation layer wrapping raylib (`rendering.c/h`). Prefer using the rendering API defined there. Sprite/asset loading (`unit_sprites.c/h`, `structure_sprites.h`).
+- **Input** (`src/input/`): User interaction handling (`input.c/h`); processes mouse clicks and selection.
+- **UI** (`src/ui/`): User interface components including menus (`menu.c/h`), modals (`modal.c/h`), and buttons (`button.c/h`).
 
 Conventions and patterns to follow (project-specific)
 - Ownership: many modules provide `*_create`, `*_init`, `*_free` or `*_unload` pairs. Use existing allocation/free patterns.
@@ -37,8 +38,11 @@ Files to inspect for common tasks (examples)
 - Build automation & external download: `build/premake5.lua` — how raylib is downloaded/unzipped and buildconfigs are defined.
 
 Editing guidance for AI patches
-- Keep changes minimal and consistent with existing style (C17, no new global state unless necessary).
-- Preserve ownership/cleanup semantics (if you allocate memory in `*_create` add matching `*_free` or update calling sites).
+- **No global variables or singletons**: All state must be passed through function parameters or contained within structs. Do not introduce global state under any circumstance.
+- **Memory safety**: When adding new features, check for possible memory leaks. Ensure all allocations have matching deallocations, and verify cleanup paths are called (especially in error cases).
+- **Explicit checks**: Be explicit in conditionals and comparisons. Use `if (ptr == NULL)` instead of `if (!ptr)`, and prefer clear comparisons over implicit conversions. Explicit code improves clarity and prevents subtle bugs.
+- Keep changes minimal and consistent with existing style (C17).
+- Preserve ownership/cleanup semantics: if you allocate memory in `*_create` add matching `*_free` or update calling sites.
 - Prefer adding small helper functions in the same module rather than moving large code blocks across files.
 - When changing render code, prefer adding a new `render_*` helper and call it from `render_game_full` to avoid regressions.
 
@@ -47,6 +51,3 @@ What not to change without confirmation
 - Core data layout types in `src/types.h` (changing structs will cascade widely).
 
 If something is unclear or you need more context, ask for a specific file or behavior to inspect.
-
----
-Please review and tell me which parts need more detail or examples.
