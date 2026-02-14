@@ -5,6 +5,10 @@
 #include "types.h"
 #include <stdbool.h>
 
+// Forward declaration for ActionIcons (defined in actions.h)
+struct ActionIcons;
+typedef struct ActionIcons ActionIcons;
+
 // ============================================================================
 // Genetics and Veterancy initialization
 // ============================================================================
@@ -41,18 +45,22 @@ Stats character_get_stats(Character *character);
  * @brief Allocate and initialize a default militia character.
  * @param owner The owning faction for the character.
  * @param sprite Sprite texture for the character.
+ * @param icons  Loaded action icons (may be NULL).
  * @return Pointer to a newly allocated Character, or NULL on allocation
  * failure.
  */
-Character *militia_create(Faction *owner, Texture2D sprite);
+Character *militia_create(Faction *owner, Texture2D sprite,
+                          const ActionIcons *icons);
 
 /**
  * @brief Initialize an existing Character struct as a militia.
  * @param character The Character to initialize.
  * @param owner The owning faction for the character.
  * @param sprite Sprite texture for the character.
+ * @param icons  Loaded action icons (may be NULL).
  */
-void militia_init(Character *character, Faction *owner, Texture2D sprite);
+void militia_init(Character *character, Faction *owner, Texture2D sprite,
+                 const ActionIcons *icons);
 
 /**
  * @brief Free resources owned by a Character and deallocate it.
@@ -164,22 +172,22 @@ int character_get_max_skill_range(Character *character);
 // ============================================================================
 
 // Default unit class templates (statically allocated, shared across characters)
-extern UnitClass CLASS_MILITIA;
-extern UnitClass CLASS_WARG;
-extern UnitClass CLASS_SPEARMAN;
-extern UnitClass CLASS_SWORDSMAN;
+extern const UnitClass CLASS_MILITIA;
+extern const UnitClass CLASS_WARG;
+extern const UnitClass CLASS_SPEARMAN;
+extern const UnitClass CLASS_SWORDSMAN;
 
 /**
  * @brief Get a pointer to the global militia UnitClass template.
  * @return Pointer to the militia UnitClass.
  */
-UnitClass *class_get_militia(void);
+const UnitClass *class_get_militia(void);
 
 /**
  * @brief Get a pointer to the global warg UnitClass template.
  * @return Pointer to the warg UnitClass.
  */
-UnitClass *class_get_warg(void);
+const UnitClass *class_get_warg(void);
 
 // ============================================================================
 // Character arrays and groups
@@ -191,11 +199,13 @@ UnitClass *class_get_warg(void);
  * @param owner Owning faction for all characters.
  * @param sprite Sprite to assign to each character.
  * @param unit_class UnitClass template to base characters on.
+ * @param icons  Loaded action icons (may be NULL).
  * @return Pointer to an allocated Character array or NULL on failure.
  */
 Character *character_array_create_from_class(int count, Faction *owner,
                                              Texture2D sprite,
-                                             UnitClass *unit_class);
+                                             const UnitClass *unit_class,
+                                             const ActionIcons *icons);
 
 /**
  * @brief Free an array of characters and their per-skill resources.
@@ -225,18 +235,22 @@ int character_array_count_alive(Character *characters, int count);
  * @param owner Owning faction.
  * @param sprite Sprite to use.
  * @param unit_class The class template to initialize from.
+ * @param icons  Loaded action icons (may be NULL).
  */
 void character_init_from_class(Character *character, Faction *owner,
-                               Texture2D sprite, UnitClass *unit_class);
+                               Texture2D sprite, const UnitClass *unit_class,
+                               const ActionIcons *icons);
 
 /**
  * @brief Allocate and initialize a character given a UnitClass template.
  * @param owner Owning faction.
  * @param sprite Sprite to use.
  * @param unit_class Unit class to base the character on.
+ * @param icons  Loaded action icons (may be NULL).
  * @return Newly allocated Character or NULL on allocation failure.
  */
 Character *character_create_from_class(Faction *owner, Texture2D sprite,
-                                       UnitClass *unit_class);
+                                       const UnitClass *unit_class,
+                                       const ActionIcons *icons);
 
 #endif

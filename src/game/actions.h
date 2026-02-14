@@ -6,16 +6,35 @@
 #include <stdbool.h>
 
 /**
- * @brief Populate @p dest_skill with the predefined Spear Strike data.
- * @param dest_skill Destination Skill struct to initialize.
+ * @brief Peer struct that owns the loaded Texture2D icons used by skills.
+ *
+ * Created via action_icons_load() after the window/renderer is ready,
+ * and freed with action_icons_unload().
  */
-void action_copy_spear_strike(Skill *dest_skill);
+typedef struct ActionIcons {
+  Texture2D spear_strike; /**< Icon for the Spear Strike skill */
+  Texture2D bite;         /**< Icon for the Bite skill (placeholder) */
+} ActionIcons;
+
+/**
+ * @brief Populate @p dest_skill with the predefined Spear Strike data.
+ *
+ * The icon field is patched from @p icons if non-NULL.
+ *
+ * @param dest_skill Destination Skill struct to initialize.
+ * @param icons      Loaded action icons (may be NULL for no icon).
+ */
+void action_copy_spear_strike(Skill *dest_skill, const ActionIcons *icons);
 
 /**
  * @brief Populate @p dest_skill with the predefined Bite skill data.
+ *
+ * The icon field is patched from @p icons if non-NULL.
+ *
  * @param dest_skill Destination Skill struct to initialize.
+ * @param icons      Loaded action icons (may be NULL for no icon).
  */
-void action_copy_bite(Skill *dest_skill);
+void action_copy_bite(Skill *dest_skill, const ActionIcons *icons);
 
 /**
  * @brief Populate @p dest_skill with the predefined Loot skill data.
@@ -45,13 +64,15 @@ void action_add_skill_to_character(Character *character, Skill *skill);
 
 /**
  * @brief Load shared icons/textures used by action UI elements.
+ * @return Populated ActionIcons struct owning the loaded textures.
  */
-void actions_load_icons(void);
+ActionIcons action_icons_load(void);
 
 /**
- * @brief Unload any textures loaded by actions_load_icons.
+ * @brief Unload any textures owned by an ActionIcons struct.
+ * @param icons ActionIcons to release (NULL-safe).
  */
-void actions_unload_icons(void);
+void action_icons_unload(ActionIcons *icons);
 
 /**
  * @brief Execute a combat skill from attacker_cell onto defender_cell.

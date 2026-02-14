@@ -8,7 +8,7 @@
 // Default Unit Class Definitions
 // ============================================================================
 
-UnitClass CLASS_MILITIA = {
+const UnitClass CLASS_MILITIA = {
     .name = "Militia",
     .max_health = 20,
     .movement = 4,
@@ -20,7 +20,7 @@ UnitClass CLASS_MILITIA = {
     .class_tree = {.promotions = {NULL, NULL, NULL, NULL},
                    .promotion_count = 0}};
 
-UnitClass CLASS_WARG = {.name = "Warg",
+const UnitClass CLASS_WARG = {.name = "Warg",
                         .max_health = 16,
                         .movement = 3,
                         .phys_attack = 7,
@@ -31,7 +31,7 @@ UnitClass CLASS_WARG = {.name = "Warg",
                         .class_tree = {.promotions = {NULL, NULL, NULL, NULL},
                                        .promotion_count = 0}};
 
-UnitClass CLASS_SPEARMAN = {
+const UnitClass CLASS_SPEARMAN = {
     .name = "Spearman",
     .max_health = 25,
     .movement = 4,
@@ -43,7 +43,7 @@ UnitClass CLASS_SPEARMAN = {
     .class_tree = {.promotions = {NULL, NULL, NULL, NULL},
                    .promotion_count = 0}};
 
-UnitClass CLASS_SWORDSMAN = {
+const UnitClass CLASS_SWORDSMAN = {
     .name = "Swordsman",
     .max_health = 22,
     .movement = 4,
@@ -63,13 +63,13 @@ UnitClass CLASS_SWORDSMAN = {
  * @brief Get a pointer to the global militia UnitClass template.
  * @return Pointer to the militia UnitClass.
  */
-UnitClass *class_get_militia(void) { return &CLASS_MILITIA; }
+const UnitClass *class_get_militia(void) { return &CLASS_MILITIA; }
 
 /**
  * @brief Get a pointer to the global warg UnitClass template.
  * @return Pointer to the warg UnitClass.
  */
-UnitClass *class_get_warg(void) { return &CLASS_WARG; }
+const UnitClass *class_get_warg(void) { return &CLASS_WARG; }
 
 // ============================================================================
 // Genetics and Veterancy Initialization
@@ -122,7 +122,7 @@ Stats character_get_stats(Character *character) {
   if (character == NULL)
     return stats;
 
-  UnitClass *cls = character->unit_class;
+  const UnitClass *cls = character->unit_class;
   Genetics *gen = &character->genetics;
   Veterancy *vet = &character->veterancy;
 
@@ -152,14 +152,15 @@ Stats character_get_stats(Character *character) {
  * @param sprite Sprite texture for the character.
  * @return Pointer to newly allocated Character or NULL on allocation failure.
  */
-Character *militia_create(Faction *owner, Texture2D sprite) {
+Character *militia_create(Faction *owner, Texture2D sprite,
+                          const ActionIcons *icons) {
   Character *character = malloc(sizeof(Character));
   if (character == NULL) {
     fprintf(stderr, "Error: Failed to allocate memory for character\n");
     return NULL;
   }
 
-  militia_init(character, owner, sprite);
+  militia_init(character, owner, sprite, icons);
   return character;
 }
 
@@ -172,13 +173,14 @@ Character *militia_create(Faction *owner, Texture2D sprite) {
  * @return Newly allocated Character or NULL on allocation failure.
  */
 Character *character_create_from_class(Faction *owner, Texture2D sprite,
-                                       UnitClass *unit_class) {
+                                       const UnitClass *unit_class,
+                                       const ActionIcons *icons) {
   Character *character = malloc(sizeof(Character));
   if (character == NULL) {
     fprintf(stderr, "Error: Failed to allocate memory for character\n");
     return NULL;
   }
-  character_init_from_class(character, owner, sprite, unit_class);
+  character_init_from_class(character, owner, sprite, unit_class, icons);
   return character;
 }
 
@@ -189,7 +191,8 @@ Character *character_create_from_class(Faction *owner, Texture2D sprite,
  * @param owner Owning faction for the character.
  * @param sprite Sprite texture for the character.
  */
-void militia_init(Character *character, Faction *owner, Texture2D sprite) {
+void militia_init(Character *character, Faction *owner, Texture2D sprite,
+                  const ActionIcons *icons) {
   NULL_CHECK_VOID(character);
   NULL_CHECK_VOID(owner);
   character->sprite = sprite;
@@ -224,7 +227,7 @@ void militia_init(Character *character, Faction *owner, Texture2D sprite) {
     Skill tmp;
     action_copy_loot(&tmp);
     action_add_skill_to_character(character, &tmp);
-    action_copy_spear_strike(&tmp);
+    action_copy_spear_strike(&tmp, icons);
     action_add_skill_to_character(character, &tmp);
   }
 }
@@ -236,7 +239,8 @@ void militia_init(Character *character, Faction *owner, Texture2D sprite) {
  * @param owner Owning faction for the character.
  * @param sprite Sprite texture for the character.
  */
-void warg_init(Character *character, Faction *owner, Texture2D sprite) {
+void warg_init(Character *character, Faction *owner, Texture2D sprite,
+               const ActionIcons *icons) {
   NULL_CHECK_VOID(character);
   NULL_CHECK_VOID(owner);
   character->sprite = sprite;
@@ -269,7 +273,7 @@ void warg_init(Character *character, Faction *owner, Texture2D sprite) {
   character->skill_count = 0;
   {
     Skill tmp;
-    action_copy_bite(&tmp);
+    action_copy_bite(&tmp, icons);
     action_add_skill_to_character(character, &tmp);
   }
 }
@@ -284,14 +288,15 @@ void warg_init(Character *character, Faction *owner, Texture2D sprite) {
  * @param unit_class UnitClass template to initialize from.
  */
 void character_init_from_class(Character *character, Faction *owner,
-                               Texture2D sprite, UnitClass *unit_class) {
+                               Texture2D sprite, const UnitClass *unit_class,
+                               const ActionIcons *icons) {
   NULL_CHECK_VOID(character);
   NULL_CHECK_VOID(owner);
   NULL_CHECK_VOID(unit_class);
   if (strcmp(unit_class->name, "Militia") == 0) {
-    militia_init(character, owner, sprite); // Add default militia skills
+    militia_init(character, owner, sprite, icons); // Add default militia skills
   } else if (strcmp(unit_class->name, "Warg") == 0) {
-    warg_init(character, owner, sprite); // Add default warg skills
+    warg_init(character, owner, sprite, icons); // Add default warg skills
   } else {
     character->sprite = sprite;
     character->owner = owner;
@@ -547,7 +552,8 @@ bool character_has_pending_level_up(Character *character) {
  */
 Character *character_array_create_from_class(int count, Faction *owner,
                                              Texture2D sprite,
-                                             UnitClass *unit_class) {
+                                             const UnitClass *unit_class,
+                                             const ActionIcons *icons) {
   NULL_CHECK_RET(owner, NULL);
   NULL_CHECK_RET(unit_class, NULL);
   Character *characters = malloc(sizeof(Character) * count);
@@ -560,7 +566,7 @@ Character *character_array_create_from_class(int count, Faction *owner,
   // Initialize all characters
   for (int i = 0; i < count; i++) {
     // Init since we have an array, use init function directly
-    character_init_from_class(&characters[i], owner, sprite, unit_class);
+    character_init_from_class(&characters[i], owner, sprite, unit_class, icons);
   }
 
   return characters;

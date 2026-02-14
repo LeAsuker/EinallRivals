@@ -142,7 +142,7 @@ typedef struct Character {
 
   int curr_health; /**< Current HP (max derived from stats) */
 
-  UnitClass *unit_class; /**< Pointer to class template */
+  const UnitClass *unit_class; /**< Pointer to class template */
   Genetics genetics;     /**< Random stat modifiers */
   Veterancy veterancy;   /**< Permanent level bonuses */
 
@@ -195,8 +195,8 @@ typedef struct {
   int max_grid_cells_y;
 } GridConfig;
 
-// Global debug flag (defined in main.c)
-extern bool DEBUG_LOG;
+/** @brief Compile-time debug flag for runtime null-check printing. */
+#define DEBUG_LOG 1
 
 /**
  * @brief Null-check helper macros. Use NULL_CHECK_VOID(ptr) in void functions,

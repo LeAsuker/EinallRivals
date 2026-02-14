@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "game/actions.h"
 #include "game/actor.h"
 #include "game/map.h"
 #include "game/structure.h"
@@ -57,7 +58,8 @@ int structure_generation_place_warg_lairs(Point *mapArr,
  */
 Character *structure_generation_spawn_wargs_around_lairs(
     Point *mapArr, GridConfig *grid_config, UnitSprites unit_sprites,
-    Faction *gaia_faction, int *out_warg_count) {
+    Faction *gaia_faction, int *out_warg_count,
+    const ActionIcons *action_icons) {
   if (mapArr == NULL || grid_config == NULL || gaia_faction == NULL ||
       out_warg_count == NULL) {
     if (out_warg_count)
@@ -99,7 +101,7 @@ Character *structure_generation_spawn_wargs_around_lairs(
       if (strcmp(p->structure->name, "Warg Lair") != 0)
         continue;
 
-      UnitClass *warg_class = class_get_warg();
+      const UnitClass *warg_class = class_get_warg();
       int to_spawn = (rand() % 2) + 2; // 2..3
       int spawned = 0;
       for (int o = 0; o < 8 && spawned < to_spawn; o++) {
@@ -114,7 +116,8 @@ Character *structure_generation_spawn_wargs_around_lairs(
           continue;
 
         character_init_from_class(&gaia_wargs[gaia_warg_count], gaia_faction,
-                                  unit_sprites.warg, warg_class);
+                                  unit_sprites.warg, warg_class,
+                                  action_icons);
         dest->occupant = &gaia_wargs[gaia_warg_count];
         gaia_warg_count++;
         spawned++;

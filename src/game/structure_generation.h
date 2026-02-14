@@ -1,6 +1,7 @@
 #ifndef STRUCTURE_GENERATION_H_
 #define STRUCTURE_GENERATION_H_
 
+#include "game/actions.h"
 #include "render/structure_sprites.h"
 #include "render/unit_sprites.h"
 #include "types.h"
@@ -37,7 +38,8 @@ int structure_generation_place_warg_lairs(Point *mapArr,
  */
 Character *structure_generation_spawn_wargs_around_lairs(
     Point *mapArr, GridConfig *grid_config, UnitSprites unit_sprites,
-    Faction *gaia_faction, int *out_warg_count);
+    Faction *gaia_faction, int *out_warg_count,
+    const ActionIcons *action_icons);
 
 /**
  * @brief Place abandoned huts at passable locations across the map.
