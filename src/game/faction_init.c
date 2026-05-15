@@ -1,4 +1,5 @@
 #include "game/faction_init.h"
+#include "game/faction_data.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -13,34 +14,25 @@
  * @return Number of factions initialized (0 on insufficient capacity).
  */
 int faction_init_default(Faction *factions, int max_factions) {
-  if (max_factions < 3) {
+  if (max_factions < FACTION_COUNT) {
     return 0;
   }
 
-  static const struct {
-    const char *name;
-    Color prim_color;
-    Color sec_color;
-    bool playable;
-    bool has_turn;
-  } FACTION_DEFS[] = {
-      {"Darkus", PURPLE, DARKGRAY, true, true},
-      {"Ventus", GREEN, WHITE, true, false},
-      {"Gaia", BROWN, BLACK, false, false},
-  };
-  int count = sizeof(FACTION_DEFS) / sizeof(FACTION_DEFS[0]);
-
-  for (int i = 0; i < count; i++) {
-    factions[i].has_turn = FACTION_DEFS[i].has_turn;
-    factions[i].playable = FACTION_DEFS[i].playable;
-    factions[i].prim_color = FACTION_DEFS[i].prim_color;
-    factions[i].sec_color = FACTION_DEFS[i].sec_color;
-    strcpy(factions[i].name, FACTION_DEFS[i].name);
+  for (int i = 0; i < FACTION_COUNT; i++) {
+    const FactionDef *def = faction_get_def((Factions)i);
+    if (def == NULL) {
+      continue;
+    }
+    factions[i].has_turn = def->has_turn;
+    factions[i].playable = def->playable;
+    factions[i].prim_color = def->prim_color;
+    factions[i].sec_color = def->sec_color;
+    strcpy(factions[i].name, def->name);
     factions[i].characters = NULL;
     factions[i].character_count = 0;
   }
 
-  return count;
+  return FACTION_COUNT;
 }
 
 /**
