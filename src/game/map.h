@@ -1,6 +1,17 @@
 #ifndef MAP_H_
 #define MAP_H_
 
+/*
+ * Module: Map Generation and Queries
+ * Layer: Game Domain (src/game/)
+ * Purpose: Map array allocation, biome spreading, terrain generation,
+ * path/range calculations, cell queries, and structure placement.
+ * Dependencies: types.h
+ * Consumers: main.c, game/structure_generation.c, game/combat.c, input/input.c,
+ * render/rendering.c
+ * See AGENTS.md and src/CODEMAP.md for architecture context.
+ */
+
 #include "types.h"
 #include <stdbool.h>
 

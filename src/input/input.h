@@ -1,6 +1,18 @@
 #ifndef INPUT_H_
 #define INPUT_H_
 
+/*
+ * Module: Input Handling
+ * Layer: Input (reads game state, drives mutations)
+ * Purpose: Mouse/keyboard processing, button hit-testing, action clicks, movement
+ * commands. Translates raw input into game operations.
+ * Dependencies: types.h, game/actions.h, game/combat.h, ui/button.h
+ * Consumers: main.c (called each frame in the game loop)
+ * Rule: May call execution functions (skills, end turn) but must not embed game
+ * rules (damage formulas, victory logic).
+ * See AGENTS.md and src/CODEMAP.md for architecture context.
+ */
+
 #include "game/actions.h"
 #include "game/combat.h"
 #include "types.h"

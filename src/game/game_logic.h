@@ -1,6 +1,15 @@
 #ifndef GAME_LOGIC_H_
 #define GAME_LOGIC_H_
 
+/*
+ * Module: Game State Machine
+ * Layer: Game Domain (part of src/game/)
+ * Purpose: Turn order, phase management, victory checks, AI turn processing.
+ * Dependencies: types.h, map.h
+ * Consumers: main.c (orchestrator), input/input.c (player commands)
+ * See AGENTS.md and src/CODEMAP.md for architecture context.
+ */
+
 #include "game/map.h"
 #include "types.h"
 #include <stdbool.h>

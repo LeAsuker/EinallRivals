@@ -1,6 +1,16 @@
 #ifndef ACTOR_H_
 #define ACTOR_H_
 
+/*
+ * Module: Actor (Character) System
+ * Layer: Game Domain (src/game/)
+ * Purpose: Character lifecycle, stats calculation, genetics, veterancy,
+ * leveling, and class templates.
+ * Dependencies: types.h
+ * Consumers: main.c, game/faction_init.c, game/combat.c, game/game_logic.c
+ * See AGENTS.md and src/CODEMAP.md for architecture context.
+ */
+
 #include "raylib.h"
 #include "types.h"
 #include <stdbool.h>

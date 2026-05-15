@@ -1,6 +1,18 @@
 #ifndef RENDERING_H_
 #define RENDERING_H_
 
+/*
+ * Module: Rendering
+ * Layer: Presentation (reads game state, draws pixels)
+ * Purpose: Draw the map, units, structures, UI chrome, debug overlays, and
+ * modals. Pure function of game state: never mutates rules or units.
+ * Dependencies: types.h, ui/button.h
+ * Consumers: main.c (called each frame), ui/modal.c (modal_render)
+ * Rule: Read-only w.r.t. game logic. If you need to change state while drawing,
+ * move the logic to input/ or game/.
+ * See AGENTS.md and src/CODEMAP.md for architecture context.
+ */
+
 #include "raylib.h"
 #include "types.h"
 #include "ui/button.h"

@@ -1,6 +1,13 @@
 #ifndef UTILS_H_
 #define UTILS_H_
 
+/*
+ * Module: Core Utilities
+ * Layer: Foundation (depends only on types.h)
+ * Purpose: Low-level helpers: grid allocation, mouse clamping, cell flag flush.
+ * Rule: No game logic here. Keep dependency-free of game/, input/, render/.
+ */
+
 #include "types.h"
 
 /**

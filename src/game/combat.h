@@ -1,6 +1,15 @@
 #ifndef COMBAT_H_
 #define COMBAT_H_
 
+/*
+ * Module: Combat System
+ * Layer: Game Domain (src/game/)
+ * Purpose: Combat execution, damage formulas, hit/crit forecasting, XP grants.
+ * Dependencies: types.h, map.h
+ * Consumers: input/input.c (player attacks), game/game_logic.c (AI attacks)
+ * See AGENTS.md and src/CODEMAP.md for architecture context.
+ */
+
 #include "game/map.h"
 #include "types.h"
 #include <stdbool.h>

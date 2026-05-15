@@ -6,8 +6,15 @@
 #include <stdio.h>
 
 /**
- * @brief Simple 2D integer coordinate used by area-of-effect definitions.
+/*
+ * Module: Core Shared Types
+ * Layer: Foundation (included by nearly every module)
+ * Purpose: Defines all data structures that cross module boundaries.
+ * WARNING: Changing struct layouts here cascades to game/, render/, and input/.
+ * See AGENTS.md and src/CODEMAP.md for architecture context.
  */
+
+/** @brief Simple 2D integer coordinate used by area-of-effect definitions. */
 typedef struct Coord {
   int x; /**< X offset */
   int y; /**< Y offset */

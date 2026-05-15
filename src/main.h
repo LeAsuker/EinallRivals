@@ -1,6 +1,15 @@
 #ifndef MAIN_H_
 #define MAIN_H_
 
+/*
+ * Module: Main Entry Configuration
+ * Layer: Application root
+ * Purpose: Compile-time grid sizing, troop counts, and offset constants.
+ * Consumers: main.c (primary), core/utils.c, input/input.c, render/rendering.c
+ * Note: This is a header of constants, not a module with runtime logic.
+ * See AGENTS.md and src/CODEMAP.md for architecture context.
+ */
+
 #define GRID_CELL_SIZE 40
 #define MAX_GRID_CELLS_X 30
 #define MAX_GRID_CELLS_Y 20
