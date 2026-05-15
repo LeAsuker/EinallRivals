@@ -1,8 +1,8 @@
 #include "game/map.h"
+#include "core/utils.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-
 // Forward declarations for internal helper functions
 static void calculate_range_recursive(GridConfig *grid_config, Point *map,
                                       Point *current_cell, int remaining_range,
@@ -387,10 +387,8 @@ void map_calculate_attack_range(GridConfig *grid_config, Point *map,
  * @param grid_config Grid configuration for dimensions.
  */
 void map_clear_range_flags(Point *map, GridConfig *grid_config) {
-  int total_cells =
-      grid_config->max_grid_cells_x * grid_config->max_grid_cells_y;
-
-  for (int i = 0; i < total_cells; i++) {
+  int total = grid_total_cells(grid_config);
+  for (int i = 0; i < total; i++) {
     map[i].in_range = false;
     map[i].in_attack_range = false;
   }
@@ -403,10 +401,8 @@ void map_clear_range_flags(Point *map, GridConfig *grid_config) {
  * @param grid_config Grid configuration.
  */
 void map_clear_movement_range_flags(Point *map, GridConfig *grid_config) {
-  int total_cells =
-      grid_config->max_grid_cells_x * grid_config->max_grid_cells_y;
-
-  for (int i = 0; i < total_cells; i++) {
+  int total = grid_total_cells(grid_config);
+  for (int i = 0; i < total; i++) {
     map[i].in_range = false;
   }
 }
@@ -418,10 +414,8 @@ void map_clear_movement_range_flags(Point *map, GridConfig *grid_config) {
  * @param grid_config Grid configuration.
  */
 void map_clear_attack_range_flags(Point *map, GridConfig *grid_config) {
-  int total_cells =
-      grid_config->max_grid_cells_x * grid_config->max_grid_cells_y;
-
-  for (int i = 0; i < total_cells; i++) {
+  int total = grid_total_cells(grid_config);
+  for (int i = 0; i < total; i++) {
     map[i].in_attack_range = false;
   }
 }

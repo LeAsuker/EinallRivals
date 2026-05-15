@@ -43,4 +43,39 @@ void cell_flag_flush(Point *cell_arr, GridConfig *grid);
 GridConfig *grid_init(int g_off_x, int g_off_y, int g_cell_size, int max_cell_x,
                       int max_cell_y);
 
+/**
+ * @brief Total number of cells in the grid.
+ */
+static inline int grid_total_cells(const GridConfig *g) {
+  return g->max_grid_cells_x * g->max_grid_cells_y;
+}
+
+/**
+ * @brief Right edge X coordinate of the grid in pixels.
+ */
+static inline int grid_right(const GridConfig *g) {
+  return g->grid_offset_x + g->max_grid_cells_x * g->grid_cell_size;
+}
+
+/**
+ * @brief Bottom edge Y coordinate of the grid in pixels.
+ */
+static inline int grid_bottom(const GridConfig *g) {
+  return g->grid_offset_y + g->max_grid_cells_y * g->grid_cell_size;
+}
+
+/**
+ * @brief Width of the grid in pixels.
+ */
+static inline int grid_width(const GridConfig *g) {
+  return g->max_grid_cells_x * g->grid_cell_size;
+}
+
+/**
+ * @brief Height of the grid in pixels.
+ */
+static inline int grid_height(const GridConfig *g) {
+  return g->max_grid_cells_y * g->grid_cell_size;
+}
+
 #endif

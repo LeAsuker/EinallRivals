@@ -9,11 +9,9 @@
 int safe_mouse_x(GridConfig *grid_config) {
   NULL_CHECK_RET(grid_config, 0);
   int mouse_pos = GetMouseX();
-  if (mouse_pos >=
-      grid_config->grid_offset_x +
-          grid_config->max_grid_cells_x * grid_config->grid_cell_size) {
-    return grid_config->grid_offset_x +
-           grid_config->max_grid_cells_x * grid_config->grid_cell_size - 1;
+  int right = grid_right(grid_config);
+  if (mouse_pos >= right) {
+    return right - 1;
   } else if (mouse_pos <= grid_config->grid_offset_x) {
     return grid_config->grid_offset_x + 1;
   }
@@ -28,11 +26,9 @@ int safe_mouse_x(GridConfig *grid_config) {
 int safe_mouse_y(GridConfig *grid_config) {
   NULL_CHECK_RET(grid_config, 0);
   int mouse_pos = GetMouseY();
-  if (mouse_pos >=
-      grid_config->grid_offset_y +
-          grid_config->max_grid_cells_y * grid_config->grid_cell_size) {
-    return grid_config->grid_offset_y +
-           grid_config->max_grid_cells_y * grid_config->grid_cell_size - 1;
+  int bottom = grid_bottom(grid_config);
+  if (mouse_pos >= bottom) {
+    return bottom - 1;
   } else if (mouse_pos <= grid_config->grid_offset_y) {
     return grid_config->grid_offset_y + 1;
   }
