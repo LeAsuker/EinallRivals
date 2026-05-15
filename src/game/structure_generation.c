@@ -7,6 +7,7 @@
 #include "game/actor.h"
 #include "game/map.h"
 #include "game/structure.h"
+#include "game/structure_data.h"
 #include "game/terrain.h"
 
 /**
@@ -18,12 +19,15 @@ int structure_generation_place_warg_lairs(Point *mapArr,
                                           GridConfig *grid_config,
                                           Terrain *terrains, int terrain_count,
                                           StructureSprites structure_sprites) {
+  (void)terrain_count;
   if (mapArr == NULL || grid_config == NULL || terrains == NULL)
     return 0;
 
   int num_lairs = (rand() % 3) + 4; // 4..6
   int lairs_placed = 0;
   int attempts = 0;
+
+  const StructureMetadata *meta = structure_data_get(STRUCTURE_WARG_LAIR);
 
   while (lairs_placed < num_lairs && attempts < 1000) {
     attempts++;
@@ -37,7 +41,8 @@ int structure_generation_place_warg_lairs(Point *mapArr,
 
     // Place lair structure only
     Structure *lair =
-        structure_create(structure_sprites.warg_lair, "Warg Lair", true, false);
+        structure_create(structure_sprites.warg_lair, meta->name,
+                         meta->passable, meta->lootable);
     if (lair == NULL)
       continue;
     map_place_structure(mapArr, grid_config, candidate->x, candidate->y, lair);
@@ -75,7 +80,7 @@ Character *structure_generation_spawn_wargs_around_lairs(
   for (int y = 0; y < grid_config->max_grid_cells_y; y++) {
     for (int x = 0; x < grid_config->max_grid_cells_x; x++) {
       Point *p = map_get_cell(mapArr, grid_config, x, y);
-      if (p && p->structure && strcmp(p->structure->name, "Warg Lair") == 0) {
+      if (p && p->structure && structure_is_type(p->structure, STRUCTURE_WARG_LAIR)) {
         lair_count++;
       }
     }
@@ -98,7 +103,7 @@ Character *structure_generation_spawn_wargs_around_lairs(
       Point *p = map_get_cell(mapArr, grid_config, x, y);
       if (p == NULL || p->structure == NULL)
         continue;
-      if (strcmp(p->structure->name, "Warg Lair") != 0)
+      if (!structure_is_type(p->structure, STRUCTURE_WARG_LAIR))
         continue;
 
       const UnitClass *warg_class = class_get_warg();
@@ -146,13 +151,15 @@ Character *structure_generation_spawn_wargs_around_lairs(
 int structure_generation_place_abandoned_huts(
     Point *mapArr, GridConfig *grid_config, Terrain *terrains,
     int terrain_count, StructureSprites structure_sprites) {
-  // Placeholder for future structure placements
+  (void)terrain_count;
   if (mapArr == NULL || grid_config == NULL || terrains == NULL)
     return 0;
 
-  int num_huts = (rand() % 5) + 6; // 4..6
+  int num_huts = (rand() % 5) + 6; // 6..10
   int huts_placed = 0;
   int attempts = 0;
+
+  const StructureMetadata *meta = structure_data_get(STRUCTURE_ABANDONED_HUT);
 
   while (huts_placed < num_huts && attempts < 1000) {
     attempts++;
@@ -166,7 +173,8 @@ int structure_generation_place_abandoned_huts(
 
     // Place abandoned hut structure only
     Structure *hut = structure_create(structure_sprites.abandoned_hut,
-                                      "Abandoned Hut", false, true);
+                                      meta->name, meta->passable,
+                                      meta->lootable);
     if (hut == NULL)
       continue;
     map_place_structure(mapArr, grid_config, candidate->x, candidate->y, hut);
