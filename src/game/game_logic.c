@@ -2,6 +2,7 @@
 #include "game/actor.h"
 #include "game/combat.h"
 #include "game/map.h"
+#include "core/utils.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -181,6 +182,76 @@ Faction *game_get_current_faction(GameState *state) {
  *
  * On completion the faction's turn is ended.
  */
+// ============================================================================
+// AI Internal Helpers
+// ============================================================================
+
+/**
+ * @brief Find the closest enemy of `me` that is within `max_range` of `origin`.
+ *
+ * @param map Map array.
+ * @param total_cells Total number of cells in the map.
+ * @param origin Cell to measure distance from.
+ * @param me Character whose enemies to search for.
+ * @param grid_config Grid configuration for range checks.
+ * @param max_range Maximum attack range to consider.
+ * @return Pointer to the closest in-range enemy cell, or NULL if none.
+ */
+static Point *ai_find_closest_enemy_in_range(Point *map, int total_cells,
+                                             Point *origin, Character *me,
+                                             GridConfig *grid_config,
+                                             int max_range) {
+  Point *best_target = NULL;
+  int best_dist = 999999;
+  for (int c = 0; c < total_cells; c++) {
+    if (map[c].occupant == NULL)
+      continue;
+    Character *other = map[c].occupant;
+    if (!character_is_enemy(me, other))
+      continue;
+    if (combat_is_in_range(grid_config, origin, &map[c], max_range)) {
+      int d = combat_get_distance(origin, &map[c]);
+      if (d < best_dist) {
+        best_dist = d;
+        best_target = &map[c];
+      }
+    }
+  }
+  return best_target;
+}
+
+/**
+ * @brief Find the closest enemy of `me` on the map regardless of range.
+ *
+ * @param map Map array.
+ * @param total_cells Total number of cells in the map.
+ * @param origin Cell to measure distance from.
+ * @param me Character whose enemies to search for.
+ * @return Pointer to the closest enemy cell, or NULL if none.
+ */
+static Point *ai_find_closest_enemy(Point *map, int total_cells, Point *origin,
+                                    Character *me) {
+  Point *closest_enemy = NULL;
+  int closest_dist = 999999;
+  for (int c = 0; c < total_cells; c++) {
+    if (map[c].occupant == NULL)
+      continue;
+    Character *other = map[c].occupant;
+    if (!character_is_enemy(me, other))
+      continue;
+    int d = combat_get_distance(origin, &map[c]);
+    if (d < closest_dist) {
+      closest_dist = d;
+      closest_enemy = &map[c];
+    }
+  }
+  return closest_enemy;
+}
+
+// ============================================================================
+// AI Processing
+// ============================================================================
+
 /**
  * @brief Very simple AI turn processor for the current faction.
  *
@@ -196,8 +267,7 @@ void game_process_ai_turn(GameState *state, Point *map,
   if (current == NULL)
     return;
 
-  int total_cells =
-      grid_config->max_grid_cells_x * grid_config->max_grid_cells_y;
+  int total_cells = grid_total_cells(grid_config);
 
   for (int i = 0; i < current->character_count; i++) {
     Character *character = &current->characters[i];
@@ -220,26 +290,11 @@ void game_process_ai_turn(GameState *state, Point *map,
     // Search for enemies in attack range; pick the closest
     Stats character_stats = character_get_stats(character);
     int max_range = character_get_max_skill_range(character);
-    Point *best_target = NULL;
-    int best_dist = 999999;
-    for (int c = 0; c < total_cells; c++) {
-      if (map[c].occupant == NULL)
-        continue;
-      Character *other = map[c].occupant;
-      if (!character_is_enemy(character, other))
-        continue;
-      if (combat_is_in_range(grid_config, character_cell, &map[c], max_range)) {
-        int d = combat_get_distance(character_cell, &map[c]);
-        if (d < best_dist) {
-          best_dist = d;
-          best_target = &map[c];
-        }
-      }
-    }
+    Point *best_target = ai_find_closest_enemy_in_range(
+        map, total_cells, character_cell, character, grid_config, max_range);
 
     if (best_target != NULL && character->can_act) {
       combat_execute_at_cells(grid_config, map, character_cell, best_target);
-      // continue to next character
       continue;
     }
 
@@ -248,20 +303,12 @@ void game_process_ai_turn(GameState *state, Point *map,
       continue;
 
     // First: try to find a closest enemy that can be reached (move + range)
-    Point *closest_enemy = NULL;
-    int closest_dist = 999999;
-    for (int c = 0; c < total_cells; c++) {
-      if (map[c].occupant == NULL)
-        continue;
-      Character *other = map[c].occupant;
-      if (!character_is_enemy(character, other))
-        continue;
-      int d = combat_get_distance(character_cell, &map[c]);
-      if (d < closest_dist) {
-        closest_dist = d;
-        closest_enemy = &map[c];
-      }
-    }
+    Point *closest_enemy =
+        ai_find_closest_enemy(map, total_cells, character_cell, character);
+    int closest_dist =
+        (closest_enemy != NULL)
+            ? combat_get_distance(character_cell, closest_enemy)
+            : 999999;
 
     bool moved = false;
     if (closest_enemy != NULL &&
@@ -350,23 +397,8 @@ void game_process_ai_turn(GameState *state, Point *map,
     // After moving (either toward enemy or random), if character can still act,
     // try to attack any enemy now in range
     if (character->can_act) {
-      Point *attack_target = NULL;
-      int attack_dist = 999999;
-      for (int c = 0; c < total_cells; c++) {
-        if (map[c].occupant == NULL)
-          continue;
-        Character *other = map[c].occupant;
-        if (!character_is_enemy(character, other))
-          continue;
-        if (combat_is_in_range(grid_config, character_cell, &map[c],
-                               max_range)) {
-          int d = combat_get_distance(character_cell, &map[c]);
-          if (d < attack_dist) {
-            attack_dist = d;
-            attack_target = &map[c];
-          }
-        }
-      }
+      Point *attack_target = ai_find_closest_enemy_in_range(
+          map, total_cells, character_cell, character, grid_config, max_range);
       if (attack_target != NULL) {
         combat_execute_at_cells(grid_config, map, character_cell,
                                 attack_target);

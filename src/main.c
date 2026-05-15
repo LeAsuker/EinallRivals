@@ -40,8 +40,14 @@ void app_resources_register(AppResources *res) { s_app_resources = res; }
 
 typedef enum { GAME_MODE_MENU, GAME_MODE_PLAYING, GAME_MODE_QUIT } GameMode;
 
-// Forward declaration for cleanup function
+// Forward declarations
 static void cleanup_game_resources(AppResources *res);
+static GameMode game_loop_playing(GridConfig *grid_config, Point *mapArr,
+                                  GameState *game_state,
+                                  RenderContext *render_ctx,
+                                  InputState *input_state,
+                                  AppResources *app_res, int screenWidth,
+                                  int screenHeight);
 
 /**
  * @brief Program entry point: initialize window, run main menu and game loops.
@@ -194,109 +200,12 @@ int main(void) {
       app_res.terrain_count = TERRAIN_COUNT;
       app_res.grid_config = grid_config;
       app_res.initialized = 1;
-      bool button_is_pressed = false;
 
       // Main game loop
       while (!WindowShouldClose() && mode == GAME_MODE_PLAYING) {
-        Faction *current_faction = game_get_current_faction(game_state);
-
-        if (game_is_over(game_state)) {
-          render_game(&render_ctx, mapArr, input_state.focused_cell,
-                      current_faction, &input_state,
-                      &input_state.end_turn_button, input_state.action_buttons,
-                      ACTION_BUTTON_COUNT, game_state->modal);
-          continue;
-        }
-
-        // Handle modal input if modal is active
-        if (game_state->modal && game_state->modal->active) {
-          ModalResult result = modal_update(game_state->modal);
-
-          switch (result) {
-          case MODAL_RESULT_EXIT_TO_MENU:
-            // Cleanup and return to menu - must break immediately to avoid
-            // accessing freed memory
-               cleanup_game_resources(&app_res);
-            mode = GAME_MODE_MENU;
-            break; // This exits the switch, but we need to exit the while loop
-                   // too
-          case MODAL_RESULT_EXIT_TO_DESKTOP:
-            mode = GAME_MODE_QUIT;
-            break;
-          case MODAL_RESULT_CANCEL:
-            // Resume game - modal already deactivated
-            break;
-          case MODAL_RESULT_NONE:
-            // Still active, skip game input this frame
-            break;
-          default:
-            if (result >= MODAL_RESULT_CLASS_CHOICE_0 &&
-                result <= MODAL_RESULT_CLASS_CHOICE_MAX) {
-              // Handle class promotion
-              int choice = result - MODAL_RESULT_CLASS_CHOICE_0;
-              // TODO: Apply promotion logic
-              printf("Class choice %d selected\n", choice);
-            }
-            break;
-          }
-
-          // Check if we're exiting game mode - if so, break out immediately
-          // without rendering
-          if (mode != GAME_MODE_PLAYING) {
-            break; // Exit the game loop immediately after cleanup
-          }
-
-          // Skip normal game input when modal is active and render
-          render_game(&render_ctx, mapArr, input_state.focused_cell,
-                      current_faction, &input_state,
-                      &input_state.end_turn_button, input_state.action_buttons,
-                      ACTION_BUTTON_COUNT, game_state->modal);
-          continue;
-        }
-
-        // Check for ESC key to open pause menu (only if modal is not already
-        // active)
-        if (IsKeyPressed(KEY_ESCAPE) &&
-            (!game_state->modal || !game_state->modal->active)) {
-          modal_setup_esc_menu(game_state->modal, screenWidth, screenHeight);
-          printf("ESC pressed - modal activated: %d\n",
-                 game_state->modal->active);
-          // Render immediately with modal visible
-          render_game(&render_ctx, mapArr, input_state.focused_cell,
-                      current_faction, &input_state,
-                      &input_state.end_turn_button, input_state.action_buttons,
-                      ACTION_BUTTON_COUNT, game_state->modal);
-          continue;
-        }
-
-        input_update(&input_state, grid_config, mapArr);
-
-        // If it's an AI faction's turn, process AI actions automatically
-        if (!game_is_player_turn(game_state) && !game_is_over(game_state)) {
-          game_process_ai_turn(game_state, mapArr, grid_config);
-          continue; // skip player input/render frame; AI processing and turn
-                    // advancement handled
-        }
-        // Let input subsystem process action clicks (executes skills when
-        // applicable)
-        input_handle_action_click(&input_state, grid_config, mapArr);
-        // Use the End Turn button's pressed state (updated in input_update)
-        button_is_pressed = input_state.end_turn_button.pressed;
-
-        if (input_state.left_click) {
-          // Handle left-click-based control (movement, actions, focus)
-          input_handle_left_click(&input_state, grid_config, mapArr);
-        }
-
-        if (input_state.end_turn_requested) {
-          game_end_current_turn(game_state);
-        }
-
-        // renders only after first click to avoid null focused_cell
-        render_game(&render_ctx, mapArr, input_state.focused_cell,
-                    current_faction, &input_state, &input_state.end_turn_button,
-                    input_state.action_buttons, ACTION_BUTTON_COUNT,
-                    game_state->modal);
+        mode = game_loop_playing(grid_config, mapArr, game_state, &render_ctx,
+                                 &input_state, &app_res, screenWidth,
+                                 screenHeight);
       }
 
       // Cleanup game resources after exiting game loop
@@ -313,6 +222,103 @@ int main(void) {
   // Final cleanup and window close
   CloseWindow();
   return 0;
+}
+
+/**
+ * @brief Run one frame of the PLAYING game loop.
+ *
+ * Handles modal input, ESC menu, player input, AI turns, and rendering.
+ * Returns the current or updated game mode (may switch to MENU or QUIT).
+ */
+static GameMode game_loop_playing(GridConfig *grid_config, Point *mapArr,
+                                  GameState *game_state,
+                                  RenderContext *render_ctx,
+                                  InputState *input_state,
+                                  AppResources *app_res, int screenWidth,
+                                  int screenHeight) {
+  GameMode mode = GAME_MODE_PLAYING;
+  Faction *current_faction = game_get_current_faction(game_state);
+
+  if (game_is_over(game_state)) {
+    render_game(render_ctx, mapArr, input_state->focused_cell, current_faction,
+                input_state, &input_state->end_turn_button,
+                input_state->action_buttons, ACTION_BUTTON_COUNT,
+                game_state->modal);
+    return mode;
+  }
+
+  // Handle modal input if modal is active
+  if (game_state->modal && game_state->modal->active) {
+    ModalResult result = modal_update(game_state->modal);
+
+    switch (result) {
+    case MODAL_RESULT_EXIT_TO_MENU:
+      cleanup_game_resources(app_res);
+      mode = GAME_MODE_MENU;
+      break;
+    case MODAL_RESULT_EXIT_TO_DESKTOP:
+      mode = GAME_MODE_QUIT;
+      break;
+    case MODAL_RESULT_CANCEL:
+      break;
+    case MODAL_RESULT_NONE:
+      break;
+    default:
+      if (result >= MODAL_RESULT_CLASS_CHOICE_0 &&
+          result <= MODAL_RESULT_CLASS_CHOICE_MAX) {
+        int choice = result - MODAL_RESULT_CLASS_CHOICE_0;
+        printf("Class choice %d selected\n", choice);
+      }
+      break;
+    }
+
+    if (mode != GAME_MODE_PLAYING) {
+      return mode;
+    }
+
+    render_game(render_ctx, mapArr, input_state->focused_cell, current_faction,
+                input_state, &input_state->end_turn_button,
+                input_state->action_buttons, ACTION_BUTTON_COUNT,
+                game_state->modal);
+    return mode;
+  }
+
+  // Check for ESC key to open pause menu
+  if (IsKeyPressed(KEY_ESCAPE) &&
+      (!game_state->modal || !game_state->modal->active)) {
+    modal_setup_esc_menu(game_state->modal, screenWidth, screenHeight);
+    printf("ESC pressed - modal activated: %d\n", game_state->modal->active);
+    render_game(render_ctx, mapArr, input_state->focused_cell, current_faction,
+                input_state, &input_state->end_turn_button,
+                input_state->action_buttons, ACTION_BUTTON_COUNT,
+                game_state->modal);
+    return mode;
+  }
+
+  input_update(input_state, grid_config, mapArr);
+
+  // AI turn processing
+  if (!game_is_player_turn(game_state) && !game_is_over(game_state)) {
+    game_process_ai_turn(game_state, mapArr, grid_config);
+    return mode;
+  }
+
+  input_handle_action_click(input_state, grid_config, mapArr);
+
+  if (input_state->left_click) {
+    input_handle_left_click(input_state, grid_config, mapArr);
+  }
+
+  if (input_state->end_turn_requested) {
+    game_end_current_turn(game_state);
+  }
+
+  render_game(render_ctx, mapArr, input_state->focused_cell, current_faction,
+              input_state, &input_state->end_turn_button,
+              input_state->action_buttons, ACTION_BUTTON_COUNT,
+              game_state->modal);
+
+  return mode;
 }
 
 /**
