@@ -32,6 +32,14 @@ UnitSprites unit_sprites_load(int cell_size) {
       load_unit_texture("units/darkus_militia.png", cell_size);
   sprites.ventus_militia =
       load_unit_texture("units/ventus_militia.png", cell_size);
+  sprites.darkus_spearman =
+      load_unit_texture("units/darkus_spearman.png", cell_size);
+  sprites.ventus_spearman =
+      load_unit_texture("units/ventus_spearman.png", cell_size);
+  sprites.darkus_swordsman =
+      load_unit_texture("units/darkus_swordsman.png", cell_size);
+  sprites.ventus_swordsman =
+      load_unit_texture("units/ventus_swordsman.png", cell_size);
   sprites.warg = load_unit_texture("units/warg.png", cell_size);
   return sprites;
 }
@@ -44,6 +52,10 @@ UnitSprites unit_sprites_load(int cell_size) {
 void unit_sprites_unload(UnitSprites *sprites) {
   UnloadTexture(sprites->darkus_militia);
   UnloadTexture(sprites->ventus_militia);
+  UnloadTexture(sprites->darkus_spearman);
+  UnloadTexture(sprites->ventus_spearman);
+  UnloadTexture(sprites->darkus_swordsman);
+  UnloadTexture(sprites->ventus_swordsman);
   UnloadTexture(sprites->warg);
 }
 

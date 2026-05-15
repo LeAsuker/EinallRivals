@@ -70,7 +70,13 @@ CombatResult combat_execute(Character *attacker, Character *defender) {
   combat_grant_experience(attacker, defender, false);
 
   if (attacker->level_up_pending) {
-    character_level_up(attacker);
+    bool has_promotions = attacker->unit_class != NULL &&
+                          attacker->unit_class->class_tree.promotion_count > 0;
+    if (has_promotions && attacker->owner != NULL && attacker->owner->playable) {
+      // Defer promotion choice to the game loop modal
+    } else {
+      character_level_up(attacker);
+    }
   }
 
   // Attacker has used their action

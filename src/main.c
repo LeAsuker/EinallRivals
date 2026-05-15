@@ -267,7 +267,28 @@ static GameMode game_loop_playing(GridConfig *grid_config, Point *mapArr,
       if (result >= MODAL_RESULT_CLASS_CHOICE_0 &&
           result <= MODAL_RESULT_CLASS_CHOICE_MAX) {
         int choice = result - MODAL_RESULT_CLASS_CHOICE_0;
-        printf("Class choice %d selected\n", choice);
+        Character *character = (Character *)game_state->modal->data;
+        if (character != NULL && character->unit_class != NULL) {
+          const UnitClass *new_class =
+              character->unit_class->class_tree.promotions[choice];
+          if (new_class != NULL) {
+            Texture2D new_sprite = {0};
+            if (strcmp(new_class->name, "Spearman") == 0) {
+              if (strcmp(character->owner->name, "Darkus") == 0)
+                new_sprite = app_res->unit_sprites->darkus_spearman;
+              else if (strcmp(character->owner->name, "Ventus") == 0)
+                new_sprite = app_res->unit_sprites->ventus_spearman;
+            } else if (strcmp(new_class->name, "Swordsman") == 0) {
+              if (strcmp(character->owner->name, "Darkus") == 0)
+                new_sprite = app_res->unit_sprites->darkus_swordsman;
+              else if (strcmp(character->owner->name, "Ventus") == 0)
+                new_sprite = app_res->unit_sprites->ventus_swordsman;
+            }
+            character_promote(character, new_class, new_sprite,
+                              &app_res->action_icons);
+            character_level_up(character);
+          }
+        }
       }
       break;
     }
@@ -293,6 +314,35 @@ static GameMode game_loop_playing(GridConfig *grid_config, Point *mapArr,
                 input_state->action_buttons, ACTION_BUTTON_COUNT,
                 game_state->modal);
     return mode;
+  }
+
+  // If a player-controlled unit has a pending level-up with promotion choices,
+  // open the promotion modal automatically.
+  if (game_is_player_turn(game_state)) {
+    Character *pending_promo = NULL;
+    Faction *cf = game_get_current_faction(game_state);
+    if (cf != NULL) {
+      for (int i = 0; i < cf->character_count; i++) {
+        Character *c = &cf->characters[i];
+        if (c->level_up_pending && c->unit_class != NULL &&
+            c->unit_class->class_tree.promotion_count > 0) {
+          pending_promo = c;
+          break;
+        }
+      }
+    }
+    if (pending_promo != NULL && game_state->modal != NULL &&
+        !game_state->modal->active) {
+      const char *options[4];
+      int option_count = pending_promo->unit_class->class_tree.promotion_count;
+      for (int i = 0; i < option_count; i++) {
+        const UnitClass *opt =
+            pending_promo->unit_class->class_tree.promotions[i];
+        options[i] = (opt != NULL) ? opt->name : "?";
+      }
+      modal_setup_level_up(game_state->modal, screenWidth, screenHeight,
+                           pending_promo, options, option_count);
+    }
   }
 
   input_update(input_state, grid_config, mapArr);

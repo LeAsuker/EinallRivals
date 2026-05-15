@@ -9,6 +9,10 @@
 typedef struct {
   Texture2D darkus_militia;
   Texture2D ventus_militia;
+  Texture2D darkus_spearman;
+  Texture2D ventus_spearman;
+  Texture2D darkus_swordsman;
+  Texture2D ventus_swordsman;
   Texture2D warg;
 } UnitSprites;
 

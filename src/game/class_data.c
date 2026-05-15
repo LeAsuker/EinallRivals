@@ -4,18 +4,6 @@
 // Default Unit Class Definitions
 // ============================================================================
 
-const UnitClass CLASS_MILITIA = {
-    .name = "Militia",
-    .max_health = 20,
-    .movement = 4,
-    .phys_attack = 8,
-    .phys_defense = 3,
-    .magic_attack = 0,
-    .magic_defense = 3,
-    .luck = 1,
-    .class_tree = {.promotions = {NULL, NULL, NULL, NULL},
-                   .promotion_count = 0}};
-
 const UnitClass CLASS_WARG = {.name = "Warg",
                         .max_health = 16,
                         .movement = 3,
@@ -50,6 +38,18 @@ const UnitClass CLASS_SWORDSMAN = {
     .luck = 3,
     .class_tree = {.promotions = {NULL, NULL, NULL, NULL},
                    .promotion_count = 0}};
+
+const UnitClass CLASS_MILITIA = {
+    .name = "Militia",
+    .max_health = 20,
+    .movement = 4,
+    .phys_attack = 8,
+    .phys_defense = 3,
+    .magic_attack = 0,
+    .magic_defense = 3,
+    .luck = 1,
+    .class_tree = {.promotions = {&CLASS_SPEARMAN, &CLASS_SWORDSMAN, NULL, NULL},
+                   .promotion_count = 2}};
 
 // ============================================================================
 // Class Getters

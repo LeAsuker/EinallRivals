@@ -113,7 +113,7 @@ typedef struct Veterancy {
  * @brief Promotion tree describing possible class upgrades.
  */
 typedef struct ClassTree {
-  struct UnitClass *promotions[4]; /**< Promotion options (up to 4) */
+  const struct UnitClass *promotions[4]; /**< Promotion options (up to 4) */
   int promotion_count;             /**< Number of available promotions */
 } ClassTree;
 

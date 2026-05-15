@@ -217,7 +217,13 @@ void execute_loot_at_cells(GridConfig *grid_config, Point *map,
   // Looter used their action
   character_gain_experience(looter, 100); // Example: gain some XP for looting
   if (looter->level_up_pending) {
-    character_level_up(looter);
+    bool has_promotions = looter->unit_class != NULL &&
+                          looter->unit_class->class_tree.promotion_count > 0;
+    if (has_promotions && looter->owner != NULL && looter->owner->playable) {
+      // Defer promotion choice to the game loop modal
+    } else {
+      character_level_up(looter);
+    }
   }
   looter->can_act = false;
   lootable->structure->lootable = false; // Mark structure as looted

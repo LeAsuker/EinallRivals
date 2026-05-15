@@ -356,6 +356,23 @@ void character_level_up(Character *character) {
 // ============================================================================
 
 /**
+ * @brief Promote a character to a new class, updating its sprite and name.
+ * @param character The character to promote.
+ * @param new_class The new UnitClass template.
+ * @param new_sprite Sprite texture for the promoted class.
+ * @param icons Loaded action icons (may be NULL).
+ */
+void character_promote(Character *character, const UnitClass *new_class,
+                       Texture2D new_sprite, const ActionIcons *icons) {
+  NULL_CHECK_VOID(character);
+  NULL_CHECK_VOID(new_class);
+  character->unit_class = new_class;
+  character->sprite = new_sprite;
+  strcpy(character->name, new_class->name);
+  (void)icons; // Reserved for future skill reassignment on promotion
+}
+
+/**
  * @brief Check whether a character belongs to the provided faction.
  * @param character Character to test.
  * @param faction Faction to compare against.

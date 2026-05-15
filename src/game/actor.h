@@ -242,4 +242,14 @@ Character *character_create_from_class(Faction *owner, Texture2D sprite,
                                        const UnitClass *unit_class,
                                        const ActionIcons *icons);
 
+/**
+ * @brief Promote a character to a new class, updating its sprite and name.
+ * @param character The character to promote.
+ * @param new_class The new UnitClass template.
+ * @param new_sprite Sprite texture for the promoted class.
+ * @param icons Loaded action icons (may be NULL).
+ */
+void character_promote(Character *character, const UnitClass *new_class,
+                       Texture2D new_sprite, const ActionIcons *icons);
+
 #endif
