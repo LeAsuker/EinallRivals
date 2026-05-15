@@ -16,6 +16,8 @@ typedef struct ActionIcons {
   Texture2D bite;         /**< Icon for the Bite skill (placeholder) */
 } ActionIcons;
 
+#define SKILL_ID_LOOT 103
+
 /**
  * @brief Populate @p dest_skill with the predefined Spear Strike data.
  *

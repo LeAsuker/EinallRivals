@@ -80,8 +80,7 @@ const UnitClass *class_get_warg(void) { return &CLASS_WARG; }
  * @param genetics Pointer to Genetics to initialize (NULL-safe).
  */
 void genetics_init(Genetics *genetics) {
-  if (genetics == NULL)
-    return;
+  NULL_CHECK_VOID(genetics);
   genetics->max_health = rand() % 6; // 0-5
   genetics->movement = rand() % 6;
   genetics->phys_attack = rand() % 6;
@@ -96,8 +95,7 @@ void genetics_init(Genetics *genetics) {
  * @param veterancy Pointer to Veterancy to initialize (NULL-safe).
  */
 void veterancy_init(Veterancy *veterancy) {
-  if (veterancy == NULL)
-    return;
+  NULL_CHECK_VOID(veterancy);
   veterancy->max_health = 0;
   veterancy->movement = 0;
   veterancy->phys_attack = 0;
@@ -119,8 +117,7 @@ void veterancy_init(Veterancy *veterancy) {
  */
 Stats character_get_stats(Character *character) {
   Stats stats = {0};
-  if (character == NULL)
-    return stats;
+  NULL_CHECK_RET(character, stats);
 
   const UnitClass *cls = character->unit_class;
   Genetics *gen = &character->genetics;
@@ -284,13 +281,12 @@ void character_init_from_class(Character *character, Faction *owner,
  * @param character Character to free.
  */
 void character_free(Character *character) {
-  if (character != NULL) {
-    // Free any per-skill allocations
-    for (int i = 0; i < character->skill_count; i++) {
-      skill_free(&character->skills[i]);
-    }
-    free(character);
+  NULL_CHECK_VOID(character);
+  // Free any per-skill allocations
+  for (int i = 0; i < character->skill_count; i++) {
+    skill_free(&character->skills[i]);
   }
+  free(character);
 }
 
 // ============================================================================

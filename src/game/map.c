@@ -148,7 +148,7 @@ Point *map_get_random_spawn_cell(Point *map, GridConfig *grid_config) {
  * @param y Y coordinate.
  * @return true if coordinates are valid; false otherwise.
  */
-bool map_is_valid_coords(GridConfig *grid_config, int x, int y) {
+bool map_is_valid_coords(const GridConfig *grid_config, int x, int y) {
   return (x >= 0 && x < grid_config->max_grid_cells_x && y >= 0 &&
           y < grid_config->max_grid_cells_y);
 }
@@ -305,22 +305,24 @@ Point *map_get_random_corner_spawn_cell(Point *mapArr, GridConfig *grid_config,
  */
 bool map_all_8_neighs_terrain(Point *mapArr, GridConfig *grid, Point *cell,
                               Terrain terrain) {
+  (void)terrain; // Parameter kept for API compatibility; cell's own terrain is used
   int cell_x = cell->x;
   int cell_y = cell->y;
   Terrain cell_terrain = cell->terrain;
 
-  // wtf was this why couldnt i declare it with a star
+  if (cell->terrain.deep_version == NULL || cell->terrain.deep_version->id == -1) {
+    return false;
+  }
+
   int offset[3] = {-1, 0, 1};
   for (int l = 0; l < 3; l++) {
     for (int k = 0; k < 3; k++) {
+      if (k == 1 && l == 1)
+        continue; // Skip the center cell itself
       Point *neigh =
           map_get_cell(mapArr, grid, cell_x + offset[k], cell_y + offset[l]);
       if (neigh != NULL && neigh->terrain.id != cell_terrain.id &&
           neigh->terrain.id != cell->terrain.deep_version->id) {
-        return false;
-      }
-      // deep version is none
-      if (cell->terrain.deep_version->id == -1) {
         return false;
       }
     }

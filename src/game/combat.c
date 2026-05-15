@@ -284,7 +284,7 @@ bool combat_is_in_range(GridConfig *grid_config, Point *cell1, Point *cell2,
 /**
  * @brief Compute Manhattan distance between two cells.
  */
-int combat_get_distance(Point *cell1, Point *cell2) {
+int combat_get_distance(const Point *cell1, const Point *cell2) {
   // Manhattan distance
   int dx = abs(cell1->x - cell2->x);
   int dy = abs(cell1->y - cell2->y);
@@ -367,19 +367,11 @@ static int calculate_crit_chance(Character *attacker, Character *defender) {
 }
 
 /**
- * @brief Roll for a hit given a percentage chance (0-99).
+ * @brief Roll a chance check given a percentage (0-99).
  */
-static bool roll_hit(int hit_chance) {
+static bool roll_chance(int chance) {
   int roll = rand() % 100;
-  return roll < hit_chance;
-}
-
-/**
- * @brief Roll for a critical hit given percentage chance (0-99).
- */
-static bool roll_crit(int crit_chance) {
-  int roll = rand() % 100;
-  return roll < crit_chance;
+  return roll < chance;
 }
 
 /**

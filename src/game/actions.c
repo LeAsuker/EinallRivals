@@ -16,8 +16,7 @@
  * @param skill Skill instance to cleanup (may be NULL).
  */
 void skill_free(Skill *skill) {
-  if (skill == NULL)
-    return;
+  NULL_CHECK_VOID(skill);
   if (skill->area_of_effect) {
     free(skill->area_of_effect);
     skill->area_of_effect = NULL;
@@ -44,8 +43,7 @@ static const Skill spear_strike = {.name = "Spear Strike",
  * @param icons      Loaded action icons (may be NULL).
  */
 void action_copy_spear_strike(Skill *dest_skill, const ActionIcons *icons) {
-  if (dest_skill == NULL)
-    return;
+  NULL_CHECK_VOID(dest_skill);
   memcpy(dest_skill, &spear_strike, sizeof(Skill));
   if (icons != NULL) {
     dest_skill->icon = icons->spear_strike;
@@ -79,8 +77,7 @@ static const Skill Loot = {.name = "Loot",
  * @param dest_skill Destination Skill struct pointer (must be non-NULL).
  */
 void action_copy_loot(Skill *dest_skill) {
-  if (dest_skill == NULL)
-    return;
+  NULL_CHECK_VOID(dest_skill);
   memcpy(dest_skill, &Loot, sizeof(Skill));
   return;
 }
@@ -94,8 +91,7 @@ void action_copy_loot(Skill *dest_skill) {
  * @param icons      Loaded action icons (may be NULL).
  */
 void action_copy_bite(Skill *dest_skill, const ActionIcons *icons) {
-  if (dest_skill == NULL)
-    return;
+  NULL_CHECK_VOID(dest_skill);
   memcpy(dest_skill, &bite, sizeof(Skill));
   if (icons != NULL) {
     dest_skill->icon = icons->bite;
@@ -128,8 +124,7 @@ ActionIcons action_icons_load(void) {
  * @param icons ActionIcons to release (NULL-safe).
  */
 void action_icons_unload(ActionIcons *icons) {
-  if (icons == NULL)
-    return;
+  NULL_CHECK_VOID(icons);
   if (icons->spear_strike.id)
     UnloadTexture(icons->spear_strike);
   if (icons->bite.id)
@@ -147,10 +142,8 @@ void action_icons_unload(ActionIcons *icons) {
  * @param owner Character whose stats determine the damage.
  */
 void action_set_damage(Skill *skill, Character *owner) {
-  if (skill == NULL)
-    return;
-  if (owner == NULL)
-    return;
+  NULL_CHECK_VOID(skill);
+  NULL_CHECK_VOID(owner);
 
   Stats stats = character_get_stats(owner);
   if (skill->is_magic) {

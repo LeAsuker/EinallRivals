@@ -63,7 +63,7 @@ int combat_calculate_magical_damage(Character *attacker, Character *defender);
 // Combat queries
 bool combat_is_in_range(GridConfig *grid_config, Point *cell1, Point *cell2,
                         int range);
-int combat_get_distance(Point *cell1, Point *cell2);
+int combat_get_distance(const Point *cell1, const Point *cell2);
 bool combat_can_counter_attack(Character *attacker, Character *defender,
                                int distance);
 

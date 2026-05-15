@@ -227,7 +227,7 @@ void input_handle_left_click(InputState *state, GridConfig *grid_config,
       printf("Attempting to use skill %s from (%d,%d) to (%d,%d)\n", s->name,
              focused->x, focused->y, selected->x, selected->y);
       // check target exists and is enemy and within skill range
-      if (s->id == 103) { // Loot skill special case: must target empty cell
+      if (s->id == SKILL_ID_LOOT) { // Loot skill special case: must target empty cell
                           // with structure
         printf("Using loot skill logic\n");
         if (selected->occupant == NULL && selected->structure != NULL) {
@@ -351,7 +351,7 @@ bool input_is_mouse_over_end_turn_button(RenderContext *ctx) {
  * @param grid_config Grid configuration describing the grid rectangle.
  * @return true if cursor is within grid bounds.
  */
-bool input_is_mouse_over_map(GridConfig *grid_config) {
+bool input_is_mouse_over_map(const GridConfig *grid_config) {
   NULL_CHECK_RET(grid_config, false);
   int mouse_x = GetMouseX();
   int mouse_y = GetMouseY();

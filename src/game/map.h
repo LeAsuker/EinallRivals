@@ -59,7 +59,7 @@ Point *map_get_random_spawn_cell(Point *map, GridConfig *grid_config);
 /**
  * @brief Check whether the coordinates (x,y) are inside the map bounds.
  */
-bool map_is_valid_coords(GridConfig *grid_config, int x, int y);
+bool map_is_valid_coords(const GridConfig *grid_config, int x, int y);
 
 /**
  * @brief Get a random cell inside a corner area selection.

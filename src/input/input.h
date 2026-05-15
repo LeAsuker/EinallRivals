@@ -127,6 +127,6 @@ bool input_is_mouse_over_end_turn_button(RenderContext *ctx);
  * @param grid_config Grid configuration used to map screen-to-cell coordinates.
  * @return true if the cursor is within grid bounds.
  */
-bool input_is_mouse_over_map(GridConfig *grid_config);
+bool input_is_mouse_over_map(const GridConfig *grid_config);
 
 #endif
