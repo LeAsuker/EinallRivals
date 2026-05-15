@@ -184,6 +184,13 @@ All resources allocated when entering PLAYING mode are tracked in the `AppResour
 - **NULL safety**: Use `NULL_CHECK_VOID(ptr)` and `NULL_CHECK_RET(ptr, retval)` macros instead of raw `if (!ptr)` checks. These log to stderr in debug builds.
 - **Explicit comparisons**: Prefer `if (ptr == NULL)` over `if (!ptr)`. Prefer `if (count > 0)` over `if (count)`.
 
+### Code Quality & Size Limits
+- **File size cap**: No source file should exceed 200 lines. When a file grows beyond this limit, split it by extracting cohesive groups of functions into new modules.
+- **Function size cap**: No function body should exceed 100 lines. Extract helper functions (`static` where appropriate) to keep each function readable and testable.
+- **Single responsibility**: Each function should do one thing and do it orthogonally. If a function mixes logic from different domains (e.g., rendering + game rules), split it.
+- **Global mutable state**: Avoid global variables and global mutable state. Pass state explicitly through parameters or keep it inside well-defined structs.
+- **Const correctness**: Use `const` wherever a pointer or value is not intended to be mutated (function parameters, read-only data, string literals, lookup tables).
+
 ### Module Boundaries
 - `render/` may read from `types.h` and `input.h` but must not call `game_logic`, `combat`, or `actions` functions except where rendering requires derived display data.
 - `input/` may call `game_logic` and `actions` to execute user commands, but should not embed rule logic (e.g., damage formulas).
