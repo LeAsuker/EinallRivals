@@ -2,6 +2,7 @@
 #include "core/utils.h"
 #include "game/actions.h"
 #include "game/actor.h"
+#include "game/skill_data.h"
 #include "game/map.h"
 #include "raylib.h"
 #include "render/rendering.h"

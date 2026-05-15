@@ -187,6 +187,7 @@ All resources allocated when entering PLAYING mode are tracked in the `AppResour
 ### Code Quality & Size Limits
 - **File size cap**: No source file should exceed 200 lines. When a file grows beyond this limit, split it by extracting cohesive groups of functions into new modules.
 - **Function size cap**: No function body should exceed 100 lines. Extract helper functions (`static` where appropriate) to keep each function readable and testable.
+- **Dedicated purpose**: Every source and header file must serve exactly one purpose. Do not create god files that accumulate unrelated types, logic, and data. When a file's responsibility drifts, split it into focused modules (e.g., data declarations vs. execution logic).
 - **Single responsibility**: Each function should do one thing and do it orthogonally. If a function mixes logic from different domains (e.g., rendering + game rules), split it.
 - **Global mutable state**: Avoid global variables and global mutable state. Pass state explicitly through parameters or keep it inside well-defined structs.
 - **Const correctness**: Use `const` wherever a pointer or value is not intended to be mutated (function parameters, read-only data, string literals, lookup tables).
@@ -205,14 +206,14 @@ All resources allocated when entering PLAYING mode are tracked in the `AppResour
 ## Common Tasks for Agents
 
 ### Adding a new unit class
-1. Add stats to a new `UnitClass` constant in `src/game/actor.c`.
-2. Add `class_get_*()` accessor in `src/game/actor.h`.
-3. Update `character_init_from_class` if the class needs special initialization.
+1. Add stats to a new `UnitClass` constant in `src/game/class_data.c`.
+2. Add `class_get_*()` accessor in `src/game/class_data.h`.
+3. Update `character_init_from_class` in `src/game/actor.c` if the class needs special initialization.
 4. Add sprite loading in `src/render/unit_sprites.c/h`.
 5. Add faction initialization in `src/game/faction_init.c` if the class is faction-locked.
 
 ### Adding a new skill
-1. Add skill copy function in `src/game/actions.c/h` (model after `action_copy_spear_strike`).
+1. Add skill copy function in `src/game/skill_data.c/h` (model after `action_copy_spear_strike`).
 2. Add icon texture to `ActionIcons` in `src/game/actions.h` and load/unload it.
 3. Hook the skill into character initialization in `src/game/actor.c`.
 4. If the skill needs new targeting logic, update `input_handle_action_click` in `src/input/input.c`.

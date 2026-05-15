@@ -11,6 +11,7 @@
  * See AGENTS.md and src/CODEMAP.md for architecture context.
  */
 
+#include "game/class_data.h"
 #include "raylib.h"
 #include "types.h"
 #include <stdbool.h>
@@ -176,28 +177,6 @@ int character_get_health_percentage(Character *character);
  * @return Maximum skill range (0 if no skills or character NULL).
  */
 int character_get_max_skill_range(Character *character);
-
-// ============================================================================
-// Unit class system
-// ============================================================================
-
-// Default unit class templates (statically allocated, shared across characters)
-extern const UnitClass CLASS_MILITIA;
-extern const UnitClass CLASS_WARG;
-extern const UnitClass CLASS_SPEARMAN;
-extern const UnitClass CLASS_SWORDSMAN;
-
-/**
- * @brief Get a pointer to the global militia UnitClass template.
- * @return Pointer to the militia UnitClass.
- */
-const UnitClass *class_get_militia(void);
-
-/**
- * @brief Get a pointer to the global warg UnitClass template.
- * @return Pointer to the warg UnitClass.
- */
-const UnitClass *class_get_warg(void);
 
 // ============================================================================
 // Character arrays and groups
