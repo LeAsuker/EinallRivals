@@ -17,35 +17,30 @@ int faction_init_default(Faction *factions, int max_factions) {
     return 0;
   }
 
-  // Darkus faction (player)
-  factions[DARKUS].has_turn = true;
-  factions[DARKUS].playable = true;
-  factions[DARKUS].prim_color = PURPLE;
-  factions[DARKUS].sec_color = DARKGRAY;
-  strcpy(factions[DARKUS].name, "Darkus");
-  factions[DARKUS].characters = NULL;
-  factions[DARKUS].character_count = 0;
+  static const struct {
+    const char *name;
+    Color prim_color;
+    Color sec_color;
+    bool playable;
+    bool has_turn;
+  } FACTION_DEFS[] = {
+      {"Darkus", PURPLE, DARKGRAY, true, true},
+      {"Ventus", GREEN, WHITE, true, false},
+      {"Gaia", BROWN, BLACK, false, false},
+  };
+  int count = sizeof(FACTION_DEFS) / sizeof(FACTION_DEFS[0]);
 
-  // Ventus faction (Player)
-  factions[VENTUS].has_turn = false;
-  factions[VENTUS].playable = true;
-  factions[VENTUS].prim_color = GREEN;
-  factions[VENTUS].sec_color = WHITE;
-  strcpy(factions[VENTUS].name, "Ventus");
-  factions[VENTUS].characters = NULL;
-  factions[VENTUS].character_count = 0;
+  for (int i = 0; i < count; i++) {
+    factions[i].has_turn = FACTION_DEFS[i].has_turn;
+    factions[i].playable = FACTION_DEFS[i].playable;
+    factions[i].prim_color = FACTION_DEFS[i].prim_color;
+    factions[i].sec_color = FACTION_DEFS[i].sec_color;
+    strcpy(factions[i].name, FACTION_DEFS[i].name);
+    factions[i].characters = NULL;
+    factions[i].character_count = 0;
+  }
 
-  // Gaia faction (AI)
-  factions[GAIA].has_turn = false;
-  // Gaia are neutrals and should not take turns
-  factions[GAIA].playable = false;
-  factions[GAIA].prim_color = BROWN;
-  factions[GAIA].sec_color = BLACK;
-  strcpy(factions[GAIA].name, "Gaia");
-  factions[GAIA].characters = NULL;
-  factions[GAIA].character_count = 0;
-
-  return 3;
+  return count;
 }
 
 /**

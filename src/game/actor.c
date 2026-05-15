@@ -143,6 +143,42 @@ Stats character_get_stats(Character *character) {
 }
 
 // ============================================================================
+// Character base initialization (shared across all class-specific inits)
+// ============================================================================
+
+/**
+ * @brief Initialize the common fields of a Character from a UnitClass template.
+ *
+ * Sets sprite, owner, action flags, level, genetics, veterancy, health, name,
+ * and clears the skill list. Does NOT add any skills; callers must do that.
+ *
+ * @param character Character struct to initialize.
+ * @param owner Owning faction.
+ * @param sprite Sprite texture.
+ * @param unit_class UnitClass template to use.
+ */
+static void character_init_base(Character *character, Faction *owner,
+                                Texture2D sprite, const UnitClass *unit_class) {
+  NULL_CHECK_VOID(character);
+  NULL_CHECK_VOID(owner);
+  NULL_CHECK_VOID(unit_class);
+  character->sprite = sprite;
+  character->owner = owner;
+  character->can_move = true;
+  character->can_act = true;
+  character->level = 1;
+  character->next_level_xp = 100;
+  character->level_up_pending = false;
+  character->unit_class = unit_class;
+  genetics_init(&character->genetics);
+  veterancy_init(&character->veterancy);
+  Stats stats = character_get_stats(character);
+  character->curr_health = stats.max_health;
+  strcpy(character->name, unit_class->name);
+  character->skill_count = 0;
+}
+
+// ============================================================================
 // Character Creation and Initialization
 // ============================================================================
 
@@ -193,43 +229,13 @@ Character *character_create_from_class(Faction *owner, Texture2D sprite,
  */
 void militia_init(Character *character, Faction *owner, Texture2D sprite,
                   const ActionIcons *icons) {
-  NULL_CHECK_VOID(character);
-  NULL_CHECK_VOID(owner);
-  character->sprite = sprite;
-  character->owner = owner;
-
-  // Initialize action flags
-  character->can_move = true;
-  character->can_act = true;
-
-  // Initialize level and experience
-  character->level = 1;
-  character->next_level_xp = 100;
-  character->level_up_pending = false;
-
-  // Set class reference
-  character->unit_class = &CLASS_MILITIA;
-
-  // Initialize genetics (random) and veterancy (zero)
-  genetics_init(&character->genetics);
-  veterancy_init(&character->veterancy);
-
-  // Set current health to max
-  Stats stats = character_get_stats(character);
-  character->curr_health = stats.max_health;
-
-  // Copy class name as character name
-  strcpy(character->name, CLASS_MILITIA.name);
-
-  // Initialize skills
-  character->skill_count = 0;
-  {
-    Skill tmp;
-    action_copy_loot(&tmp);
-    action_add_skill_to_character(character, &tmp);
-    action_copy_spear_strike(&tmp, icons);
-    action_add_skill_to_character(character, &tmp);
-  }
+  character_init_base(character, owner, sprite, &CLASS_MILITIA);
+  // Add militia-specific skills
+  Skill tmp;
+  action_copy_loot(&tmp);
+  action_add_skill_to_character(character, &tmp);
+  action_copy_spear_strike(&tmp, icons);
+  action_add_skill_to_character(character, &tmp);
 }
 
 /**
@@ -241,41 +247,11 @@ void militia_init(Character *character, Faction *owner, Texture2D sprite,
  */
 void warg_init(Character *character, Faction *owner, Texture2D sprite,
                const ActionIcons *icons) {
-  NULL_CHECK_VOID(character);
-  NULL_CHECK_VOID(owner);
-  character->sprite = sprite;
-  character->owner = owner;
-
-  // Initialize action flags
-  character->can_move = true;
-  character->can_act = true;
-
-  // Initialize level and experience
-  character->level = 1;
-  character->next_level_xp = 100;
-  character->level_up_pending = false;
-
-  // Set class reference
-  character->unit_class = &CLASS_WARG;
-
-  // Initialize genetics (random) and veterancy (zero)
-  genetics_init(&character->genetics);
-  veterancy_init(&character->veterancy);
-
-  // Set current health to max
-  Stats stats = character_get_stats(character);
-  character->curr_health = stats.max_health;
-
-  // Copy class name as character name
-  strcpy(character->name, CLASS_WARG.name);
-
-  // Initialize skills
-  character->skill_count = 0;
-  {
-    Skill tmp;
-    action_copy_bite(&tmp, icons);
-    action_add_skill_to_character(character, &tmp);
-  }
+  character_init_base(character, owner, sprite, &CLASS_WARG);
+  // Add warg-specific skills
+  Skill tmp;
+  action_copy_bite(&tmp, icons);
+  action_add_skill_to_character(character, &tmp);
 }
 
 /**
@@ -283,7 +259,7 @@ void warg_init(Character *character, Faction *owner, Texture2D sprite,
  *        If the UnitClass name matches known templates, use their init helpers.
  * @param character Character struct to initialize (NULL-safe via
  * NULL_CHECK_VOID).
- * @param owner Owning faction.
+ * @param owner Owning faction for the character.
  * @param sprite Sprite texture to assign.
  * @param unit_class UnitClass template to initialize from.
  */
@@ -298,34 +274,8 @@ void character_init_from_class(Character *character, Faction *owner,
   } else if (strcmp(unit_class->name, "Warg") == 0) {
     warg_init(character, owner, sprite, icons); // Add default warg skills
   } else {
-    character->sprite = sprite;
-    character->owner = owner;
-
-    // Initialize action flags
-    character->can_move = true;
-    character->can_act = true;
-
-    // Initialize level and experience
-    character->level = 1;
-    character->next_level_xp = 100;
-    character->level_up_pending = false;
-
-    // Set class reference
-    character->unit_class = unit_class;
-
-    // Initialize genetics (random) and veterancy (zero)
-    genetics_init(&character->genetics);
-    veterancy_init(&character->veterancy);
-
-    // Set current health to max
-    Stats stats = character_get_stats(character);
-    character->curr_health = stats.max_health;
-
-    // Copy class name as character name
-    strcpy(character->name, unit_class->name);
-
-    // Initialize skills (empty for generic classes)
-    character->skill_count = 0;
+    character_init_base(character, owner, sprite, unit_class);
+    // Generic classes start with no skills
   }
 }
 
