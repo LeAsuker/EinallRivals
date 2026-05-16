@@ -1,3 +1,4 @@
+#include "game/actor.h"
 #include "game/faction_init.h"
 #include "game/faction_data.h"
 #include <stdlib.h>
@@ -46,7 +47,7 @@ void faction_free_characters(Faction *faction) {
   if (faction == NULL || faction->characters == NULL)
     return;
 
-  free(faction->characters);
+  character_array_free(faction->characters, faction->character_count);
   faction->characters = NULL;
   faction->character_count = 0;
 }

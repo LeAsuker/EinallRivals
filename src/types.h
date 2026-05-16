@@ -20,6 +20,10 @@ typedef struct Coord {
   int y; /**< Y offset */
 } Coord;
 
+// Forward declaration for Item (defined in game/item.h)
+struct Item;
+typedef struct Item Item;
+
 // ============================================================================
 // Archetype and Equipment System
 // ============================================================================
@@ -54,21 +58,17 @@ typedef enum {
 
 /**
  * @brief A single equipment slot on a character.
- *
- * The item pointer is reserved for a future item system.
  */
 typedef struct {
   EquipSlotType type;
-  void *item; /**< Reserved for future item implementation */
+  Item *item; /**< Equipped item (NULL if empty) */
 } EquipSlot;
 
 /**
  * @brief Inventory holding items a character carries but may not be able to equip.
- *
- * Items are not implemented yet; slots are reserved void pointers.
  */
 typedef struct {
-  void *items[INVENTORY_SIZE]; /**< Reserved for future item implementation */
+  Item *items[INVENTORY_SIZE]; /**< Inventory item slots (NULL if empty) */
 } Inventory;
 
 /**

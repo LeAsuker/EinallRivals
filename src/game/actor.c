@@ -2,6 +2,7 @@
 #include "game/actions.h"
 #include "game/archetype.h"
 #include "game/class_data.h"
+#include "game/item.h"
 #include "game/skill_data.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -72,6 +73,20 @@ Stats character_get_stats(Character *character) {
     stats.luck = cls->luck + gen->luck + vet->luck;
   }
 
+  // Add equipped item stat bonuses
+  for (int i = 0; i < character->equipment_count; i++) {
+    Item *item = character->equipment[i].item;
+    if (item != NULL) {
+      stats.max_health += item->stats.max_health;
+      stats.movement += item->stats.movement;
+      stats.phys_attack += item->stats.phys_attack;
+      stats.phys_defense += item->stats.phys_defense;
+      stats.magic_attack += item->stats.magic_attack;
+      stats.magic_defense += item->stats.magic_defense;
+      stats.luck += item->stats.luck;
+    }
+  }
+
   return stats;
 }
 
@@ -134,7 +149,7 @@ static void character_init_base(Character *character, Faction *owner,
     }
   }
 
-  // Initialize inventory slots (items not implemented yet)
+  // Initialize inventory slots
   for (int i = 0; i < INVENTORY_SIZE; i++) {
     character->inventory.items[i] = NULL;
   }
@@ -254,17 +269,52 @@ void character_init_from_class(Character *character, Faction *owner,
   }
 }
 
+// ============================================================================
+// Character Resource Cleanup
+// ============================================================================
+
+/**
+ * @brief Free all heap-allocated resources owned by a character (skills,
+ *        equipped items, inventory items) without freeing the struct itself.
+ * @param character Character whose resources should be released.
+ */
+static void character_cleanup_resources(Character *character) {
+  if (character == NULL) {
+    return;
+  }
+  // Free any per-skill allocations
+  for (int i = 0; i < character->skill_count; i++) {
+    skill_free(&character->skills[i]);
+  }
+  character->skill_count = 0;
+  // Free equipped items
+  for (int i = 0; i < character->equipment_count; i++) {
+    if (character->equipment[i].item != NULL) {
+      item_free(character->equipment[i].item);
+      character->equipment[i].item = NULL;
+    }
+  }
+  character->equipment_count = 0;
+  // Free inventory items
+  for (int i = 0; i < INVENTORY_SIZE; i++) {
+    if (character->inventory.items[i] != NULL) {
+      item_free(character->inventory.items[i]);
+      character->inventory.items[i] = NULL;
+    }
+  }
+}
+
+// ============================================================================
+// Character Creation and Initialization
+// ============================================================================
+
 /**
  * @brief Free resources owned by a Character and deallocate it (NULL-safe).
  * @param character Character to free.
  */
 void character_free(Character *character) {
   NULL_CHECK_VOID(character);
-  // Free any per-skill allocations
-  for (int i = 0; i < character->skill_count; i++) {
-    skill_free(&character->skills[i]);
-  }
-  character->equipment_count = 0;
+  character_cleanup_resources(character);
   free(character);
 }
 
@@ -526,14 +576,7 @@ Character *character_array_create_from_class(int count, Faction *owner,
 void character_array_free(Character *characters, int count) {
   if (characters != NULL) {
     for (int i = 0; i < count; i++) {
-      for (int s = 0; s < characters[i].skill_count; s++) {
-        skill_free(&characters[i].skills[s]);
-      }
-      characters[i].equipment_count = 0;
-      // Clear inventory slots (items not implemented yet)
-      for (int inv = 0; inv < INVENTORY_SIZE; inv++) {
-        characters[i].inventory.items[inv] = NULL;
-      }
+      character_cleanup_resources(&characters[i]);
     }
     free(characters);
   }
