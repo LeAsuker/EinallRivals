@@ -1,5 +1,6 @@
 #include "game/actor.h"
 #include "game/actions.h"
+#include "game/archetype.h"
 #include "game/class_data.h"
 #include "game/skill_data.h"
 #include <stdio.h>
@@ -79,18 +80,21 @@ Stats character_get_stats(Character *character) {
 // ============================================================================
 
 /**
- * @brief Initialize the common fields of a Character from a UnitClass template.
+ * @brief Initialize the common fields of a Character from a UnitClass template
+ *        and an Archetype.
  *
  * Sets sprite, owner, action flags, level, genetics, veterancy, health, name,
- * and clears the skill list. Does NOT add any skills; callers must do that.
+ * archetype, and equipment slots. Does NOT add any skills; callers must do that.
  *
  * @param character Character struct to initialize.
  * @param owner Owning faction.
  * @param sprite Sprite texture.
  * @param unit_class UnitClass template to use.
+ * @param archetype Archetype that determines equipment slot layout.
  */
 static void character_init_base(Character *character, Faction *owner,
-                                Texture2D sprite, const UnitClass *unit_class) {
+                                Texture2D sprite, const UnitClass *unit_class,
+                                Archetype archetype) {
   NULL_CHECK_VOID(character);
   NULL_CHECK_VOID(owner);
   NULL_CHECK_VOID(unit_class);
@@ -102,12 +106,33 @@ static void character_init_base(Character *character, Faction *owner,
   character->next_level_xp = 100;
   character->level_up_pending = false;
   character->unit_class = unit_class;
+  character->archetype = archetype;
   genetics_init(&character->genetics);
   veterancy_init(&character->veterancy);
   Stats stats = character_get_stats(character);
   character->curr_health = stats.max_health;
   strcpy(character->name, unit_class->name);
   character->skill_count = 0;
+
+  // Initialize equipment slots based on archetype
+  const ArchetypeSlotConfig *config = archetype_get_slot_config(archetype);
+  if (config != NULL) {
+    character->equipment_count = config->slot_count;
+    for (int i = 0; i < MAX_EQUIP_SLOTS; i++) {
+      if (i < config->slot_count) {
+        character->equipment[i].type = config->slots[i];
+      } else {
+        character->equipment[i].type = EQUIP_SLOT_NONE;
+      }
+      character->equipment[i].item = NULL;
+    }
+  } else {
+    character->equipment_count = 0;
+    for (int i = 0; i < MAX_EQUIP_SLOTS; i++) {
+      character->equipment[i].type = EQUIP_SLOT_NONE;
+      character->equipment[i].item = NULL;
+    }
+  }
 }
 
 // ============================================================================
@@ -133,22 +158,30 @@ Character *militia_create(Faction *owner, Texture2D sprite,
 }
 
 /**
- * @brief Allocate and initialize a character from a specific UnitClass
- * template.
+ * @brief Allocate and initialize a character from an Archetype.
+ *
+ * The base UnitClass is resolved automatically from the archetype.
+ *
  * @param owner Owning faction for the character.
  * @param sprite Sprite texture for the character.
- * @param unit_class Class template to base the new character on.
+ * @param archetype Archetype that determines base class and equipment slots.
  * @return Newly allocated Character or NULL on allocation failure.
  */
 Character *character_create_from_class(Faction *owner, Texture2D sprite,
-                                       const UnitClass *unit_class,
+                                       Archetype archetype,
                                        const ActionIcons *icons) {
   Character *character = malloc(sizeof(Character));
   if (character == NULL) {
     fprintf(stderr, "Error: Failed to allocate memory for character\n");
     return NULL;
   }
-  character_init_from_class(character, owner, sprite, unit_class, icons);
+  const UnitClass *base_class = archetype_get_base_class(archetype);
+  if (base_class == NULL) {
+    free(character);
+    return NULL;
+  }
+  character_init_from_class(character, owner, sprite, base_class, archetype,
+                            icons);
   return character;
 }
 
@@ -161,7 +194,8 @@ Character *character_create_from_class(Faction *owner, Texture2D sprite,
  */
 void militia_init(Character *character, Faction *owner, Texture2D sprite,
                   const ActionIcons *icons) {
-  character_init_base(character, owner, sprite, &CLASS_MILITIA);
+  character_init_base(character, owner, sprite, &CLASS_MILITIA,
+                      ARCHETYPE_WARRIOR);
   // Add militia-specific skills
   Skill tmp;
   action_copy_loot(&tmp);
@@ -179,7 +213,7 @@ void militia_init(Character *character, Faction *owner, Texture2D sprite,
  */
 void warg_init(Character *character, Faction *owner, Texture2D sprite,
                const ActionIcons *icons) {
-  character_init_base(character, owner, sprite, &CLASS_WARG);
+  character_init_base(character, owner, sprite, &CLASS_WARG, ARCHETYPE_WARG);
   // Add warg-specific skills
   Skill tmp;
   action_copy_bite(&tmp, icons);
@@ -187,16 +221,20 @@ void warg_init(Character *character, Faction *owner, Texture2D sprite,
 }
 
 /**
- * @brief Initialize a Character based on a given UnitClass.
- *        If the UnitClass name matches known templates, use their init helpers.
- * @param character Character struct to initialize (NULL-safe via
- * NULL_CHECK_VOID).
+ * @brief Initialize a Character based on a given UnitClass and Archetype.
+ *
+ * If the UnitClass name matches a known template (Militia, Warg), the
+ * corresponding class-specific init helper is used.
+ *
+ * @param character Character struct to initialize (NULL-safe via NULL_CHECK_VOID).
  * @param owner Owning faction for the character.
  * @param sprite Sprite texture to assign.
  * @param unit_class UnitClass template to initialize from.
+ * @param archetype Archetype that determines equipment slots.
  */
 void character_init_from_class(Character *character, Faction *owner,
                                Texture2D sprite, const UnitClass *unit_class,
+                               Archetype archetype,
                                const ActionIcons *icons) {
   NULL_CHECK_VOID(character);
   NULL_CHECK_VOID(owner);
@@ -206,7 +244,7 @@ void character_init_from_class(Character *character, Faction *owner,
   } else if (strcmp(unit_class->name, "Warg") == 0) {
     warg_init(character, owner, sprite, icons); // Add default warg skills
   } else {
-    character_init_base(character, owner, sprite, unit_class);
+    character_init_base(character, owner, sprite, unit_class, archetype);
     // Generic classes start with no skills
   }
 }
@@ -221,6 +259,7 @@ void character_free(Character *character) {
   for (int i = 0; i < character->skill_count; i++) {
     skill_free(&character->skills[i]);
   }
+  character->equipment_count = 0;
   free(character);
 }
 
@@ -440,20 +479,23 @@ bool character_has_pending_level_up(Character *character) {
 // ============================================================================
 
 /**
- * @brief Allocate and initialize an array of characters from a UnitClass
- * template.
+ * @brief Allocate and initialize an array of characters from an Archetype.
+ *
+ * The base UnitClass is resolved automatically from the archetype.
+ *
  * @param count Number of characters to create.
  * @param owner Owning faction for all characters.
  * @param sprite Sprite to assign to each character.
- * @param unit_class Template class for initialization.
+ * @param archetype Archetype that determines base class and equipment slots.
  * @return Pointer to allocated array or NULL on failure.
  */
 Character *character_array_create_from_class(int count, Faction *owner,
                                              Texture2D sprite,
-                                             const UnitClass *unit_class,
+                                             Archetype archetype,
                                              const ActionIcons *icons) {
   NULL_CHECK_RET(owner, NULL);
-  NULL_CHECK_RET(unit_class, NULL);
+  const UnitClass *base_class = archetype_get_base_class(archetype);
+  NULL_CHECK_RET(base_class, NULL);
   Character *characters = malloc(sizeof(Character) * count);
 
   if (characters == NULL) {
@@ -464,7 +506,8 @@ Character *character_array_create_from_class(int count, Faction *owner,
   // Initialize all characters
   for (int i = 0; i < count; i++) {
     // Init since we have an array, use init function directly
-    character_init_from_class(&characters[i], owner, sprite, unit_class, icons);
+    character_init_from_class(&characters[i], owner, sprite, base_class,
+                              archetype, icons);
   }
 
   return characters;
@@ -481,6 +524,7 @@ void character_array_free(Character *characters, int count) {
       for (int s = 0; s < characters[i].skill_count; s++) {
         skill_free(&characters[i].skills[s]);
       }
+      characters[i].equipment_count = 0;
     }
     free(characters);
   }

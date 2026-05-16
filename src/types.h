@@ -20,6 +20,45 @@ typedef struct Coord {
   int y; /**< Y offset */
 } Coord;
 
+// ============================================================================
+// Archetype and Equipment System
+// ============================================================================
+
+/**
+ * @brief Identifies the archetype (role) of a class tree, determining available
+ * equipment slots.
+ */
+typedef enum {
+  ARCHETYPE_NONE = -1,
+  ARCHETYPE_WARRIOR = 0,
+  ARCHETYPE_WARG,
+  ARCHETYPE_COUNT
+} Archetype;
+
+/**
+ * @brief Types of equipment slots a character can possess.
+ */
+typedef enum {
+  EQUIP_SLOT_NONE = 0,
+  EQUIP_SLOT_ARMOR,
+  EQUIP_SLOT_WEAPON_MELEE,
+  EQUIP_SLOT_TRINKET,
+  EQUIP_SLOT_COUNT
+} EquipSlotType;
+
+/** @brief Maximum equipment slots any archetype may have. */
+#define MAX_EQUIP_SLOTS 4
+
+/**
+ * @brief A single equipment slot on a character.
+ *
+ * The item pointer is reserved for a future item system.
+ */
+typedef struct {
+  EquipSlotType type;
+  void *item; /**< Reserved for future item implementation */
+} EquipSlot;
+
 /**
  * @brief Skill definition describing an action a Character can perform.
  */
@@ -152,11 +191,15 @@ typedef struct Character {
   const UnitClass *unit_class; /**< Pointer to class template */
   Genetics genetics;     /**< Random stat modifiers */
   Veterancy veterancy;   /**< Permanent level bonuses */
+  Archetype archetype;   /**< Character archetype determining equipment slots */
 
   Skill skills[5]; /**< Skill slots */
   int skill_count; /**< Number of skills in use */
 
   char name[10]; /**< Character name */
+
+  EquipSlot equipment[MAX_EQUIP_SLOTS]; /**< Equipment slots */
+  int equipment_count;                  /**< Number of active equipment slots */
 } Character;
 
 /**

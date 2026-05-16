@@ -6,9 +6,12 @@
 		"**/CVS": true,
 		"**/.DS_Store": true,
 		"**/*.o": true,
-		"**/*.exe": true,
+		"**/*.exe": true
 	},
+	"clangd.path": "/usr/bin/clangd",
 	"clangd.arguments": [
-		"-I/home/hatsunemiku/tmp/playground/build/external/raylib-master/src"
+		"--compile-commands-dir=${workspaceFolder}",
+		"--header-insertion=never",
+		"--completion-style=detailed"
 	]
 }

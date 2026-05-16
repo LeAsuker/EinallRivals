@@ -142,13 +142,12 @@ int main(void) {
       app_res.action_icons = action_icons_load();
 
       // Create units
-      const UnitClass *militia_class = class_get_militia();
       Character *dark_troops = character_array_create_from_class(
           DARK_TROOP_NUM, &factions[DARKUS], unit_sprites.darkus_militia,
-          militia_class, &app_res.action_icons);
+          ARCHETYPE_WARRIOR, &app_res.action_icons);
       Character *vent_troops = character_array_create_from_class(
           VENT_TROOP_NUM, &factions[VENTUS], unit_sprites.ventus_militia,
-          militia_class, &app_res.action_icons);
+          ARCHETYPE_WARRIOR, &app_res.action_icons);
       // Assign character arrays to their owning factions before placing them
       factions[DARKUS].characters = dark_troops;
       factions[DARKUS].character_count = DARK_TROOP_NUM;

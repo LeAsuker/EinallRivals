@@ -122,7 +122,7 @@ Character *structure_generation_spawn_wargs_around_lairs(
 
         character_init_from_class(&gaia_wargs[gaia_warg_count], gaia_faction,
                                   unit_sprites.warg, warg_class,
-                                  action_icons);
+                                  ARCHETYPE_WARG, action_icons);
         dest->occupant = &gaia_wargs[gaia_warg_count];
         gaia_warg_count++;
         spawned++;

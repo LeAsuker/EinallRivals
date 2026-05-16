@@ -68,11 +68,12 @@ The game is a single-threaded C application with a classic game-loop architectur
 
 ### `src/types.h` — The Shared Contract
 This is the most critical file. It defines:
-- `Character` (unit instance with stats, skills, genetics, veterancy)
+- `Character` (unit instance with stats, skills, genetics, veterancy, archetype, equipment)
 - `Faction` (owning faction with color theme and character array)
 - `Terrain` / `Point` (map cell: position, occupant, terrain, structure)
 - `Skill` (action definition with AoE, range, cooldown, icon)
 - `UnitClass` / `ClassTree` (class templates and promotion tree)
+- `Archetype`, `EquipSlot`, `EquipSlotType` (archetype & equipment system)
 - `Stats`, `Genetics`, `Veterancy` (stat calculation layers)
 - `GridConfig` (pixel offsets and cell counts)
 - `NULL_CHECK_VOID` / `NULL_CHECK_RET` macros (null-check guards used everywhere)
@@ -88,7 +89,7 @@ All `.c` files in this directory depend on `types.h` and often on each other. Th
 
 | File | Domain | Key APIs |
 |------|--------|----------|
-| `actor.c/h` | Character lifecycle, stats, leveling, class system | `militia_create`, `character_get_stats`, `character_array_create_from_class`, `character_level_up`, `class_get_militia` |
+| `actor.c/h` | Character lifecycle, stats, leveling, archetype & class system | `militia_create`, `character_get_stats`, `character_array_create_from_class`, `character_level_up`, `class_get_militia` |
 | `actions.c/h` | Skill definitions, action icons, skill execution | `action_copy_spear_strike`, `execute_skill_at_cells`, `action_icons_load/unload` |
 | `combat.c/h` | Combat execution, forecast, damage formulas, XP | `combat_execute`, `combat_forecast`, `combat_calculate_damage`, `combat_grant_experience` |
 | `game_logic.c/h` | Turn state machine, victory checks, AI turns | `game_state_create`, `game_next_turn`, `game_process_ai_turn`, `game_check_victory_conditions` |
@@ -99,6 +100,7 @@ All `.c` files in this directory depend on `types.h` and often on each other. Th
 | `spawning.c/h` | Faction troop placement into map corners | `spawning_place_faction_in_corner` |
 | `faction_init.c/h` | Faction setup (DARKUS, VENTUS, GAIA) | `faction_init_default`, `factions_free_actors` |
 | `biome_config.c/h` | Biome parameters (core count, spread range) | `biome_config_get_default` |
+| `archetype.c/h` | Archetype slot configs and base-class lookup | `archetype_get_slot_config`, `archetype_get_base_class` |
 | `cleanup.h` | `AppResources` bundle + atexit cleanup | `app_resources_register`, `app_resources_cleanup_atexit` |
 | `raylib_check.c/h` | Raylib version compatibility checks | (rarely touched) |
 
@@ -133,7 +135,7 @@ main()
   -> unit_sprites_load()         [render/unit_sprites]
   -> structure_sprites_load()    [render/structure_sprites]
   -> action_icons_load()         [game/actions]
-  -> character_array_create_from_class() [game/actor]
+  -> character_array_create_from_class() [game/actor]  (pass Archetype, base class auto-resolved)
   -> spawning_place_faction_in_corner()  [game/spawning]
   -> structure_generation_place_*()      [game/structure_generation]
   -> game_state_create()         [game/game_logic]
@@ -203,14 +205,49 @@ All resources allocated when entering PLAYING mode are tracked in the `AppResour
 - `BuildAndLaunch.sh`: Convenience script. Safe to modify for local workflow tweaks.
 - `.vscode/settings.json`, `tasks.json`, `launch.json`: IDE configuration. Update if include paths change.
 
+### clangd / compile_commands.json
+A `compile_commands.json` exists at the repository root. It captures the exact compiler flags (includes, defines, `-std=c17`) for every project source file plus raylib. It was generated with `bear` and `compiledb` so that **agents and editors** can reason about the code with accurate cross-file knowledge.
+
+**What agents should know:**
+- `clangd` is installed at `/usr/bin/clangd`.
+- Before claiming an edit is correct, run a quick check:
+  ```bash
+  clangd --compile-commands-dir=. --check=src/game/actor.c
+  ```
+  If it prints no `error:` lines, the file parses cleanly against the full project context.
+- To verify a header parses in the correct module context:
+  ```bash
+  clangd --compile-commands-dir=. --check=src/types.h
+  ```
+  (clangd infers the flags from any `.c` file that includes it.)
+
+**When to regenerate:**
+- If you add/remove source files, regenerate with:
+  ```bash
+  make clean && bear -- make
+  ```
+  If the build is currently broken and `bear` can't capture everything, generate manually (script in `scripts/gen_compile_commands.py` or just extend the JSON).
+- If you change include paths, defines, or compiler flags in `build/premake5.lua`, run `cd build && ./premake5 gmake` first, then regenerate.
+
+**VS Code integration:**
+- `.vscode/settings.json` points the `clangd` extension at the workspace root.
+- This means the user also gets autocomplete, diagnostics, and go-to-definition in their editor while the agent edits files.
+
 ## Common Tasks for Agents
 
 ### Adding a new unit class
 1. Add stats to a new `UnitClass` constant in `src/game/class_data.c`.
 2. Add `class_get_*()` accessor in `src/game/class_data.h`.
-3. Update `character_init_from_class` in `src/game/actor.c` if the class needs special initialization.
-4. Add sprite loading in `src/render/unit_sprites.c/h`.
-5. Add faction initialization in `src/game/faction_init.c` if the class is faction-locked.
+3. If the class belongs to a new archetype, add the archetype first (see below).
+4. Update `character_init_from_class` in `src/game/actor.c` if the class needs special initialization.
+5. Add sprite loading in `src/render/unit_sprites.c/h`.
+6. Add faction initialization in `src/game/faction_init.c` if the class is faction-locked.
+
+### Adding a new archetype
+1. Append the new archetype to the `Archetype` enum in `src/types.h`.
+2. Add its slot layout to `ARCHETYPE_CONFIGS[]` in `src/game/archetype.c`.
+3. Add its base-class mapping to `archetype_get_base_class()` in `src/game/archetype.c`.
+4. Create characters by passing the new `Archetype` value to `character_array_create_from_class()` or `character_create_from_class()`.
 
 ### Adding a new skill
 1. Add skill copy function in `src/game/skill_data.c/h` (model after `action_copy_spear_strike`).
@@ -257,7 +294,7 @@ All resources allocated when entering PLAYING mode are tracked in the `AppResour
 |------|-----------|
 | Understand game loop & init order | `src/main.c` |
 | Understand data model | `src/types.h` |
-| Add/modify units or classes | `src/game/actor.c/h` |
+| Add/modify units or classes | `src/game/actor.c/h`, `src/game/class_data.c/h`, `src/game/archetype.c/h` |
 | Add/modify combat rules | `src/game/combat.c/h` |
 | Change turn flow / AI / victory | `src/game/game_logic.c/h` |
 | Change map generation | `src/game/map.c/h`, `src/game/biome_config.c/h` |

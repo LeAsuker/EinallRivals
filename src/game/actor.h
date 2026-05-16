@@ -5,10 +5,14 @@
  * Module: Actor (Character) System
  * Layer: Game Domain (src/game/)
  * Purpose: Character lifecycle, stats calculation, genetics, veterancy,
- * leveling, and class templates.
+ *          leveling, and class templates.
  * Dependencies: types.h
  * Consumers: main.c, game/faction_init.c, game/combat.c, game/game_logic.c
  * See AGENTS.md and src/CODEMAP.md for architecture context.
+ *
+ * NOTE TO AGENTS: When you change character creation signatures or add new
+ * init paths, update AGENTS.md ("Adding a new unit class" / init flow
+ * sections) so that future agents see the current API.
  */
 
 #include "game/class_data.h"
@@ -183,17 +187,20 @@ int character_get_max_skill_range(Character *character);
 // ============================================================================
 
 /**
- * @brief Allocate and initialize an array of characters from a UnitClass.
+ * @brief Allocate and initialize an array of characters from an Archetype.
+ *
+ * The base UnitClass is looked up automatically from the archetype.
+ *
  * @param count Number of characters to allocate.
  * @param owner Owning faction for all characters.
  * @param sprite Sprite to assign to each character.
- * @param unit_class UnitClass template to base characters on.
+ * @param archetype Archetype that determines base class and equipment slots.
  * @param icons  Loaded action icons (may be NULL).
  * @return Pointer to an allocated Character array or NULL on failure.
  */
 Character *character_array_create_from_class(int count, Faction *owner,
                                              Texture2D sprite,
-                                             const UnitClass *unit_class,
+                                             Archetype archetype,
                                              const ActionIcons *icons);
 
 /**
@@ -219,27 +226,37 @@ void character_array_reset_turns(Character *characters, int count);
 int character_array_count_alive(Character *characters, int count);
 
 /**
- * @brief Initialize a character struct from a given UnitClass.
+ * @brief Initialize a character struct from an Archetype.
+ *
+ * The base UnitClass is looked up automatically from the archetype.
+ * If the resolved base class matches a known template (Militia, Warg), the
+ * corresponding class-specific init helper is used.
+ *
  * @param character Character to initialize.
  * @param owner Owning faction.
  * @param sprite Sprite to use.
- * @param unit_class The class template to initialize from.
+ * @param unit_class UnitClass template to initialize from (typically the archetype base class).
+ * @param archetype Archetype that determines equipment slots.
  * @param icons  Loaded action icons (may be NULL).
  */
 void character_init_from_class(Character *character, Faction *owner,
                                Texture2D sprite, const UnitClass *unit_class,
+                               Archetype archetype,
                                const ActionIcons *icons);
 
 /**
- * @brief Allocate and initialize a character given a UnitClass template.
+ * @brief Allocate and initialize a character from an Archetype.
+ *
+ * The base UnitClass is looked up automatically from the archetype.
+ *
  * @param owner Owning faction.
  * @param sprite Sprite to use.
- * @param unit_class Unit class to base the character on.
+ * @param archetype Archetype that determines base class and equipment slots.
  * @param icons  Loaded action icons (may be NULL).
  * @return Newly allocated Character or NULL on allocation failure.
  */
 Character *character_create_from_class(Faction *owner, Texture2D sprite,
-                                       const UnitClass *unit_class,
+                                       Archetype archetype,
                                        const ActionIcons *icons);
 
 /**
