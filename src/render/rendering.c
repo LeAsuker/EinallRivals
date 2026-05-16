@@ -3,6 +3,7 @@
 #include "input/input.h"
 #include "types.h"
 #include "ui/button.h"
+#include "ui/inventory_ui.h"
 #include "ui/modal.h"
 #include <stddef.h>
 
@@ -115,7 +116,8 @@ void render_init(RenderContext *ctx, GridConfig *grid) {
 void render_game(RenderContext *ctx, Point *map, Point *focused_cell,
                  Faction *current_faction, InputState *input_state,
                  Button *end_turn_button, Button action_buttons[],
-                 int action_count, Modal *modal) {
+                 int action_count, Modal *modal,
+                 InventoryUI *inventory_ui) {
   NULL_CHECK_VOID(ctx);
   NULL_CHECK_VOID(map);
   BeginDrawing();
@@ -136,6 +138,10 @@ void render_game(RenderContext *ctx, Point *map, Point *focused_cell,
   // Render modal last (on top of everything)
   if (modal) {
     modal_render(modal);
+  }
+
+  if (inventory_ui) {
+    inventory_ui_render(inventory_ui);
   }
 
   EndDrawing();

@@ -20,6 +20,7 @@
 
 typedef struct InputState InputState;
 typedef struct Modal Modal;
+typedef struct InventoryUI InventoryUI;
 
 // Public rendering functions
 /**
@@ -74,7 +75,7 @@ void render_cell_info(RenderContext *ctx, Point *focused_cell);
 void render_game(RenderContext *ctx, Point *map, Point *focused_cell,
                  Faction *current_faction, InputState *input_state,
                  Button *end_turn_button, Button action_buttons[],
-                 int action_count, Modal *modal);
+                 int action_count, Modal *modal, InventoryUI *inventory_ui);
 
 /**
  * @brief Render action buttons/icons for the given character.

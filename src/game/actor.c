@@ -90,6 +90,8 @@ Stats character_get_stats(Character *character) {
   return stats;
 }
 
+static void character_give_starting_items(Character *character);
+
 // ============================================================================
 // Character base initialization (shared across all class-specific inits)
 // ============================================================================
@@ -110,6 +112,7 @@ Stats character_get_stats(Character *character) {
 static void character_init_base(Character *character, Faction *owner,
                                 Texture2D sprite, const UnitClass *unit_class,
                                 Archetype archetype) {
+  fprintf(stderr, "[DEBUG] character_init_base start\n");
   NULL_CHECK_VOID(character);
   NULL_CHECK_VOID(owner);
   NULL_CHECK_VOID(unit_class);
@@ -124,12 +127,9 @@ static void character_init_base(Character *character, Faction *owner,
   character->archetype = archetype;
   genetics_init(&character->genetics);
   veterancy_init(&character->veterancy);
-  Stats stats = character_get_stats(character);
-  character->curr_health = stats.max_health;
-  strcpy(character->name, unit_class->name);
-  character->skill_count = 0;
 
-  // Initialize equipment slots based on archetype
+  // Initialize equipment slots BEFORE calling character_get_stats,
+  // so the stats function sees a safe equipment_count.
   const ArchetypeSlotConfig *config = archetype_get_slot_config(archetype);
   if (config != NULL) {
     character->equipment_count = config->slot_count;
@@ -153,6 +153,50 @@ static void character_init_base(Character *character, Faction *owner,
   for (int i = 0; i < INVENTORY_SIZE; i++) {
     character->inventory.items[i] = NULL;
   }
+
+  Stats stats = character_get_stats(character);
+  character->curr_health = stats.max_health;
+  strcpy(character->name, unit_class->name);
+  character->skill_count = 0;
+
+  // Give starting items so the inventory system is usable from the start
+  character_give_starting_items(character);
+  fprintf(stderr, "[DEBUG] character_init_base done\n");
+}
+
+// ============================================================================
+// Starting Items Helper
+// ============================================================================
+
+static void character_give_starting_items(Character *character) {
+  fprintf(stderr, "[DEBUG] character_give_starting_items start\n");
+  NULL_CHECK_VOID(character);
+  Stats potion_stats = {1, 0, 0, 0, 0, 0, 0};
+  fprintf(stderr, "[DEBUG] creating potion\n");
+  Item *potion =
+      item_create(100, "Small Potion", ITEM_TYPE_TRINKET, potion_stats);
+  fprintf(stderr, "[DEBUG] potion=%p\n", (void *)potion);
+  if (potion != NULL)
+    character_add_item_to_inventory(character, potion);
+
+  if (character->archetype == ARCHETYPE_WARRIOR) {
+    fprintf(stderr, "[DEBUG] creating sword\n");
+    Stats sword_stats = {0, 0, 1, 0, 0, 0, 0};
+    Item *sword =
+        item_create(101, "Rusty Sword", ITEM_TYPE_MELEE_WEAPON, sword_stats);
+    fprintf(stderr, "[DEBUG] sword=%p\n", (void *)sword);
+    if (sword != NULL)
+      character_add_item_to_inventory(character, sword);
+
+    fprintf(stderr, "[DEBUG] creating armor\n");
+    Stats armor_stats = {2, 0, 0, 1, 0, 0, 0};
+    Item *armor =
+        item_create(102, "Leather Armor", ITEM_TYPE_ARMOR, armor_stats);
+    fprintf(stderr, "[DEBUG] armor=%p\n", (void *)armor);
+    if (armor != NULL)
+      character_add_item_to_inventory(character, armor);
+  }
+  fprintf(stderr, "[DEBUG] character_give_starting_items done\n");
 }
 
 // ============================================================================
@@ -214,14 +258,17 @@ Character *character_create_from_class(Faction *owner, Texture2D sprite,
  */
 void militia_init(Character *character, Faction *owner, Texture2D sprite,
                   const ActionIcons *icons) {
+  fprintf(stderr, "[DEBUG] militia_init start\n");
   character_init_base(character, owner, sprite, &CLASS_MILITIA,
                       ARCHETYPE_WARRIOR);
+  fprintf(stderr, "[DEBUG] militia_init: adding skills\n");
   // Add militia-specific skills
   Skill tmp;
   action_copy_loot(&tmp);
   action_add_skill_to_character(character, &tmp);
   action_copy_spear_strike(&tmp, icons);
   action_add_skill_to_character(character, &tmp);
+  fprintf(stderr, "[DEBUG] militia_init done\n");
 }
 
 /**
@@ -560,11 +607,15 @@ Character *character_array_create_from_class(int count, Faction *owner,
 
   // Initialize all characters
   for (int i = 0; i < count; i++) {
+    fprintf(stderr, "[DEBUG] character_init_from_class start i=%d\n", i);
     // Init since we have an array, use init function directly
     character_init_from_class(&characters[i], owner, sprite, base_class,
                               archetype, icons);
+    fprintf(stderr, "[DEBUG] character_init_from_class done i=%d\n", i);
   }
 
+  fprintf(stderr, "[DEBUG] character_array_create_from_class returning %p\n",
+          (void *)characters);
   return characters;
 }
 

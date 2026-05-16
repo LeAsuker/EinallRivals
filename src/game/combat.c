@@ -1,5 +1,6 @@
 #include "game/combat.h"
 #include "game/actor.h"
+#include "game/item.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -15,6 +16,7 @@ static int calculate_crit_chance(Character *attacker, Character *defender);
 static bool roll_hit(int hit_chance);
 static bool roll_crit(int crit_chance);
 static void apply_combat_damage(Character *character, int damage);
+static void combat_loot_items(Character *killer, Character *victim);
 
 // ============================================================================
 // Combat Execution
@@ -60,6 +62,7 @@ CombatResult combat_execute(Character *attacker, Character *defender) {
   if (!character_is_alive(defender)) {
     result.defender_died = true;
     printf("%s has been defeated!\n", defender->name);
+    combat_loot_items(attacker, defender);
     combat_grant_experience(attacker, defender, true);
     // Attacker used their action
     attacker->can_act = false;
@@ -386,4 +389,30 @@ static bool roll_chance(int chance) {
  */
 static void apply_combat_damage(Character *character, int damage) {
   character_take_damage(character, damage);
+}
+
+/**
+ * @brief Transfer all inventory items from victim to killer.
+ *
+ * Items that do not fit in the killer's inventory are destroyed.
+ */
+static void combat_loot_items(Character *killer, Character *victim) {
+  if (killer == NULL || victim == NULL)
+    return;
+  for (int i = 0; i < INVENTORY_SIZE; i++) {
+    Item *item = victim->inventory.items[i];
+    if (item == NULL)
+      continue;
+    bool added = character_add_item_to_inventory(killer, item);
+    if (added) {
+      printf("%s looted %s from %s!\n", killer->name, item->name,
+             victim->name);
+      victim->inventory.items[i] = NULL;
+    } else {
+      printf("%s could not carry %s from %s (inventory full, item lost)!\n",
+             killer->name, item->name, victim->name);
+      item_free(item);
+      victim->inventory.items[i] = NULL;
+    }
+  }
 }

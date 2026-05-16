@@ -42,6 +42,7 @@ void input_init(InputState *state) {
   state->last_screen_width = GetScreenWidth();
   state->last_screen_height = GetScreenHeight();
   state->selected_action = -1;
+  state->inventory_requested = false;
 }
 
 /**
@@ -89,6 +90,15 @@ void input_update(InputState *state, GridConfig *grid_config, Point *map) {
       state->action_clicked[i] = true;
     } else {
       state->action_clicked[i] = false;
+    }
+  }
+
+  // Inventory open request: press 'I' while a focused player-owned character
+  state->inventory_requested = false;
+  if (IsKeyPressed(KEY_I)) {
+    if (state->focused_cell != NULL && state->focused_cell->occupant != NULL &&
+        state->focused_cell->occupant->owner->playable) {
+      state->inventory_requested = true;
     }
   }
 }

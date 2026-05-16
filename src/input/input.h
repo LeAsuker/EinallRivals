@@ -45,6 +45,9 @@ typedef struct InputState {
   // Currently selected action index (-1 = none). Set when clicking action
   // button.
   int selected_action;
+
+  // Set when the player presses the inventory key while a character is focused
+  bool inventory_requested;
 } InputState;
 
 /**

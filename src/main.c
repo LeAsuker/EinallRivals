@@ -26,6 +26,7 @@
 #include "types.h"
 #include "ui/menu.h"
 #include "ui/modal.h"
+#include "ui/inventory_ui.h"
 
 #include "game/cleanup.h"
 
@@ -46,7 +47,8 @@ static GameMode game_loop_playing(GridConfig *grid_config, Point *mapArr,
                                   GameState *game_state,
                                   RenderContext *render_ctx,
                                   InputState *input_state,
-                                  AppResources *app_res, int screenWidth,
+                                  AppResources *app_res,
+                                  InventoryUI *inventory_ui, int screenWidth,
                                   int screenHeight);
 
 /**
@@ -104,50 +106,75 @@ int main(void) {
     }
 
     // Initialize game resources (only when entering PLAYING mode)
+    fprintf(stderr, "[DEBUG] Entering PLAYING init block\n");
     if (mode == GAME_MODE_PLAYING) {
       // Initialize grid configuration
       GridConfig *grid_config =
           grid_init(GRID_OFFSET_X, GRID_OFFSET_Y, GRID_CELL_SIZE,
                     MAX_GRID_CELLS_X, MAX_GRID_CELLS_Y);
+      fprintf(stderr, "[DEBUG] grid_init done: %p\n", (void *)grid_config);
+      if (grid_config == NULL) {
+        fprintf(stderr, "[FATAL] grid_init returned NULL\n");
+        mode = GAME_MODE_MENU;
+        continue;
+      }
 
       // Load all terrains
       Terrain terrains[TERRAIN_COUNT];
       terrain_init_all(terrains, GRID_CELL_SIZE);
+      fprintf(stderr, "[DEBUG] terrain_init_all done\n");
 
       // Create biome configurations
       BiomeConfig biome_configs[3];
       int num_biomes = biome_config_get_default(biome_configs, 3, terrains);
+      fprintf(stderr, "[DEBUG] biome_config_get_default done: %d\n", num_biomes);
 
       // Initialize map
       Point *mapArr = map_create(grid_config, terrains[TERRAIN_PLAINS]);
+      fprintf(stderr, "[DEBUG] map_create done: %p\n", (void *)mapArr);
+      if (mapArr == NULL) {
+        fprintf(stderr, "[FATAL] map_create returned NULL\n");
+        free(grid_config);
+        mode = GAME_MODE_MENU;
+        continue;
+      }
       int layers = 7;
       map_generate_all_biomes(grid_config, mapArr, biome_configs, num_biomes,
                               layers);
+      fprintf(stderr, "[DEBUG] map_generate_all_biomes done\n");
       map_generate_deep_ter(mapArr, grid_config);
+      fprintf(stderr, "[DEBUG] map_generate_deep_ter done\n");
 
       // Initialize rendering
       RenderContext render_ctx;
       render_init(&render_ctx, grid_config);
+      fprintf(stderr, "[DEBUG] render_init done\n");
 
       // Initialize factions
       Faction factions[3];
       int num_factions = faction_init_default(factions, 3);
+      fprintf(stderr, "[DEBUG] faction_init_default done: %d\n", num_factions);
 
       // Load unit sprites
       UnitSprites unit_sprites = unit_sprites_load(GRID_CELL_SIZE);
+      fprintf(stderr, "[DEBUG] unit_sprites_load done\n");
       // Load structure sprites
       StructureSprites structure_sprites =
           structure_sprites_load(GRID_CELL_SIZE);
+      fprintf(stderr, "[DEBUG] structure_sprites_load done\n");
       // Load action icons (skills)
       app_res.action_icons = action_icons_load();
+      fprintf(stderr, "[DEBUG] action_icons_load done\n");
 
       // Create units
       Character *dark_troops = character_array_create_from_class(
           DARK_TROOP_NUM, &factions[DARKUS], unit_sprites.darkus_militia,
           ARCHETYPE_WARRIOR, &app_res.action_icons);
+      fprintf(stderr, "[DEBUG] dark_troops created: %p\n", (void *)dark_troops);
       Character *vent_troops = character_array_create_from_class(
           VENT_TROOP_NUM, &factions[VENTUS], unit_sprites.ventus_militia,
           ARCHETYPE_WARRIOR, &app_res.action_icons);
+      fprintf(stderr, "[DEBUG] vent_troops created: %p\n", (void *)vent_troops);
       // Assign character arrays to their owning factions before placing them
       factions[DARKUS].characters = dark_troops;
       factions[DARKUS].character_count = DARK_TROOP_NUM;
@@ -155,39 +182,68 @@ int main(void) {
       factions[VENTUS].characters = vent_troops;
       factions[VENTUS].character_count = VENT_TROOP_NUM;
       // Place faction troops into their corners
+      fprintf(stderr, "[DEBUG] placing dark troops...\n");
       spawning_place_faction_in_corner(mapArr, grid_config, &factions[DARKUS],
                                        0, 4, 16);
+      fprintf(stderr, "[DEBUG] placing vent troops...\n");
       spawning_place_faction_in_corner(mapArr, grid_config, &factions[VENTUS],
                                        2, 4, 16);
+      fprintf(stderr, "[DEBUG] factions placed\n");
 
       // Place Warg Lairs first, then spawn Gaia wargs around those lairs
+      fprintf(stderr, "[DEBUG] placing warg lairs...\n");
       int lairs = structure_generation_place_warg_lairs(
           mapArr, grid_config, terrains, TERRAIN_COUNT, structure_sprites);
+      fprintf(stderr, "[DEBUG] warg lairs placed: %d\n", lairs);
       int gaia_warg_count = 0;
       Character *gaia_wargs = NULL;
       if (lairs > 0) {
+        fprintf(stderr, "[DEBUG] spawning wargs...\n");
         gaia_wargs = structure_generation_spawn_wargs_around_lairs(
             mapArr, grid_config, unit_sprites, &factions[GAIA],
             &gaia_warg_count, &app_res.action_icons);
+        fprintf(stderr, "[DEBUG] wargs spawned: %d (%p)\n", gaia_warg_count,
+                (void *)gaia_wargs);
         if (gaia_wargs != NULL && gaia_warg_count > 0) {
           factions[GAIA].characters = gaia_wargs;
           factions[GAIA].character_count = gaia_warg_count;
         }
       }
 
+      fprintf(stderr, "[DEBUG] placing abandoned huts...\n");
       int huts = structure_generation_place_abandoned_huts(
           mapArr, grid_config, terrains, TERRAIN_COUNT, structure_sprites);
+      fprintf(stderr, "[DEBUG] huts placed: %d\n", huts);
 
       // Initialize game state
+      fprintf(stderr, "[DEBUG] creating game_state...\n");
       GameState *game_state = game_state_create(factions, num_factions);
+      fprintf(stderr, "[DEBUG] game_state created: %p\n", (void *)game_state);
+      if (game_state == NULL) {
+        fprintf(stderr, "[FATAL] game_state_create returned NULL\n");
+        cleanup_game_resources(&app_res);
+        mode = GAME_MODE_MENU;
+        continue;
+      }
       // Initialize modal system
+      fprintf(stderr, "[DEBUG] creating modal...\n");
       game_state->modal = modal_create();
+      fprintf(stderr, "[DEBUG] modal created: %p\n", (void *)game_state->modal);
+      if (game_state->modal == NULL) {
+        fprintf(stderr, "[FATAL] modal_create returned NULL\n");
+        cleanup_game_resources(&app_res);
+        mode = GAME_MODE_MENU;
+        continue;
+      }
 
       // Initialize input
+      fprintf(stderr, "[DEBUG] initializing input...\n");
       InputState input_state;
       input_init(&input_state);
+      fprintf(stderr, "[DEBUG] input_init done\n");
       // Layout persistent UI buttons now that grid_config is available
       input_layout_buttons(&input_state, grid_config);
+      fprintf(stderr, "[DEBUG] input_layout_buttons done\n");
       /* Register current resources for potential atexit/fatal cleanup. */
       app_res.mapArr = mapArr;
       app_res.factions = factions;
@@ -200,12 +256,24 @@ int main(void) {
       app_res.grid_config = grid_config;
       app_res.initialized = 1;
 
-      // Main game loop
+      fprintf(stderr, "[DEBUG] creating inventory_ui...\n");
+      InventoryUI *inventory_ui = inventory_ui_create();
+      fprintf(stderr, "[DEBUG] inventory_ui created: %p\n", (void *)inventory_ui);
+      if (inventory_ui == NULL) {
+        fprintf(stderr, "[FATAL] inventory_ui_create returned NULL\n");
+        cleanup_game_resources(&app_res);
+        mode = GAME_MODE_MENU;
+        continue;
+      }
+
+      fprintf(stderr, "[DEBUG] entering main game loop\n");
       while (!WindowShouldClose() && mode == GAME_MODE_PLAYING) {
         mode = game_loop_playing(grid_config, mapArr, game_state, &render_ctx,
-                                 &input_state, &app_res, screenWidth,
-                                 screenHeight);
+                                 &input_state, &app_res, inventory_ui,
+                                 screenWidth, screenHeight);
       }
+
+      inventory_ui_free(inventory_ui);
 
       // Cleanup game resources after exiting game loop
       // Only cleanup if we didn't already return to menu (which already cleaned
@@ -233,16 +301,21 @@ static GameMode game_loop_playing(GridConfig *grid_config, Point *mapArr,
                                   GameState *game_state,
                                   RenderContext *render_ctx,
                                   InputState *input_state,
-                                  AppResources *app_res, int screenWidth,
+                                  AppResources *app_res,
+                                  InventoryUI *inventory_ui, int screenWidth,
                                   int screenHeight) {
   GameMode mode = GAME_MODE_PLAYING;
+  if (inventory_ui == NULL) {
+    fprintf(stderr, "[FATAL] inventory_ui is NULL in game_loop_playing\n");
+    return GAME_MODE_MENU;
+  }
   Faction *current_faction = game_get_current_faction(game_state);
 
   if (game_is_over(game_state)) {
     render_game(render_ctx, mapArr, input_state->focused_cell, current_faction,
                 input_state, &input_state->end_turn_button,
                 input_state->action_buttons, ACTION_BUTTON_COUNT,
-                game_state->modal);
+                game_state->modal, inventory_ui);
     return mode;
   }
 
@@ -299,7 +372,7 @@ static GameMode game_loop_playing(GridConfig *grid_config, Point *mapArr,
     render_game(render_ctx, mapArr, input_state->focused_cell, current_faction,
                 input_state, &input_state->end_turn_button,
                 input_state->action_buttons, ACTION_BUTTON_COUNT,
-                game_state->modal);
+                game_state->modal, inventory_ui);
     return mode;
   }
 
@@ -311,7 +384,7 @@ static GameMode game_loop_playing(GridConfig *grid_config, Point *mapArr,
     render_game(render_ctx, mapArr, input_state->focused_cell, current_faction,
                 input_state, &input_state->end_turn_button,
                 input_state->action_buttons, ACTION_BUTTON_COUNT,
-                game_state->modal);
+                game_state->modal, inventory_ui);
     return mode;
   }
 
@@ -346,6 +419,30 @@ static GameMode game_loop_playing(GridConfig *grid_config, Point *mapArr,
 
   input_update(input_state, grid_config, mapArr);
 
+  // Handle inventory open request
+  if (input_state->inventory_requested && !inventory_ui->active) {
+    input_state->inventory_requested = false;
+    if (input_state->focused_cell != NULL &&
+        input_state->focused_cell->occupant != NULL) {
+      Character *c = input_state->focused_cell->occupant;
+      if (c->owner->playable) {
+        inventory_ui_open(inventory_ui, c, screenWidth, screenHeight);
+      }
+    }
+  }
+
+  // If inventory is active, handle it and skip normal game input
+  if (inventory_ui->active) {
+    if (!inventory_ui_update(inventory_ui)) {
+      inventory_ui_close(inventory_ui);
+    }
+    render_game(render_ctx, mapArr, input_state->focused_cell, current_faction,
+                input_state, &input_state->end_turn_button,
+                input_state->action_buttons, ACTION_BUTTON_COUNT,
+                game_state->modal, inventory_ui);
+    return mode;
+  }
+
   // AI turn processing
   if (!game_is_player_turn(game_state) && !game_is_over(game_state)) {
     game_process_ai_turn(game_state, mapArr, grid_config);
@@ -365,7 +462,7 @@ static GameMode game_loop_playing(GridConfig *grid_config, Point *mapArr,
   render_game(render_ctx, mapArr, input_state->focused_cell, current_faction,
               input_state, &input_state->end_turn_button,
               input_state->action_buttons, ACTION_BUTTON_COUNT,
-              game_state->modal);
+              game_state->modal, inventory_ui);
 
   return mode;
 }
