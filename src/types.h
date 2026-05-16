@@ -49,6 +49,9 @@ typedef enum {
 /** @brief Maximum equipment slots any archetype may have. */
 #define MAX_EQUIP_SLOTS 4
 
+/** @brief Number of item slots in a character's inventory. */
+#define INVENTORY_SIZE 4
+
 /**
  * @brief A single equipment slot on a character.
  *
@@ -58,6 +61,15 @@ typedef struct {
   EquipSlotType type;
   void *item; /**< Reserved for future item implementation */
 } EquipSlot;
+
+/**
+ * @brief Inventory holding items a character carries but may not be able to equip.
+ *
+ * Items are not implemented yet; slots are reserved void pointers.
+ */
+typedef struct {
+  void *items[INVENTORY_SIZE]; /**< Reserved for future item implementation */
+} Inventory;
 
 /**
  * @brief Skill definition describing an action a Character can perform.
@@ -200,6 +212,8 @@ typedef struct Character {
 
   EquipSlot equipment[MAX_EQUIP_SLOTS]; /**< Equipment slots */
   int equipment_count;                  /**< Number of active equipment slots */
+
+  Inventory inventory; /**< Carried items (may include non-equipable items) */
 } Character;
 
 /**

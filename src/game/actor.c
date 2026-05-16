@@ -133,6 +133,11 @@ static void character_init_base(Character *character, Faction *owner,
       character->equipment[i].item = NULL;
     }
   }
+
+  // Initialize inventory slots (items not implemented yet)
+  for (int i = 0; i < INVENTORY_SIZE; i++) {
+    character->inventory.items[i] = NULL;
+  }
 }
 
 // ============================================================================
@@ -525,6 +530,10 @@ void character_array_free(Character *characters, int count) {
         skill_free(&characters[i].skills[s]);
       }
       characters[i].equipment_count = 0;
+      // Clear inventory slots (items not implemented yet)
+      for (int inv = 0; inv < INVENTORY_SIZE; inv++) {
+        characters[i].inventory.items[inv] = NULL;
+      }
     }
     free(characters);
   }
